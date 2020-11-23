@@ -47,6 +47,9 @@ namespace AdventOfCode.Solutions.Year2019 {
         // Holder for input
         public long? input = null;
 
+        // Debug level
+        public int debug_level = 0;
+
         public Intcode(long[] codes) {
             // Import the hashtable
             this.SetMemory(codes);
@@ -55,11 +58,20 @@ namespace AdventOfCode.Solutions.Year2019 {
             this.State = State.Waiting;
         }
 
-        public Intcode(long[] codes, int print_output) {
+        public Intcode(long[] codes, int print_output, int debugLevel = 0) {
             this.SetMemory(codes);
             this.print_output = print_output;
 
             this.State = State.Waiting;
+            this.debug_level = debugLevel;
+        }
+
+        public Intcode(string codes) : this(codes.Split(',').Select(a => Int64.Parse(a)).ToArray()) {
+            
+        }
+
+        public Intcode(string codes, int print_output, int debugLevel = 0) : this(codes.Split(',').Select(a => Int64.Parse(a)).ToArray(), print_output, debugLevel) {
+            
         }
 
         public void SetMemory(long[] codes) {
@@ -91,7 +103,7 @@ namespace AdventOfCode.Solutions.Year2019 {
 
             // Opcodes are every 4 spaces (0, 4, 8, etc.)
             for(long i=this.position; (i < this.memory.Keys.Max(em => em) && ret == false); ) {
-                Debug.WriteLine("Position: {0}", i);
+                Debug.WriteLineIf(debug_level > 0, string.Format("Position: {0}", i));
 
                 // Check this is valid memory
                 if (!this.memory.Keys.Contains(i)) {
@@ -100,7 +112,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                 }
 
                 long code = (long) this.memory[i];
-                Debug.WriteLine(string.Format("Code: {0}", code));
+                Debug.WriteLineIf(debug_level > 0, string.Format("Code: {0}", code));
 
                 // Saving the param_mode and opcode
                 long opcode;
@@ -119,8 +131,8 @@ namespace AdventOfCode.Solutions.Year2019 {
                     param_mode = "0";
                 }
                 
-                Debug.WriteLine(string.Format("Op Code: {0}", opcode));
-                Debug.WriteLine(string.Format("Param Mode: {0}", param_mode));
+                Debug.WriteLineIf(debug_level > 0, string.Format("Op Code: {0}", opcode));
+                Debug.WriteLineIf(debug_level > 0, string.Format("Param Mode: {0}", param_mode));
 
                 long param_value1;
                 long param_value2;
@@ -136,9 +148,9 @@ namespace AdventOfCode.Solutions.Year2019 {
 
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
                         param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLine(string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLine(string.Format("Param 2: {0}", param_value2));
-                        Debug.WriteLine(string.Format("Destination: {0}", ret_pos));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Destination: {0}", ret_pos));
 
                         this.memory[ret_pos] = param_value1 + param_value2;
                         i += 4;
@@ -152,9 +164,9 @@ namespace AdventOfCode.Solutions.Year2019 {
 
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
                         param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLine(string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLine(string.Format("Param 2: {0}", param_value2));
-                        Debug.WriteLine(string.Format("Destination: {0}", ret_pos));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Destination: {0}", ret_pos));
 
                         this.memory[ret_pos] = param_value1 * param_value2;
                         i += 4;
@@ -187,7 +199,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         // Output an integer
                         this.output_register = this.GetParameterValue(1, (i+1), param_mode);
                         if (this.print_output == 1) {
-                            Debug.WriteLine(string.Format("Output: {0}", this.output_register));
+                            Debug.WriteLineIf(debug_level > 0, string.Format("Output: {0}", this.output_register));
                         }
 
                         // We should return and wait for the next run command
@@ -208,8 +220,8 @@ namespace AdventOfCode.Solutions.Year2019 {
                         // jump-if-true: if the first parameter is non-zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
                         param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLine(string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLine(string.Format("Param 2: {0}", param_value2));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
 
                         if (param_value1 != 0) {
                             i = param_value2;
@@ -222,8 +234,8 @@ namespace AdventOfCode.Solutions.Year2019 {
                         // jump-if-false: if the first parameter is zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
                         param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLine(string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLine(string.Format("Param 2: {0}", param_value2));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
 
                         if (param_value1 == 0) {
                             i = param_value2;
@@ -236,8 +248,8 @@ namespace AdventOfCode.Solutions.Year2019 {
                         // less-than: if the first parameter is less than the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
                         param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLine(string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLine(string.Format("Param 2: {0}", param_value2));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
 
                         ret_mode = this.GetParameterMode(3, param_mode);
                         if (param_value1 < param_value2) {
@@ -253,8 +265,8 @@ namespace AdventOfCode.Solutions.Year2019 {
                         // equals: if the first parameter is equal to the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
                         param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLine(string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLine(string.Format("Param 2: {0}", param_value2));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
 
                         ret_mode = this.GetParameterMode(3, param_mode);
                         if (param_value1 == param_value2) {
@@ -269,7 +281,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                     case 9:
                         // adjusts the relative base by the value of its only parameter. The relative base increases (or decreases, if the value is negative) by the value of the parameter.
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
-                        Debug.WriteLine(string.Format("Param 1: {0}", param_value1));
+                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
 
                         this.relative_base += param_value1;
                         i += 2;
@@ -286,7 +298,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         throw new System.Exception(string.Format("Halt! Bad opcode at pos ({0}): {1}", i, opcode));
                 }
 
-                Debug.WriteLine("");
+                Debug.WriteLineIf(debug_level > 0, "");
             }
         }
 
