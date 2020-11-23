@@ -28,7 +28,7 @@ namespace AdventOfCode.Solutions.Year2019
                             && p.Distinct().Count() < p.Length)		// at least one duplicate
                 .Count();
             
-            return string.Format("{0:N}", part1);
+            return part1.ToString();
         }
 
         protected override string SolvePartTwo()
@@ -41,7 +41,7 @@ namespace AdventOfCode.Solutions.Year2019
                             && p.GroupBy(d=>d).Any(g=>g.Count() == 2)) // two digit group
                 .Count();
             
-            return string.Format("{0:N}", part2);
+            return part2.ToString();
         }
     }
 }
