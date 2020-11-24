@@ -203,11 +203,11 @@ namespace AdventOfCode.Solutions.Year2019 {
                         i += 2;
 
                         // We may want to return a value and re-run
-                        //if (this.print_output > 1) {
+                        if (this.print_output > 1) {
                             this.position += 2;
                             this.State = State.Waiting;
                             ret = true;
-                        //}
+                        }
 
                         // Returns the output and then we wait
                         break;
