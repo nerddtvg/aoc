@@ -15,12 +15,20 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string SolvePartOne()
         {
-            return null;
+            Intcode intcode = new Intcode(Input, 2);
+            intcode.SetInput(1);
+            intcode.Run();
+
+            return intcode.output_register.ToString();
         }
 
         protected override string SolvePartTwo()
         {
-            return null;
+            Intcode intcode = new Intcode(Input, 2);
+            intcode.SetInput(2);
+            intcode.Run();
+
+            return intcode.output_register.ToString();
         }
     }
 }
