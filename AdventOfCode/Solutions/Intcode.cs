@@ -98,11 +98,8 @@ namespace AdventOfCode.Solutions.Year2019 {
             // Do we need to return?
             bool ret = false;
 
-            // Count the inputs used
-            long in_index = 0;
-
             // Opcodes are every 4 spaces (0, 4, 8, etc.)
-            for(long i=this.position; (i < this.memory.Keys.Max(em => em) && ret == false); ) {
+            for(long i=this.position; ret == false && (i <= this.memory.Keys.Max()); ) {
                 Debug.WriteLineIf(debug_level > 0, string.Format("Position: {0}", i));
 
                 // Check this is valid memory
@@ -176,12 +173,11 @@ namespace AdventOfCode.Solutions.Year2019 {
                         // Take an integer input and save it to somewhere (destination is position mode)
                         // See if we've been given inputs and if we have one for this
                         // If we only got one input, let's see if this is our first
-                        if (in_index == 0 && this.input.HasValue) {
-                            in_index++;
-
+                        if (this.input.HasValue) {
                             this.State = State.Running;
                             ret_mode = this.GetParameterMode(1, param_mode);
                             this.memory[this.GetParameterPosition((i+1), ret_mode)] = this.input.Value;
+                            this.input = null;
                             i += 2;
                         } else {
                             // Nope, let's read it
@@ -207,11 +203,11 @@ namespace AdventOfCode.Solutions.Year2019 {
                         i += 2;
 
                         // We may want to return a value and re-run
-                        if (this.print_output > 1) {
+                        //if (this.print_output > 1) {
                             this.position += 2;
                             this.State = State.Waiting;
                             ret = true;
-                        }
+                        //}
 
                         // Returns the output and then we wait
                         break;
