@@ -101,6 +101,10 @@ namespace AdventOfCode.Solutions.Year2019 {
             }
         }
 
+        public void ClearInput() {
+            this.input.Clear();
+        }
+
         public void SetInput(long input) {
             this.input.Enqueue(input);
         }
