@@ -51,7 +51,7 @@ namespace AdventOfCode.Solutions.Year2019 {
         public State State = State.NotInitialized;
 
         // Count the inputs used
-        public int print_output = 1;
+        public int stopOnOutput = 1;
 
         // Output register
         public long output_register = Int64.MinValue;
@@ -68,16 +68,16 @@ namespace AdventOfCode.Solutions.Year2019 {
         public Intcode(long[] codes) {
             // Import the hashtable
             this.SetMemory(codes);
-            this.print_output = 0;
+            this.stopOnOutput = 0;
 
             this.State = State.Waiting;
 
             this.input = new Queue<long>();
         }
 
-        public Intcode(long[] codes, int print_output, int debugLevel = 0) {
+        public Intcode(long[] codes, int stopOnOutput, int debugLevel = 0) {
             this.SetMemory(codes);
-            this.print_output = print_output;
+            this.stopOnOutput = stopOnOutput;
 
             this.State = State.Waiting;
             this.debug_level = debugLevel;
@@ -89,7 +89,7 @@ namespace AdventOfCode.Solutions.Year2019 {
             
         }
 
-        public Intcode(string codes, int print_output, int debugLevel = 0) : this(codes.Split(',').Select(a => Int64.Parse(a)).ToArray(), print_output, debugLevel) {
+        public Intcode(string codes, int stopOnOutput, int debugLevel = 0) : this(codes.Split(',').Select(a => Int64.Parse(a)).ToArray(), stopOnOutput, debugLevel) {
             
         }
 
@@ -213,7 +213,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                     case Opcode.Output:
                         // Output an integer
                         this.output_register = this.GetParameterValue(1, (i+1), param_mode);
-                        if (this.print_output == 1) {
+                        if (this.stopOnOutput == 1) {
                             Debug.WriteLineIf(debug_level > 0, string.Format("Output: {0}", this.output_register));
                         }
 
@@ -222,7 +222,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         i += 2;
 
                         // We may want to return a value and re-run
-                        if (this.print_output > 1) {
+                        if (this.stopOnOutput > 1) {
                             this.position += 2;
                             this.State = State.Waiting;
                             ret = true;
