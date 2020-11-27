@@ -25,6 +25,19 @@ namespace AdventOfCode.Solutions.Year2019 {
         }
     }
 
+    public enum Opcodes {
+        Add = 1,
+        Multiply,
+        Save,
+        Output,
+        JumpIfTrue,
+        JumpIfFalse,
+        LessThan,
+        Equals,
+        RelativeBase,
+        Stop = 99
+    }
+
     public class Intcode {
         // Holds the codes in memory
         public Dictionary<long, long> memory = new Dictionary<long, long>();
@@ -136,8 +149,8 @@ namespace AdventOfCode.Solutions.Year2019 {
                 int ret_mode;
                 long ret_pos;
 
-                switch(opcode) {
-                    case 1:
+                switch((Opcodes) opcode) {
+                    case Opcodes.Add:
                         // Add (destination is position mode)
                         //this.memory[this.memory[i+3]] = this.memory[this.memory[i+1]] + this.memory[this.memory[i+2]]
                         ret_mode = this.GetParameterMode(3, param_mode);
@@ -153,7 +166,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         i += 4;
                         break;
                     
-                    case 2:
+                    case Opcodes.Multiply:
                         // Multiply (destination is position mode)
                         //this.memory[this.memory[i+3]] = this.memory[this.memory[i+1]] * this.memory[this.memory[i+2]]
                         ret_mode = this.GetParameterMode(3, param_mode);
@@ -169,7 +182,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         i += 4;
                         break;
 
-                    case 3:
+                    case Opcodes.Save:
                         // Take an integer input and save it to somewhere (destination is position mode)
                         // See if we've been given inputs and if we have one for this
                         // If we only got one input, let's see if this is our first
@@ -191,7 +204,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         }
                         break;
 
-                    case 4:
+                    case Opcodes.Output:
                         // Output an integer
                         this.output_register = this.GetParameterValue(1, (i+1), param_mode);
                         if (this.print_output == 1) {
@@ -212,7 +225,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         // Returns the output and then we wait
                         break;
 
-                    case 5:
+                    case Opcodes.JumpIfTrue:
                         // jump-if-true: if the first parameter is non-zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
                         param_value2 = this.GetParameterValue(2, (i+2), param_mode);
@@ -226,7 +239,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         }
                         break;
 
-                    case 6:
+                    case Opcodes.JumpIfFalse:
                         // jump-if-false: if the first parameter is zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
                         param_value2 = this.GetParameterValue(2, (i+2), param_mode);
@@ -240,7 +253,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         }
                         break;
 
-                    case 7:
+                    case Opcodes.LessThan:
                         // less-than: if the first parameter is less than the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
                         param_value2 = this.GetParameterValue(2, (i+2), param_mode);
@@ -257,7 +270,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         }
                         break;
 
-                    case 8:
+                    case Opcodes.Equals:
                         // equals: if the first parameter is equal to the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
                         param_value2 = this.GetParameterValue(2, (i+2), param_mode);
@@ -274,7 +287,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         }
                         break;
 
-                    case 9:
+                    case Opcodes.RelativeBase:
                         // adjusts the relative base by the value of its only parameter. The relative base increases (or decreases, if the value is negative) by the value of the parameter.
                         param_value1 = this.GetParameterValue(1, (i+1), param_mode);
                         Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
@@ -283,7 +296,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                         i += 2;
                         break;
                     
-                    case 99:
+                    case Opcodes.Stop:
                         // Add
                         ret = true;
                         i += 4;
