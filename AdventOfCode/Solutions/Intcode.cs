@@ -28,7 +28,7 @@ namespace AdventOfCode.Solutions.Year2019 {
     public enum Opcodes {
         Add = 1,
         Multiply,
-        Save,
+        Input,
         Output,
         JumpIfTrue,
         JumpIfFalse,
@@ -58,7 +58,7 @@ namespace AdventOfCode.Solutions.Year2019 {
         public long relative_base = 0;
 
         // Holder for input
-        public long? input = null;
+        public Queue<long> input;
 
         // Debug level
         public int debug_level = 0;
@@ -69,6 +69,8 @@ namespace AdventOfCode.Solutions.Year2019 {
             this.print_output = 0;
 
             this.State = State.Waiting;
+
+            this.input = new Queue<long>();
         }
 
         public Intcode(long[] codes, int print_output, int debugLevel = 0) {
@@ -77,6 +79,8 @@ namespace AdventOfCode.Solutions.Year2019 {
 
             this.State = State.Waiting;
             this.debug_level = debugLevel;
+
+            this.input = new Queue<long>();
         }
 
         public Intcode(string codes) : this(codes.Split(',').Select(a => Int64.Parse(a)).ToArray()) {
@@ -96,7 +100,7 @@ namespace AdventOfCode.Solutions.Year2019 {
         }
 
         public void SetInput(long input) {
-            this.input = input;
+            this.input.Enqueue(input);
         }
 
         public void Run() {
@@ -107,7 +111,7 @@ namespace AdventOfCode.Solutions.Year2019 {
 
             // Reset to running
             this.State = State.Running;
-
+            
             // Do we need to return?
             bool ret = false;
 
@@ -182,14 +186,14 @@ namespace AdventOfCode.Solutions.Year2019 {
                         i += 4;
                         break;
 
-                    case Opcodes.Save:
+                    case Opcodes.Input:
                         // Take an integer input and save it to somewhere (destination is position mode)
                         // See if we've been given inputs and if we have one for this
                         // If we only got one input, let's see if this is our first
-                        if (this.input.HasValue) {
+                        if (this.input.Count > 0) {
                             this.State = State.Running;
                             ret_mode = this.GetParameterMode(1, param_mode);
-                            this.memory[this.GetParameterPosition((i+1), ret_mode)] = this.input.Value;
+                            this.memory[this.GetParameterPosition((i+1), ret_mode)] = this.input.Dequeue();
                             this.input = null;
                             i += 2;
                         } else {
