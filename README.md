@@ -2,7 +2,7 @@
 A basic C# program for Advent of Code, retrieving puzzle inputs on the go and creating instances of solutions as they are created. It runs on .NET Core 3.1 and can be built easily in Visual Studio Code or Visual Studio. 
 
 ## Requirements
-* .NET Core 3.1
+* .NET 5.0
 
 ## Features
 * Fetches puzzle input from adventofcode.com and stores it locally.
