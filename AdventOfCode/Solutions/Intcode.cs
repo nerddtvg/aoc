@@ -301,60 +301,6 @@ namespace AdventOfCode.Solutions.Year2019 {
             return result;
         }
 
-        public int GetParameterMode(int param_num, string param_mode) {
-            // Get the parameter mode
-            // Pad the string to ensure we have enough characters
-            param_mode = param_mode.PadLeft(param_num, '0');
-            return Int32.Parse(param_mode.Substring(param_mode.Length - param_num, 1));
-        }
-
-        public long GetParameterPosition(long index, int param_mode) {
-            switch (param_mode) {
-                case 0:
-                    // Position mode
-                    // Index tells us where the parameter is in this.memory
-                    // Then we return the value referenced by that position
-                    return ((long) this.memory[index]);
-        
-                case 1:
-                    // Immediate mode
-                    // Index tells us where the parameter is in this.memory
-                    // Then we return the value of that position
-                    return index;
-
-                case 2:
-                    // Relative mode
-                    // Take the relative_base and add the value of the param
-                    return ((long) this.memory[index]) + this.relative_base;
-
-                default:
-                    throw new System.Exception("[GetParameterPosition] Invalid param_mode: param_mode");
-            }
-        }
-        
-        public long GetParameterValue(int param_num, long index, string param_mode) {
-            /*
-            // The memory position of the parameter
-            index
-
-            // Is this the first param, second param, etc. of the opcode
-            int param_num
-
-            // A number representing the param mode
-            // Singles = first param mode
-            // Tens = second param mode
-            // Hundreds = second param mode
-            // Thousands = second param mode
-            string param_mode
-            */
-        
-            int l_param_mode = this.GetParameterMode(param_num, param_mode);
-
-            long p = this.GetParameterPosition(index, l_param_mode);
-            
-            return ((long) this.memory[p]);
-        }
-
         public void DrawPuzzle(System.Collections.Generic.List<Tile> Tiles, int score) {
             Console.Clear();
 
