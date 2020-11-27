@@ -105,6 +105,167 @@ namespace AdventOfCode.Solutions.Year2019 {
             this.input.Enqueue(input);
         }
 
+        private bool DoOperation((Opcode opcode, Mode[] modes) instruction) {
+            Debug.WriteLineIf(debug_level > 0, string.Format("Position: {0}", this.position));
+
+            // Check this is valid memory
+            if (!this.memory.Keys.Contains(this.position)) {
+                throw new System.Exception(string.Format("Invalid operation: No memory at {0}", this.position));
+            }
+
+            long code = (long) this.memory[this.position];
+            Debug.WriteLineIf(debug_level > 0, string.Format("Code: {0}", code));
+            
+            Debug.WriteLineIf(debug_level > 0, string.Format("Op Code: {0}", instruction.opcode));
+            //Debug.WriteLineIf(debug_level > 0, string.Format("Param Mode: {0}", param_mode));
+
+            long param_value1;
+            long param_value2;
+
+            long[] pointers;
+
+            switch(instruction.opcode) {
+                case Opcode.Add:
+                    // Add (destination is position mode)
+                    //this.memory[this.memory[i+3]] = this.memory[this.memory[i+1]] + this.memory[this.memory[i+2]]
+                    pointers = this.ParseParams(instruction.modes, 3);
+
+                    param_value1 = this.memory[pointers[0]];
+                    param_value2 = this.memory[pointers[1]];
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Destination: {0}", pointers[2]));
+
+                    this.memory[pointers[2]] = param_value1 + param_value2;
+                    this.position += 4;
+                    break;
+                
+                case Opcode.Multiply:
+                    // Multiply (destination is position mode)
+                    //this.memory[this.memory[i+3]] = this.memory[this.memory[i+1]] * this.memory[this.memory[i+2]]
+                    pointers = this.ParseParams(instruction.modes, 3);
+
+                    param_value1 = this.memory[pointers[0]];
+                    param_value2 = this.memory[pointers[1]];
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Destination: {0}", pointers[2]));
+
+                    this.memory[pointers[2]] = param_value1 * param_value2;
+                    this.position += 4;
+                    break;
+
+                case Opcode.Input:
+                    // Take an integer input and save it to somewhere (destination is position mode)
+                    // See if we've been given inputs and if we have one for this
+                    // If we only got one input, let's see if this is our first
+                    if (this.input.Count > 0) {
+                        this.State = State.Running;
+                        this.memory[this.ParseParams(instruction.modes, 1)[0]] = this.input.Dequeue();
+                        this.position += 2;
+                    } else {
+                        // Nope, let's read it
+                        // long in = Read-Host -Prompt 'Provide an integer input: '
+                        // We no longer read the input, we will return and wait
+                        this.State = State.Waiting;
+                        return false;
+                        
+                        // Don't increment our position because we will start back here
+                    }
+                    break;
+
+                case Opcode.Output:
+                    // Output an integer
+                    this.output_register = this.memory[ParseParams(instruction.modes, 1)[0]];
+
+                    // We should return and wait for the next run command
+                    // Move forward for the next time we come back
+                    this.position += 2;
+
+                    // We may want to return a value and re-run
+                    if (this.stopOnOutput > 1) {
+                        this.State = State.Waiting;
+                        return false;
+                    }
+
+                    // Returns the output and then we wait
+                    break;
+
+                case Opcode.JumpIfTrue:
+                    // jump-if-true: if the first parameter is non-zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
+                    pointers = this.ParseParams(instruction.modes, 2);
+
+                    param_value1 = this.memory[pointers[0]];
+                    param_value2 = this.memory[pointers[1]];
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
+
+                    this.position = (param_value1 != 0) ? param_value2 : this.position + 3;
+                    break;
+
+                case Opcode.JumpIfFalse:
+                    // jump-if-false: if the first parameter is zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
+                    pointers = this.ParseParams(instruction.modes, 2);
+
+                    param_value1 = this.memory[pointers[0]];
+                    param_value2 = this.memory[pointers[1]];
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
+
+                    this.position = (param_value1 == 0) ? param_value2 : this.position + 3;
+                    break;
+
+                case Opcode.LessThan:
+                    // less-than: if the first parameter is less than the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
+                    pointers = this.ParseParams(instruction.modes, 3);
+
+                    param_value1 = this.memory[pointers[0]];
+                    param_value2 = this.memory[pointers[1]];
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
+
+                    this.memory[pointers[2]] = (param_value1 < param_value2) ? 1 : 0;
+                    this.position += 4;
+                    break;
+
+                case Opcode.Equals:
+                    // equals: if the first parameter is equal to the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
+                    pointers = this.ParseParams(instruction.modes, 3);
+
+                    param_value1 = this.memory[pointers[0]];
+                    param_value2 = this.memory[pointers[1]];
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
+
+                    this.memory[pointers[2]] = (param_value1 == param_value2) ? 1 : 0;
+                    this.position += 4;
+                    
+                    break;
+
+                case Opcode.RelativeBase:
+                    // adjusts the relative base by the value of its only parameter. The relative base increases (or decreases, if the value is negative) by the value of the parameter.
+                    pointers = this.ParseParams(instruction.modes, 1);
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", this.memory[pointers[0]]));
+
+                    this.relative_base += this.memory[pointers[0]];
+                    this.position += 2;
+                    break;
+                
+                case Opcode.Stop:
+                    // Stop
+                    this.position += 4;
+                    this.State = State.Stopped;
+                    return false;
+
+                default:
+                    throw new System.Exception(string.Format("Halt! Bad opcode at pos ({0}): {1}", this.position, instruction.opcode));
+            }
+
+            Debug.WriteLineIf(debug_level > 0, "");
+
+            return true;
+        }
+
         public void Run() {
             // We shouldn't be here
             if (this.State != State.Waiting && this.State != State.Running) {
@@ -113,208 +274,11 @@ namespace AdventOfCode.Solutions.Year2019 {
 
             // Reset to running
             this.State = State.Running;
-            
-            // Do we need to return?
-            bool ret = false;
 
-            // Opcodes are every 4 spaces (0, 4, 8, etc.)
-            for(long i=this.position; ret == false && (i <= this.memory.Keys.Max()); ) {
-                Debug.WriteLineIf(debug_level > 0, string.Format("Position: {0}", i));
-
-                // Check this is valid memory
-                if (!this.memory.Keys.Contains(i)) {
-                    ret = true;
-                    throw new System.Exception(string.Format("Invalid operation: No memory at {0}", i));
-                }
-
-                long code = (long) this.memory[i];
-                Debug.WriteLineIf(debug_level > 0, string.Format("Code: {0}", code));
-
-                // Saving the param_mode and opcode
-                long opcode;
-                string param_mode;
-                
-                // Save the current position
-                this.position = i;
-
-                // Get the opcode
-                if (code >= 100) {
-                    Match Matches = Regex.Match(code.ToString(), "^([0-9]{0,3})([0-9]{2})");
-                    opcode = Int64.Parse(Matches.Groups[2].Value);
-                    param_mode = Matches.Groups[1].Value;
-                } else {
-                    opcode = (long) code;
-                    param_mode = "0";
-                }
-                
-                Debug.WriteLineIf(debug_level > 0, string.Format("Op Code: {0}", opcode));
-                Debug.WriteLineIf(debug_level > 0, string.Format("Param Mode: {0}", param_mode));
-
-                long param_value1;
-                long param_value2;
-                int ret_mode;
-                long ret_pos;
-
-                switch((Opcode) opcode) {
-                    case Opcode.Add:
-                        // Add (destination is position mode)
-                        //this.memory[this.memory[i+3]] = this.memory[this.memory[i+1]] + this.memory[this.memory[i+2]]
-                        ret_mode = this.GetParameterMode(3, param_mode);
-                        ret_pos = this.GetParameterPosition((i+3), ret_mode);
-
-                        param_value1 = this.GetParameterValue(1, (i+1), param_mode);
-                        param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Destination: {0}", ret_pos));
-
-                        this.memory[ret_pos] = param_value1 + param_value2;
-                        i += 4;
-                        break;
-                    
-                    case Opcode.Multiply:
-                        // Multiply (destination is position mode)
-                        //this.memory[this.memory[i+3]] = this.memory[this.memory[i+1]] * this.memory[this.memory[i+2]]
-                        ret_mode = this.GetParameterMode(3, param_mode);
-                        ret_pos = this.GetParameterPosition((i+3), ret_mode);
-
-                        param_value1 = this.GetParameterValue(1, (i+1), param_mode);
-                        param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Destination: {0}", ret_pos));
-
-                        this.memory[ret_pos] = param_value1 * param_value2;
-                        i += 4;
-                        break;
-
-                    case Opcode.Input:
-                        // Take an integer input and save it to somewhere (destination is position mode)
-                        // See if we've been given inputs and if we have one for this
-                        // If we only got one input, let's see if this is our first
-                        if (this.input.Count > 0) {
-                            this.State = State.Running;
-                            ret_mode = this.GetParameterMode(1, param_mode);
-                            this.memory[this.GetParameterPosition((i+1), ret_mode)] = this.input.Dequeue();
-                            this.input = null;
-                            i += 2;
-                        } else {
-                            // Nope, let's read it
-                            // long in = Read-Host -Prompt 'Provide an integer input: '
-                            // We no longer read the input, we will return and wait
-                            this.State = State.Waiting;
-                            this.input = null;
-                            ret = true;
-                            
-                            // Don't increment our position because we will start back here
-                        }
-                        break;
-
-                    case Opcode.Output:
-                        // Output an integer
-                        this.output_register = this.GetParameterValue(1, (i+1), param_mode);
-
-                        // We should return and wait for the next run command
-                        // Move forward for the next time we come back
-                        i += 2;
-
-                        // We may want to return a value and re-run
-                        if (this.stopOnOutput > 1) {
-                            this.position += 2;
-                            this.State = State.Waiting;
-                            ret = true;
-                        }
-
-                        // Returns the output and then we wait
-                        break;
-
-                    case Opcode.JumpIfTrue:
-                        // jump-if-true: if the first parameter is non-zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
-                        param_value1 = this.GetParameterValue(1, (i+1), param_mode);
-                        param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
-
-                        if (param_value1 != 0) {
-                            i = param_value2;
-                        } else {
-                            i += 3;
-                        }
-                        break;
-
-                    case Opcode.JumpIfFalse:
-                        // jump-if-false: if the first parameter is zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
-                        param_value1 = this.GetParameterValue(1, (i+1), param_mode);
-                        param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
-
-                        if (param_value1 == 0) {
-                            i = param_value2;
-                        } else {
-                            i += 3;
-                        }
-                        break;
-
-                    case Opcode.LessThan:
-                        // less-than: if the first parameter is less than the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
-                        param_value1 = this.GetParameterValue(1, (i+1), param_mode);
-                        param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
-
-                        ret_mode = this.GetParameterMode(3, param_mode);
-                        if (param_value1 < param_value2) {
-                            this.memory[this.GetParameterPosition((i+3), ret_mode)] = 1;
-                            i += 4;
-                        } else {
-                            this.memory[this.GetParameterPosition((i+3), ret_mode)] = 0;
-                            i += 4;
-                        }
-                        break;
-
-                    case Opcode.Equals:
-                        // equals: if the first parameter is equal to the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
-                        param_value1 = this.GetParameterValue(1, (i+1), param_mode);
-                        param_value2 = this.GetParameterValue(2, (i+2), param_mode);
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
-
-                        ret_mode = this.GetParameterMode(3, param_mode);
-                        if (param_value1 == param_value2) {
-                            this.memory[this.GetParameterPosition((i+3), ret_mode)] = 1;
-                            i += 4;
-                        } else {
-                            this.memory[this.GetParameterPosition((i+3), ret_mode)] = 0;
-                            i += 4;
-                        }
-                        break;
-
-                    case Opcode.RelativeBase:
-                        // adjusts the relative base by the value of its only parameter. The relative base increases (or decreases, if the value is negative) by the value of the parameter.
-                        param_value1 = this.GetParameterValue(1, (i+1), param_mode);
-                        Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
-
-                        this.relative_base += param_value1;
-                        i += 2;
-                        break;
-                    
-                    case Opcode.Stop:
-                        // Add
-                        ret = true;
-                        i += 4;
-                        this.State = State.Stopped;
-                        break;
-
-                    default:
-                        throw new System.Exception(string.Format("Halt! Bad opcode at pos ({0}): {1}", i, opcode));
-                }
-
-                Debug.WriteLineIf(debug_level > 0, "");
-            }
+            while(DoOperation(ParseInstruction(this.memory[this.position])));
         }
 
-        (Opcode opcode, Mode[] modes) ParseInstruction(int instruction) =>
+        (Opcode opcode, Mode[] modes) ParseInstruction(long instruction) =>
         (
             (Opcode)(instruction % 100),
             instruction.ToString("D5").Remove(3).Select<char, Mode>(c => Enum.Parse<Mode>(c.ToString())).ToArray().Reverse().ToArray()
@@ -327,9 +291,9 @@ namespace AdventOfCode.Solutions.Year2019 {
             {
                 result[i] = modes[i] switch
                 {
-                    Mode.Position => this.memory[this.position+1],
-                    Mode.Immediate => this.position+1,
-                    Mode.Relative => this.memory[this.position+1] + this.relative_base,
+                    Mode.Position => this.memory[this.position+1+i],
+                    Mode.Immediate => this.position+1+i,
+                    Mode.Relative => this.memory[this.position+1+i] + this.relative_base,
                     _ => throw new Exception("Something went wrong")
                 };
             }
