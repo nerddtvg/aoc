@@ -50,7 +50,7 @@ namespace AdventOfCode.Solutions.Year2019 {
         // State of machine
         public State State = State.NotInitialized;
 
-        // Count the inputs used
+        // Will we stop when we have output? (>1 is yes)
         public int stopOnOutput = 1;
 
         // Output register
@@ -213,9 +213,6 @@ namespace AdventOfCode.Solutions.Year2019 {
                     case Opcode.Output:
                         // Output an integer
                         this.output_register = this.GetParameterValue(1, (i+1), param_mode);
-                        if (this.stopOnOutput == 1) {
-                            Debug.WriteLineIf(debug_level > 0, string.Format("Output: {0}", this.output_register));
-                        }
 
                         // We should return and wait for the next run command
                         // Move forward for the next time we come back
