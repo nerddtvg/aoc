@@ -84,7 +84,16 @@ namespace AdventOfCode.Solutions
             {
                 try
                 {
-                    DateTime CURRENT_EST = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.Utc).AddHours(-5);
+                    TimeZoneInfo estZone;
+
+                    // Avoiding hard-coding in the timezone offset from UTC
+                    try {
+                        estZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+                    } catch(TimeZoneNotFoundException) {
+                        estZone = TimeZoneInfo.FindSystemTimeZoneById("US/Eastern");
+                    }
+                    
+                    DateTimeOffset CURRENT_EST = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, estZone);
                     if(CURRENT_EST < new DateTime(Year, 12, Day)) throw new InvalidOperationException();
 
                     using(var client = new WebClient())
@@ -113,6 +122,10 @@ namespace AdventOfCode.Solutions
                 catch(InvalidOperationException)
                 {
                     Console.WriteLine($"Day {Day}: Cannot fetch puzzle input before given date (Eastern Standard Time).");
+                }
+                catch(TimeZoneNotFoundException)
+                {
+                    Console.WriteLine($"Day {Day}: Unable to find the time zone (Eastern Time Zone or US/Eastern) in the system definitions.");
                 }
             }
             return input;
