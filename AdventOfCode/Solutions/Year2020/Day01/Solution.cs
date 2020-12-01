@@ -35,13 +35,30 @@ namespace AdventOfCode.Solutions.Year2020
             }
 
             return (n1 * n2).ToString();
-
-            return null;
         }
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // They offer you a second one if you can find three numbers in your expense report that meet the same criteria.
+            int n1, n2, n3;
+
+            n1 = 0;
+            n2 = 0;
+            n3 = 0;
+
+            foreach(int a in input) {
+                foreach(int b in input) {
+                    int? temp = input.Where(c => b != a && c != a && c != b && b + a + c == 2020).FirstOrDefault();
+
+                    if (temp.HasValue && temp.Value > 0) {
+                        n1 = a;
+                        n2 = b;
+                        n3 = temp.Value;
+                    }
+                }
+            }
+
+            return (n1 * n2 * n3).ToString();
         }
     }
 }
