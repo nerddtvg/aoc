@@ -48,7 +48,10 @@ namespace AdventOfCode.Solutions.Year2020
 
             foreach(int a in input) {
                 foreach(int b in input) {
-                    int? temp = input.Where(c => b != a && c != a && c != b && b + a + c == 2020).FirstOrDefault();
+                    // Skip early
+                    if (a == b) continue;
+
+                    int? temp = input.Where(c => c != a && c != b && b + a + c == 2020).FirstOrDefault();
 
                     if (temp.HasValue && temp.Value > 0) {
                         n1 = a;
