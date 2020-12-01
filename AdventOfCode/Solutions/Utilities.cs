@@ -21,6 +21,12 @@ namespace AdventOfCode.Solutions
                 foreach(char c in str) if(int.TryParse(c.ToString(), out int n)) result.Add(n);
                 return result.ToArray();
             }
+            else if (delimiter == "\n")
+            {
+                var result = new List<int>();
+                foreach(string c in str.SplitByNewline()) if(int.TryParse(c, out int n)) result.Add(n);
+                return result.ToArray();
+            }
             else
             {
                 return str
@@ -39,6 +45,12 @@ namespace AdventOfCode.Solutions
             {
                 var result = new List<long>();
                 foreach(char c in str) if(long.TryParse(c.ToString(), out long n)) result.Add(n);
+                return result.ToArray();
+            }
+            else if (delimiter == "\n")
+            {
+                var result = new List<long>();
+                foreach(string c in str.SplitByNewline()) if(long.TryParse(c, out long n)) result.Add(n);
                 return result.ToArray();
             }
             else
