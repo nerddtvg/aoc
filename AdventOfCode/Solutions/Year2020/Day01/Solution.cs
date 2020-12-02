@@ -35,9 +35,9 @@ namespace AdventOfCode.Solutions.Year2020
 
             return Utilities
                 .GetAllCombos(input, 2)
-                .Where(a => a[0] + a[1] == 2020)
-                .Select(a => a[0] * a[1])
+                .Where(a => a.Sum() == 2020)
                 .First()
+                .Aggregate(1, (x, y) => x * y)
                 .ToString();
         }
 
@@ -71,9 +71,9 @@ namespace AdventOfCode.Solutions.Year2020
             
             return Utilities
                 .GetAllCombos(input, 3)
-                .Where(a => a[0] + a[1] + a[2] == 2020)
-                .Select(a => a[0] * a[1] * a[2])
+                .Where(a => a.Sum() == 2020)
                 .First()
+                .Aggregate(1, (x, y) => x * y)
                 .ToString();
         }
     }
