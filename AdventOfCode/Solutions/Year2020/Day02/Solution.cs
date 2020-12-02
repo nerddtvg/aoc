@@ -28,6 +28,10 @@ namespace AdventOfCode.Solutions.Year2020
 
             return (this.min <= reqCharCount && reqCharCount <= this.max);
         }
+
+        public bool IsValid2() {
+            return (this.password.ToCharArray()[this.min-1] == this.c ^ this.password.ToCharArray()[this.max-1] == this.c);
+        }
     }
 
     class Day02 : ASolution
@@ -46,7 +50,7 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return passwords.Count(a => a.IsValid2()).ToString();
         }
     }
 }
