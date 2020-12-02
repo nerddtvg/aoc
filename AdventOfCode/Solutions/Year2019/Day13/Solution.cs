@@ -88,12 +88,15 @@ namespace AdventOfCode.Solutions.Year2019
 
                 tile.tile = Convert.ToInt32(intcode.output_register);
 
+                // Should we draw to make it faster?
+                bool draw = false;
+
                 // Score happens at the end of a screen draw
                 if (tile.x == -1) {
                     score = tile.tile;
 
                     // Draw the screen
-                    Console.WriteLine($"Score: {score}");
+                    if (draw) Console.WriteLine($"Score: {score}");
                     int maxX = tiles.Max(x => x.x);
                     int maxY = tiles.Max(y => y.y);
 
@@ -103,14 +106,14 @@ namespace AdventOfCode.Solutions.Year2019
                         for(int x=0; x<=maxX; x++) {
                             GameTile t = tiles.Where(t => t.x == x && t.y == y).First();
                             
-                            Console.Write(this.output[t.tile]);
+                            if (draw) Console.Write(this.output[t.tile]);
                         }
 
-                        Console.WriteLine();
+                        if (draw) Console.WriteLine();
                         y++;
                     }
 
-                    Console.WriteLine();
+                    if (draw) Console.WriteLine();
 
                     if (stopNextScore) break;
                 } else {
