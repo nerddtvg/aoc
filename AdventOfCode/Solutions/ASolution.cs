@@ -94,7 +94,7 @@ namespace AdventOfCode.Solutions
                     }
                     
                     DateTimeOffset CURRENT_EST = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, estZone);
-                    if(CURRENT_EST < new DateTime(Year, 12, Day)) throw new InvalidOperationException();
+                    if(CURRENT_EST < new DateTimeOffset(Year, 12, Day, 0, 0, 0, estZone.GetUtcOffset(DateTimeOffset.UtcNow))) throw new InvalidOperationException();
 
                     using(var client = new WebClient())
                     {
