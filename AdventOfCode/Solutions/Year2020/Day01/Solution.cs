@@ -20,26 +20,31 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartOne()
         {
             // Specifically, they need you to find the two entries that sum to 2020 and then multiply those two numbers together.
-            int n1, n2;
+            /*
+            Utilities.GetAllCombos(new List<string>() {"A", "B", "C", "D"}, 3).ToList().ForEach(a => Console.WriteLine(string.Join(", ", a)));
 
-            n1 = 0;
-            n2 = 0;
+            Enumerable.Range(0, 2).Reverse().ToList().ForEach(a => Console.WriteLine(string.Join(", ", a)));
+            Console.WriteLine();
+            Enumerable.Range(1+1, 2-1-1).ToList().ForEach(a => Console.WriteLine(string.Join(", ", a)));
+            Console.WriteLine();
+            Enumerable.Range(0+1, 2-0-1).ToList().ForEach(a => Console.WriteLine(string.Join(", ", a)));
+            Console.WriteLine();
 
-            foreach(int a in input) {
-               int? temp = input.Where(b => b != a && b + a == 2020).FirstOrDefault();
+            return Utilities.GetAllCombos(new List<string>() {"A", "B", "C", "D"}, 3).Count().ToString();
+            */
 
-               if (temp.HasValue && temp.Value > 0) {
-                   n1 = a;
-                   n2 = temp.Value;
-               }
-            }
-
-            return (n1 * n2).ToString();
+            return Utilities
+                .GetAllCombos(input, 2)
+                .Where(a => a[0] + a[1] == 2020)
+                .Select(a => a[0] * a[1])
+                .First()
+                .ToString();
         }
 
         protected override string SolvePartTwo()
         {
             // They offer you a second one if you can find three numbers in your expense report that meet the same criteria.
+            /*
             int n1, n2, n3;
 
             n1 = 0;
@@ -62,6 +67,14 @@ namespace AdventOfCode.Solutions.Year2020
             }
 
             return (n1 * n2 * n3).ToString();
+            */
+            
+            return Utilities
+                .GetAllCombos(input, 3)
+                .Where(a => a[0] + a[1] + a[2] == 2020)
+                .Select(a => a[0] * a[1] * a[2])
+                .First()
+                .ToString();
         }
     }
 }
