@@ -109,6 +109,14 @@ namespace AdventOfCode.Solutions.Year2019 {
             this.input.Enqueue(input);
         }
 
+        private long GetMemory(long pos) {
+            if (!this.memory.Keys.Contains(pos)) {
+                this.memory[pos] = 0;
+            }
+
+            return this.memory[pos];
+        }
+
         private bool DoOperation((Opcode opcode, Mode[] modes) instruction) {
             Debug.WriteLineIf(debug_level > 0, string.Format("Position: {0}", this.position));
 
@@ -117,7 +125,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                 throw new System.Exception(string.Format("Invalid operation: No memory at {0}", this.position));
             }
 
-            long code = (long) this.memory[this.position];
+            long code = (long) GetMemory(this.position);
             Debug.WriteLineIf(debug_level > 0, string.Format("Code: {0}", code));
             
             Debug.WriteLineIf(debug_level > 0, string.Format("Op Code: {0}", instruction.opcode));
@@ -134,14 +142,15 @@ namespace AdventOfCode.Solutions.Year2019 {
                     //this.memory[this.memory[i+3]] = this.memory[this.memory[i+1]] + this.memory[this.memory[i+2]]
                     pointers = this.ParseParams(instruction.modes, 3);
 
-                    param_value1 = this.memory[pointers[0]];
-                    param_value2 = this.memory[pointers[1]];
+                    param_value1 = GetMemory(pointers[0]);
+                    param_value2 = GetMemory(pointers[1]);
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 1: {0}", pointers[0]));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 2: {0}", pointers[1]));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Destination: {0}", pointers[2]));
 
                     this.memory[pointers[2]] = param_value1 + param_value2;
-                    this.position += 4;
                     break;
                 
                 case Opcode.Multiply:
@@ -149,14 +158,15 @@ namespace AdventOfCode.Solutions.Year2019 {
                     //this.memory[this.memory[i+3]] = this.memory[this.memory[i+1]] * this.memory[this.memory[i+2]]
                     pointers = this.ParseParams(instruction.modes, 3);
 
-                    param_value1 = this.memory[pointers[0]];
-                    param_value2 = this.memory[pointers[1]];
+                    param_value1 = GetMemory(pointers[0]);
+                    param_value2 = GetMemory(pointers[1]);
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 1: {0}", pointers[0]));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 2: {0}", pointers[1]));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Destination: {0}", pointers[2]));
 
                     this.memory[pointers[2]] = param_value1 * param_value2;
-                    this.position += 4;
                     break;
 
                 case Opcode.Input:
@@ -166,12 +176,12 @@ namespace AdventOfCode.Solutions.Year2019 {
                     if (this.input.Count > 0) {
                         this.State = State.Running;
                         this.memory[this.ParseParams(instruction.modes, 1)[0]] = this.input.Dequeue();
-                        this.position += 2;
                     } else {
                         // Nope, let's read it
                         // long in = Read-Host -Prompt 'Provide an integer input: '
                         // We no longer read the input, we will return and wait
                         this.State = State.Waiting;
+                        this.position -= 2;
                         return false;
                         
                         // Don't increment our position because we will start back here
@@ -180,11 +190,11 @@ namespace AdventOfCode.Solutions.Year2019 {
 
                 case Opcode.Output:
                     // Output an integer
-                    this.output_register = this.memory[ParseParams(instruction.modes, 1)[0]];
+                    this.output_register = GetMemory(ParseParams(instruction.modes, 1)[0]);
 
                     // We should return and wait for the next run command
                     // Move forward for the next time we come back
-                    this.position += 2;
+                    //this.position += 2;
 
                     // We may want to return a value and re-run
                     if (this.stopOnOutput > 1) {
@@ -199,65 +209,70 @@ namespace AdventOfCode.Solutions.Year2019 {
                     // jump-if-true: if the first parameter is non-zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
                     pointers = this.ParseParams(instruction.modes, 2);
 
-                    param_value1 = this.memory[pointers[0]];
-                    param_value2 = this.memory[pointers[1]];
+                    param_value1 = GetMemory(pointers[0]);
+                    param_value2 = GetMemory(pointers[1]);
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 1: {0}", pointers[0]));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 2: {0}", pointers[1]));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
 
-                    this.position = (param_value1 != 0) ? param_value2 : this.position + 3;
+                    if (param_value1 != 0) this.position = param_value2;
                     break;
 
                 case Opcode.JumpIfFalse:
                     // jump-if-false: if the first parameter is zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
                     pointers = this.ParseParams(instruction.modes, 2);
 
-                    param_value1 = this.memory[pointers[0]];
-                    param_value2 = this.memory[pointers[1]];
+                    param_value1 = GetMemory(pointers[0]);
+                    param_value2 = GetMemory(pointers[1]);
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 1: {0}", pointers[0]));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 2: {0}", pointers[1]));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
 
-                    this.position = (param_value1 == 0) ? param_value2 : this.position + 3;
+                    if (param_value1 == 0) this.position = param_value2;
                     break;
 
                 case Opcode.LessThan:
                     // less-than: if the first parameter is less than the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
                     pointers = this.ParseParams(instruction.modes, 3);
 
-                    param_value1 = this.memory[pointers[0]];
-                    param_value2 = this.memory[pointers[1]];
+                    param_value1 = GetMemory(pointers[0]);
+                    param_value2 = GetMemory(pointers[1]);
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 1: {0}", pointers[0]));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 2: {0}", pointers[1]));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
 
                     this.memory[pointers[2]] = (param_value1 < param_value2) ? 1 : 0;
-                    this.position += 4;
                     break;
 
                 case Opcode.Equals:
                     // equals: if the first parameter is equal to the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
                     pointers = this.ParseParams(instruction.modes, 3);
 
-                    param_value1 = this.memory[pointers[0]];
-                    param_value2 = this.memory[pointers[1]];
+                    param_value1 = GetMemory(pointers[0]);
+                    param_value2 = GetMemory(pointers[1]);
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 1: {0}", pointers[0]));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 2: {0}", pointers[1]));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", param_value1));
                     Debug.WriteLineIf(debug_level > 0, string.Format("Param 2: {0}", param_value2));
 
                     this.memory[pointers[2]] = (param_value1 == param_value2) ? 1 : 0;
-                    this.position += 4;
                     
                     break;
 
                 case Opcode.RelativeBase:
                     // adjusts the relative base by the value of its only parameter. The relative base increases (or decreases, if the value is negative) by the value of the parameter.
                     pointers = this.ParseParams(instruction.modes, 1);
-                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", this.memory[pointers[0]]));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Pointer 1: {0}", pointers[0]));
+                    Debug.WriteLineIf(debug_level > 0, string.Format("Param 1: {0}", GetMemory(pointers[0])));
 
-                    this.relative_base += this.memory[pointers[0]];
-                    this.position += 2;
+                    this.relative_base += GetMemory(pointers[0]);
                     break;
                 
                 case Opcode.Stop:
                     // Stop
-                    this.position += 4;
                     this.State = State.Stopped;
                     return false;
 
@@ -279,7 +294,7 @@ namespace AdventOfCode.Solutions.Year2019 {
             // Reset to running
             this.State = State.Running;
 
-            while(DoOperation(ParseInstruction(this.memory[this.position])));
+            while(DoOperation(ParseInstruction(GetMemory(this.position))));
         }
 
         (Opcode opcode, Mode[] modes) ParseInstruction(long instruction) =>
@@ -295,12 +310,15 @@ namespace AdventOfCode.Solutions.Year2019 {
             {
                 result[i] = modes[i] switch
                 {
-                    Mode.Position => this.memory[this.position+1+i],
-                    Mode.Immediate => this.position+1+i,
-                    Mode.Relative => this.memory[this.position+1+i] + this.relative_base,
+                    Mode.Position => GetMemory(++this.position),
+                    Mode.Immediate => ++this.position,
+                    Mode.Relative => GetMemory(++this.position) + this.relative_base,
                     _ => throw new Exception("Something went wrong")
                 };
             }
+
+            // Account for the last parameter
+            this.position++;
             
             return result;
         }
