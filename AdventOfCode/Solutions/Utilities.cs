@@ -23,11 +23,12 @@ namespace AdventOfCode.Solutions
             // Generate a list of all indicies repetatively
             List<int> indices = Enumerable.Range(0, r).ToList();
 
-            // Our return list
-            List<List<T>> retList = new List<List<T>>();
-
             // Length of input
             int n = list.Count;
+
+            if (r > n) {
+                throw new Exception($"Unable to provide combinations of length {r} for a list of length {n}. List length must be longer.");
+            }
 
             // Add the first result in the default order of 0, 1, ... r-1
             List<T> tempList = new List<T>();
