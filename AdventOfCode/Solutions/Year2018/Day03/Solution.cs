@@ -131,21 +131,5 @@ namespace AdventOfCode.Solutions.Year2018
         {
             return claims.Where(a => a.overlap == false).First()?.id.ToString();
         }
-
-        private bool TilesOverlap(SantaFabric claim1, SantaFabric claim2) {
-            // claim1 is too far left to overlap
-            if (claim1.x2 < claim2.x) return false;
-
-            // claim1 is too far right to overlap
-            if (claim1.x > claim2.x2) return false;
-
-            // claim1 is too far high to overlap
-            if (claim1.y2 < claim2.y) return false;
-
-            // claim1 is too far low to overlap
-            if (claim1.y > claim2.y2) return false;
-
-            return true;
-        }
     }
 }
