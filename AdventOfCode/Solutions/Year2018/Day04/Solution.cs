@@ -110,12 +110,12 @@ namespace AdventOfCode.Solutions.Year2018
                 new Tuple<int, int>(min, guardShifts.Sum(shift => shift.minutes.ContainsKey(min) ? shift.minutes[min] : 0))
             ).OrderByDescending(a => a.Item2).First().Item1;
 
+            Console.WriteLine($"Guard: {guard[0]}");
+            Console.WriteLine($"Minute: {minute}");
+
             // Let's draw this guard's shifts
             if (false) {
                 int x;
-
-                Console.WriteLine($"Guard: {guard[0]}");
-                Console.WriteLine($"Minute: {minute}");
                 
                 Console.Write("      ");
                 for(x=0; x<60; x++)
@@ -151,7 +151,26 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Find the guard who was asleep the most during a single minute
+            var guardMinute = shifts.GroupBy(a => a.guard).Select(a => {
+                // What guard are we calculating?
+                int g = a.Key;
+
+                // Get a list of all minutes and how long they're asleep
+                var maxMin = Enumerable.Range(0, 60).ToList().Select(min =>
+                    // Count all the times this guard was asleep in this minute
+                    new Tuple<int, int>(min, shifts.Where(a => a.guard == g).Sum(shift => shift.minutes.ContainsKey(min) ? shift.minutes[min] : 0))
+                ).OrderByDescending(a => a.Item2).First();
+
+                return new Tuple<int, int, int>(a.Key, maxMin.Item1, maxMin.Item2);
+            }).OrderByDescending(a => a.Item3).First();
+
+            Console.WriteLine($"Guard: {guardMinute.Item1}");
+            Console.WriteLine($"Minute: {guardMinute.Item2}");
+            Console.WriteLine($"Count: {guardMinute.Item3}");
+
+            // Find the guard who is asleep during a minute the most
+            return (guardMinute.Item1 * guardMinute.Item2).ToString();
         }
     }
 }
