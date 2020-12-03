@@ -32,6 +32,40 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartTwo()
         {
+            // Find the two IDs that have only one letter difference between them in the same position
+            int k = 0;
+            List<string> input = Input.SplitByNewline().ToList();
+
+            foreach(string line in input) {
+                // We only need to check the strings AFTER this key
+                for(int i=k+1; i<input.Count; i++) {
+                    int diffCount = 0;
+
+                    char[] s1 = line.ToCharArray();
+                    char[] s2 = input[i].ToCharArray();
+
+                    string common = "";
+
+                    for(int q=0; q<s1.Length; q++) {
+                        if (s1[q] != s2[q]) {
+                            diffCount++;
+                        } else {
+                            common += s1[q];
+                        }
+
+                        if (diffCount > 1) break;
+                    }
+
+                    if (diffCount == 1) {
+                        // We found the answer!
+                        return common;
+                    }
+                }
+
+                // Next iteration
+                k++;
+            }
+
             return null;
         }
     }
