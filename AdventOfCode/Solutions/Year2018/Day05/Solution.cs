@@ -22,7 +22,23 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Get a list of all of our different units (char)
+            char[] units = Input.ToLower().ToCharArray().Distinct().ToArray();
+
+            int lowest = Int32.MaxValue;
+
+            // For each of these units, let's run a test
+            foreach(char u in units) {
+                // Remove the unit from the input
+                string i2 = Input.Replace(u.ToString(), "").Replace(u.ToString().ToUpper(), "");
+                int length = RunPolymer(i2).Length;
+
+                // Is this the lowest?
+                if (length < lowest)
+                    lowest = length;
+            }
+
+            return lowest.ToString();
         }
 
         protected string RunPolymer(string input) {
