@@ -18,13 +18,27 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartOne()
         {
-            return RunIntoTrees(new List<(int x, int y)>() { (3, 1) }).First().ToString();
+            return RunIntoTrees(
+                new List<(int x, int y)>() {
+                    (3, 1)
+                })
+                .First()
+                .ToString();
         }
 
         protected override string SolvePartTwo()
         {
 
-            return RunIntoTrees(new List<(int x, int y)>() { (1, 1), (3, 1), (5, 1), (7, 1), (1, 2) }).Aggregate((x, y) => x * y).ToString();
+            return RunIntoTrees(
+                new List<(int x, int y)>() {
+                    (1, 1),
+                    (3, 1),
+                    (5, 1),
+                    (7, 1),
+                    (1, 2)
+                })
+                .Aggregate((x, y) => x * y)
+                .ToString();
         }
 
         private List<BigInteger> RunIntoTrees(List<(int x, int y)> slopes) {
