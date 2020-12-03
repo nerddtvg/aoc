@@ -18,37 +18,32 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartOne()
         {
-            int x = 0;
-            int trees = 0;
-
-            foreach(string line in Input.SplitByNewline()) {
-                // Reset x if we are past the length
-                if (x >= line.Length) x -= line.Length;
-
-                // Is this a tree?
-                if (line.Substring(x, 1) == "#") trees++;
-
-                // Increment
-                x += 3;
-            }
-
-            return trees.ToString();
+            return RunIntoTrees(new List<(int x, int y)>() { (3, 1) }).First().ToString();
         }
 
         protected override string SolvePartTwo()
         {
-            int[] x = new int[] { 0, 0, 0, 0, 0 };
-            int[] mx = new int[] { 1, 3, 5, 7, 1 };
-            int[] my = new int[] { 1, 1, 1, 1, 2 };
 
-            BigInteger[] trees = new BigInteger[] { 0, 0, 0, 0, 0 };
+            return RunIntoTrees(new List<(int x, int y)>() { (1, 1), (3, 1), (5, 1), (7, 1), (1, 2) }).Aggregate((x, y) => x * y).ToString();
+        }
 
+        private List<BigInteger> RunIntoTrees(List<(int x, int y)> slopes) {
+            List<BigInteger> trees = new List<BigInteger>();
+            int[] x = new int[slopes.Count];
+
+            // Set the lists up
+            for(int i=0; i<slopes.Count; i++) {
+                trees.Add(0);
+                x[i] = 0;
+            }
+
+            // Line counter
             int lc = 0;
 
             foreach(string line in Input.SplitByNewline()) {
-                for(int i=0; i<x.Length; i++) {
+                for(int i=0; i<slopes.Count; i++) {
                     // Do we check this line?
-                    if (lc % my[i] != 0) continue;
+                    if (lc % slopes[i].y != 0) continue;
 
                     // Reset x if we are past the length
                     if (x[i] >= line.Length) x[i] -= line.Length;
@@ -57,13 +52,13 @@ namespace AdventOfCode.Solutions.Year2020
                     if (line.Substring(x[i], 1) == "#") trees[i]++;
 
                     // Increment
-                    x[i] += mx[i];
+                    x[i] += slopes[i].x;
                 }
 
                 lc++;
             }
 
-            return trees.Aggregate((x, y) => x * y).ToString();
+            return trees;
         }
     }
 }
