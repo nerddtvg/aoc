@@ -14,6 +14,7 @@ namespace AdventOfCode.Solutions.Year2018
         public int w {get; set;}
         public int h {get; set;}
         public int id {get;set;}
+        public bool overlap {get;set;}
     }
 
     class FabricTile {
@@ -73,8 +74,8 @@ namespace AdventOfCode.Solutions.Year2018
             // Allows us to draw the overlaps for a nice visual
             bool draw = false;
 
-            Console.WriteLine($"Min X: {minX}");
-            Console.WriteLine($"Min Y: {minY}");
+            if (draw) Console.WriteLine($"Min X: {minX}");
+            if (draw) Console.WriteLine($"Min Y: {minY}");
 
             for(int y=minY; y<=maxY; y++) {
                 if (draw)
@@ -83,17 +84,31 @@ namespace AdventOfCode.Solutions.Year2018
                 for(int x=minX; x<=maxX; x++) {
                     var tile = new FabricTile() {
                         x = x,
-                        y = y,
-                        count = claims.Count(a =>
-                            a.x <= x
-                            &&
-                            a.y <= y
-                            &&
-                            x <= a.x2
-                            &&
-                            y <= a.y2
-                        )
+                        y = y
                     };
+
+                    // Find all claims that overlap this point
+                    List<SantaFabric> claimsOverlap = claims.Where(a => 
+                        a.x <= x
+                        &&
+                        a.y <= y
+                        &&
+                        x <= a.x2
+                        &&
+                        y <= a.y2
+                    ).ToList();
+
+                    // If we have a list...
+                    if (claimsOverlap != null) {
+                        // How many claims are on this point?
+                        tile.count = claimsOverlap.Count;
+
+                        // If we have overlap, ensure the claims state it
+                        if (claimsOverlap.Count > 1)
+                            claimsOverlap.ForEach(a => a.overlap = true);
+                    } else {
+                        tile.count = 0;
+                    }
 
                     tiles.Add(tile);
 
@@ -114,7 +129,7 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return claims.Where(a => a.overlap == false).First()?.id.ToString();
         }
 
         private bool TilesOverlap(SantaFabric claim1, SantaFabric claim2) {
