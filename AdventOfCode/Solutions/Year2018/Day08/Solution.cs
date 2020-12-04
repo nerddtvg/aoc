@@ -9,12 +9,17 @@ namespace AdventOfCode.Solutions.Year2018
     class LicenseTreeNode {
         public List<LicenseTreeNode> childNodes {get;set;}
         public List<int> metadata {get;set;}
+
+        public int metadataSum {
+            get {
+                return this.metadata.Sum() + childNodes.Sum(a => a.metadataSum);
+            }
+        }
     }
 
     class Day08 : ASolution
     {
         LicenseTreeNode root = new LicenseTreeNode();
-        int metadataTotal = 0;
 
         public Day08() : base(08, 2018, "")
         {
@@ -74,16 +79,13 @@ namespace AdventOfCode.Solutions.Year2018
                 // Remove these now
                 parts.RemoveRange(0, metaCount);
             }
-            
-            // Add to the total (part 1)
-            metadataTotal += node.metadata.Sum();
 
             return (parts, node);
         }
 
         protected override string SolvePartOne()
         {
-            return metadataTotal.ToString();
+            return root.metadataSum.ToString();
         }
 
         protected override string SolvePartTwo()
