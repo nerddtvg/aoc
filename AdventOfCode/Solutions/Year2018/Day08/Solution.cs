@@ -15,6 +15,24 @@ namespace AdventOfCode.Solutions.Year2018
                 return this.metadata.Sum() + childNodes.Sum(a => a.metadataSum);
             }
         }
+
+        public int nodeValue {
+            get {
+                // No child nodes, metadata is summarized
+                if (this.childNodes.Count == 0) return metadataSum;
+
+                // Child nodes becomes a nightmare
+                return this.metadata.Sum(a => {
+                    // if it is 0, no value
+                    if (a == 0) return 0;
+
+                    // If this node doesn't exist, no value
+                    if (this.childNodes.Count < a) return 0;
+
+                    return this.childNodes[a-1].nodeValue;
+                });
+            }
+        }
     }
 
     class Day08 : ASolution
@@ -90,7 +108,7 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return root.nodeValue.ToString();
         }
     }
 }
