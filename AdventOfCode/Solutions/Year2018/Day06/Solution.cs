@@ -47,10 +47,11 @@ namespace AdventOfCode.Solutions.Year2018
             }
 
             // Loop through all of the tiles possible and find the closest
-            int minX = planets.Select(a => a.x).Min();
-            int maxX = planets.Select(a => a.x).Max();
-            int minY = planets.Select(a => a.y).Min();
-            int maxY = planets.Select(a => a.y).Max();
+            // Padding the width/height for Part 2 calculations
+            int minX = planets.Select(a => a.x).Min() - 200;
+            int maxX = planets.Select(a => a.x).Max() + 200;
+            int minY = planets.Select(a => a.y).Min() - 200;
+            int maxY = planets.Select(a => a.y).Max() + 200;
 
             Console.WriteLine($"Min XY: {minX}, {minY}");
             Console.WriteLine($"Max XY: {maxX}, {maxY}");
@@ -69,16 +70,16 @@ namespace AdventOfCode.Solutions.Year2018
 
                     if (planet != null) {
                         // Set the info
-                        tiles.Add(new SpaceTile() { x = x, y = y, id = planet.id, planet = true, distances = distances });
+                        tiles.Add(new SpaceTile() { x = x, y = y, id = planet.id, planet = true, distances = distances, totalDistance = totalDistance });
                         if (draw) Console.Write(planet.id);
                     } else {
                         // At least two planets have the same distance
                         // Save the distances calculated for later
                         if (distances[0].Item2 == distances[1].Item2) {
-                            tiles.Add(new SpaceTile() { x = x, y = y, id = ".", planet = false, distances = distances });
+                            tiles.Add(new SpaceTile() { x = x, y = y, id = ".", planet = false, distances = distances, totalDistance = totalDistance });
                             if (draw) Console.Write(".");
                         } else {
-                            tiles.Add(new SpaceTile() { x = x, y = y, id = distances[0].id, planet = false, distances = distances });
+                            tiles.Add(new SpaceTile() { x = x, y = y, id = distances[0].id, planet = false, distances = distances, totalDistance = totalDistance });
                             if (draw) Console.Write(distances[0].id);
 
                             // Mark any planets on the edges
@@ -88,7 +89,7 @@ namespace AdventOfCode.Solutions.Year2018
                     }
                 }
 
-                Console.WriteLine();
+                if (draw) Console.WriteLine();
             }
 
             // Calculate area sizes for planets
@@ -106,7 +107,7 @@ namespace AdventOfCode.Solutions.Year2018
         protected override string SolvePartTwo()
         {
             // What is the size of the region containing all locations which have a total distance to all given coordinates of less than 10000?
-            return null;
+            return tiles.Count(a => a.totalDistance < 10000).ToString();
         }
     }
 }
