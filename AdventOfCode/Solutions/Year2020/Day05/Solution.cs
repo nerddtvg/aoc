@@ -9,11 +9,20 @@ namespace AdventOfCode.Solutions.Year2020
     class BoardingPass {
         public string value {get;set;}
 
+        public int row {get;set;}
+        public int column {get;set;}
+        public int seatId {get;set;}
+
         public BoardingPass(string input) {
             this.value = input;
+
+            // Calculate only once
+            this.row = _Row;
+            this.column = _Column;
+            this.seatId = _seatId;
         }
 
-        public int Row {
+        private int _Row {
             get {
                 // Return value
                 int row = 0;
@@ -33,7 +42,7 @@ namespace AdventOfCode.Solutions.Year2020
             }
         }
 
-        public int Column {
+        private int _Column {
             get {
                 // Return value
                 int col = 0;
@@ -53,15 +62,15 @@ namespace AdventOfCode.Solutions.Year2020
             }
         }
 
-        public int seatId {
+        private int _seatId {
             get {
-                return (Row * 8) + Column;
+                return (row * 8) + column;
             }
         }
 
         public override string ToString()
         {
-            return $"{value}: row {Row}, column {Column}, seat ID {seatId}";
+            return $"{value}: row {row}, column {column}, seat ID {seatId}";
         }
     }
 
@@ -86,6 +95,24 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
+            // Find our seat
+            // We have to find empty seats that don't exist
+            // And find which have +/-1 seatIds with neighborss
+            for(int r=0; r<128; r++) {
+                for(int c=0; c<8; c++) {
+                    // Generate this seat Id
+                    int seatId = (r*8) + c;
+
+                    if (
+                        passes.Count(a => a.seatId == seatId) == 0
+                        &&
+                        passes.Count(a => a.seatId == seatId-1) == 1
+                        &&
+                        passes.Count(a => a.seatId == seatId+1) == 1
+                    ) return seatId.ToString();
+                }
+            }
+
             return null;
         }
     }
