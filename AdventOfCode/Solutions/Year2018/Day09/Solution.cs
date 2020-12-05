@@ -187,7 +187,13 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartTwo()
         {
-            return null;
+            var input = ParseGame(Input);
+
+            // Part 2 is much longer
+            input.finalMarble *= 100;
+            RunGame(input);
+
+            return players.OrderByDescending(a => a.score).Select(a => a.score.ToString()).First();
         }
     }
 }
