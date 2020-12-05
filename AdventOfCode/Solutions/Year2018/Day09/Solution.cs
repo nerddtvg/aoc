@@ -7,7 +7,7 @@ using System.Linq;
 namespace AdventOfCode.Solutions.Year2018
 {
     class MarbleGame {
-        public List<ulong> bag {get;set;}
+        public LinkedList<ulong> bag {get;set;}
         public LinkedList<ulong> board{get;set;}
         public LinkedListNode<ulong> currentMarble {get;set;}
     }
@@ -51,6 +51,7 @@ namespace AdventOfCode.Solutions.Year2018
 
         private void RunGame((int playerCount, int finalMarble) input) {
             game = new MarbleGame();
+            game.bag = new LinkedList<ulong>();
             players = new List<ulong>();
             playerCount = 0;
 
@@ -63,7 +64,9 @@ namespace AdventOfCode.Solutions.Year2018
 
             // We know how many players and marbles we have now, start loading
             // We get the last marble value so we need 1 extra step
-            game.bag = Enumerable.Range(1, input.finalMarble).Select(a => Convert.ToUInt64(a)).ToList();
+            foreach(var a in Enumerable.Range(1, input.finalMarble).Select(a => Convert.ToUInt64(a)))
+                game.bag.AddLast(a);
+
             game.board = new LinkedList<ulong>();
 
             // Offset to account for increment in loop
@@ -83,6 +86,9 @@ namespace AdventOfCode.Solutions.Year2018
                 playerTurn = ++playerTurn % players.Count;
 
                 ulong nextMarbleValue = game.bag.First();
+                
+                // Remove this marble from the open bag
+                game.bag.RemoveFirst();
 
                 if (nextMarbleValue % 23 != 0) {
                     // Get the position to add this marble into
@@ -95,9 +101,6 @@ namespace AdventOfCode.Solutions.Year2018
                     // People get points!
                     // First the player gets the next ball in line
                     players[playerTurn] += nextMarbleValue;
-
-                    // Remove this marble from the open bag
-                    game.bag.Remove(nextMarbleValue);
 
                     // Get the values to remove and the next currentMarble
                     // New position is 6 counter-clockwise, removing 7 counter-clockwise (one more)
@@ -152,9 +155,6 @@ namespace AdventOfCode.Solutions.Year2018
         }
 
         public LinkedListNode<ulong> InsertMarble(LinkedListNode<ulong> after, ulong value) {
-            // Remove this marble from the bag
-            game.bag.Remove(value);
-
             // Now adding is easy (null means it is the first)
             if (after == null)
                 if (game.board.Count == 0)
