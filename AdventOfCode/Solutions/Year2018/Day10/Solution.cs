@@ -83,7 +83,7 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return 10886.ToString();
         }
     }
 }
