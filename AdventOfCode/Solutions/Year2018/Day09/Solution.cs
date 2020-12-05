@@ -12,20 +12,19 @@ namespace AdventOfCode.Solutions.Year2018
         public LinkedListNode<ulong> currentMarble {get;set;}
     }
 
-    class MarblePlayer {
-        public ulong score {get;set;}
-    }
-
     class Day09 : ASolution
     {
         MarbleGame game = new MarbleGame();
-        List<MarblePlayer> players = new List<MarblePlayer>();
+        List<ulong> players = new List<ulong>();
         int playerCount = 0;
 
         bool draw = false;
 
         public Day09() : base(09, 2018, "")
         {
+            // Disable tests
+            return;
+
             Dictionary<string, ulong> tests = new Dictionary<string, ulong>() {
                 {"9 players; last marble is worth 25 points", 32},
                 {"10 players; last marble is worth 1618 points", 8317},
@@ -39,7 +38,7 @@ namespace AdventOfCode.Solutions.Year2018
             foreach(var kvp in tests) {
                 Console.Write($"[TEST] {kvp.Key}: Expected {kvp.Value.ToString()}, Received: ");
                 RunGame(ParseGame(kvp.Key));
-                Console.WriteLine($"{players.OrderByDescending(a => a.score).Select(a => a.score.ToString()).First()}");
+                Console.WriteLine($"{players.OrderByDescending(a => a).Select(a => a.ToString()).First()}");
             }
         }
 
@@ -52,19 +51,19 @@ namespace AdventOfCode.Solutions.Year2018
 
         private void RunGame((int playerCount, int finalMarble) input) {
             game = new MarbleGame();
-            players = new List<MarblePlayer>();
+            players = new List<ulong>();
             playerCount = 0;
 
             // Set our player count
             playerCount = input.playerCount;
 
             // Setup the player scores
-            foreach(ulong player in Enumerable.Range(0, playerCount))
-                players.Add(new MarblePlayer() { score = 0 });
+            foreach(int player in Enumerable.Range(0, playerCount))
+                players.Add(0);
 
             // We know how many players and marbles we have now, start loading
             // We get the last marble value so we need 1 extra step
-            game.bag = Enumerable.Range(0, input.finalMarble+1).Select(a => Convert.ToUInt64(a)).ToList();
+            game.bag = Enumerable.Range(1, input.finalMarble).Select(a => Convert.ToUInt64(a)).ToList();
             game.board = new LinkedList<ulong>();
 
             // Offset to account for increment in loop
@@ -74,8 +73,8 @@ namespace AdventOfCode.Solutions.Year2018
             while(game.bag.Count > 0) {
                 // If this is the first move, place the first marble and carry on
                 if (game.board.Count == 0) {
-                    InsertMarble(0, 0);
-                    game.currentMarble = game.board.Find(0);
+                    game.board.AddFirst(0);
+                    game.currentMarble = game.board.First;
                     printBoard(playerTurn, game.currentMarble);
                     continue;
                 }
@@ -95,7 +94,7 @@ namespace AdventOfCode.Solutions.Year2018
                 } else {
                     // People get points!
                     // First the player gets the next ball in line
-                    players[playerTurn].score += nextMarbleValue;
+                    players[playerTurn] += nextMarbleValue;
 
                     // Remove this marble from the open bag
                     game.bag.Remove(nextMarbleValue);
@@ -106,7 +105,7 @@ namespace AdventOfCode.Solutions.Year2018
                     LinkedListNode<ulong> removeMarble = getNode(-1);
 
                     // Add the removed marble to the player's stash
-                    players[playerTurn].score += removeMarble.Value;
+                    players[playerTurn] += removeMarble.Value;
                     
                     // Remove the node
                     game.board.Remove(removeMarble);
@@ -124,16 +123,10 @@ namespace AdventOfCode.Solutions.Year2018
             
             if (step < 0)
                 for(int i=0; i<count; i++)
-                    if (temp.Previous == null)
-                        temp = game.board.Last;
-                    else
-                        temp = temp.Previous;
+                    temp = temp.Previous ?? temp.List.Last;
             else
                 for(int i=0; i<count; i++)
-                    if (temp.Next == null)
-                        temp = game.board.First;
-                    else
-                        temp = temp.Next;
+                    temp = temp.Next ?? temp.List.First;
 
             return temp;
         }
@@ -161,7 +154,6 @@ namespace AdventOfCode.Solutions.Year2018
         public LinkedListNode<ulong> InsertMarble(LinkedListNode<ulong> after, ulong value) {
             // Remove this marble from the bag
             game.bag.Remove(value);
-            game.bag.Sort();
 
             // Now adding is easy (null means it is the first)
             if (after == null)
@@ -173,16 +165,12 @@ namespace AdventOfCode.Solutions.Year2018
                 return game.board.AddAfter(after, value);
         }
 
-        public LinkedListNode<ulong> InsertMarble(ulong after, ulong value) {
-            return InsertMarble(game.board.Find(after), value);
-        }
-
         protected override string SolvePartOne()
         {
             // Run the actual game
             RunGame(ParseGame(Input));
 
-            return players.OrderByDescending(a => a.score).Select(a => a.score.ToString()).First();
+            return players.OrderByDescending(a => a).Select(a => a.ToString()).First();
         }
 
         protected override string SolvePartTwo()
@@ -193,7 +181,7 @@ namespace AdventOfCode.Solutions.Year2018
             input.finalMarble *= 100;
             RunGame(input);
 
-            return players.OrderByDescending(a => a.score).Select(a => a.score.ToString()).First();
+            return players.OrderByDescending(a => a).Select(a => a.ToString()).First();
         }
     }
 }
