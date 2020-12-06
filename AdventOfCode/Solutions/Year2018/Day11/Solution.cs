@@ -10,8 +10,18 @@ namespace AdventOfCode.Solutions.Year2018
         public int x {get;set;}
         public int y {get;set;}
         public int gridSerialNumber {get;set;}
+        public int powerLevel {get;set;}
 
-        public int powerLevel {
+        public FuelCell(int x, int y, int gridSerialNumber) {
+            this.x = x;
+            this.y = y;
+            this.gridSerialNumber = gridSerialNumber;
+
+            // Part 2 didn't chage anything we can pre-calculate this
+            this.powerLevel = _powerLevel;
+        }
+
+        private int _powerLevel {
             get {
                 // rackId = X coordinate plus 10
                 int rackId = x + 10;
@@ -53,7 +63,7 @@ namespace AdventOfCode.Solutions.Year2018
 
             for(int x=1; x<=300; x++)
                 for(int y=1; y<=300; y++)
-                    fuelCells.Add((x, y), new FuelCell() { x = x, y = y, gridSerialNumber = gridSerialNumber });
+                    fuelCells.Add((x, y), new FuelCell(x, y, gridSerialNumber));
 
         }
 
@@ -98,7 +108,38 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Search all possible squares for the highest power level we have
+            // Need to refactor into a partial summed area table later
+            int highest = Int32.MinValue;
+            int hx = Int32.MinValue;
+            int hy = Int32.MinValue;
+            int hsize = 0;
+            int size = 300;
+
+            while(size >= 1) {
+                for(int y=1; y<=300-size+1; y++) {
+                    for(int x=1; x<=300-size+1; x++){
+                        int tempPowerLevel = 0;
+
+                        // Need to get all of the possible values
+                        foreach(int dx in Enumerable.Range(0, size))
+                            foreach(int dy in Enumerable.Range(0, size))
+                                tempPowerLevel += fuelCells[(x+dx, y+dy)].powerLevel;
+
+                        if (tempPowerLevel > highest) {
+                            highest = tempPowerLevel;
+                            hx = x;
+                            hy = y;
+                            hsize = size;
+                        }
+                    }
+                }
+
+                // Move on
+                size--;
+            }
+
+            return $"[Serial: {gridSerialNumber}] {hx},{hy},{hsize}: {highest}";
         }
     }
 }
