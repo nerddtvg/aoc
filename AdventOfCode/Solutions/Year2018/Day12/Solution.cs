@@ -14,6 +14,13 @@ namespace AdventOfCode.Solutions.Year2018
 
         public Day12() : base(12, 2018, "")
         {
+
+        }
+
+        private void ParseInput() {
+            plants = new Dictionary<int, bool>();
+            rules = new Dictionary<string, bool>();
+
             // Initial state is a set of pots 0..end
             // We need to include -1, -2 as no-plants
             plants.Add(-2, false);
@@ -130,16 +137,58 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartOne()
         {
-            // Print the Initial Generation
-            printGeneration(0, -4);
-            RunGenerations(20);
+            ParseInput();
 
-            return plants.Where(a => a.Value == true).Sum(a => a.Key).ToString();
+            // Print the Initial Generation
+            //printGeneration(0, -4);
+            //RunGenerations(20);
+
+            return GetSum().ToString();
         }
+
+        protected int GetSum() => plants.Where(a => a.Value == true).Sum(a => a.Key);
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // There has to be a pattern. Perhaps it is a pattern in the counts
+            List<int> sums = new List<int>();
+
+            sums.Add(GetSum());
+
+            for(int i=1; i<=10000; i++) {
+                RunGeneration();
+                
+                // Now let's get the sum
+                int sum = GetSum();
+
+                // Print some help
+                Console.WriteLine($"After {i}: {sum} [{sum-sums[sums.Count-1]}] " + (sums.Contains(sum) ? "*" : ""));
+
+                sums.Add(sum);
+            }
+
+            // After doing that, we found this:
+            /*
+            After 89: 2115 [-68] 
+            After 90: 2047 [-68] 
+            After 91: 2062 [15] 
+            After 92: 2077 [15] 
+            After 93: 2092 [15] 
+            After 94: 2107 [15] 
+            After 95: 2122 [15] *
+            After 96: 2137 [15] 
+            After 97: 2152 [15] 
+            After 98: 2167 [15] 
+            After 99: 2182 [15] 
+            */
+
+            // So we just add 15 to every generation after 90 (2047)
+            ulong genStart = 90;
+            ulong genValue = 2047;
+            ulong genEnd = 50000000000;
+            ulong diff = 15;
+
+            return (genValue + ((genEnd - genStart) * diff)).ToString();
         }
     }
 }
