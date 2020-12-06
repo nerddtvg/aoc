@@ -162,6 +162,15 @@ namespace AdventOfCode.Solutions
             return string.Join("", items);
         }
 
+        public static string[][] SplitByBlankLine(this string input, bool shouldTrim = false)
+        {
+            return input
+                .Split(new[] { "\r\r", "\n\n", "\r\n\r\n" }, StringSplitOptions.None)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s.SplitByNewline(shouldTrim, true))
+                .ToArray();
+        }
+
         public static string[] SplitByNewline(this string input, bool shouldTrim = false, bool shouldExcludeEmpty = true)
         {
             return input
