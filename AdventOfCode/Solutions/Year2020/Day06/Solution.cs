@@ -14,23 +14,9 @@ namespace AdventOfCode.Solutions.Year2020
 
         public Day06() : base(06, 2020, "")
         {
-            // Go through each group and combine them
-            List<string> group = new List<string>();
-
-            foreach(string line in Input.SplitByNewline(true, false)) {
-                // If the line is blank, process the group
-                if (string.IsNullOrWhiteSpace(line)) {
-                    if (group.Count == 0) continue;
-
-                    processGroup(group);
-                    group = new List<string>();
-                    continue;
-                }
-
-                group.Add(line);
-            }
-
-            if (group.Count > 0) processGroup(group);
+            // Go through each group and process them
+            foreach(string[] group in Input.SplitByBlankLine(true))
+                processGroup(group.ToList());
         }
 
         private void processGroup(List<string> group) {
