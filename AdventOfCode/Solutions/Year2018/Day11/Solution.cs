@@ -50,6 +50,7 @@ namespace AdventOfCode.Solutions.Year2018
     {
         // Using a dictionary means finding groups of x,y is much faster
         Dictionary<(int x, int y), FuelCell> fuelCells = new Dictionary<(int x, int y), FuelCell>();
+        Dictionary<(int x, int y), int> sum = new Dictionary<(int x, int y), int>();
         int gridSerialNumber = 0;
 
         public Day11() : base(11, 2018, "")
@@ -109,34 +110,47 @@ namespace AdventOfCode.Solutions.Year2018
         protected override string SolvePartTwo()
         {
             // Search all possible squares for the highest power level we have
-            // Need to refactor into a partial summed area table later
+            // Summed area table modeled after: https://old.reddit.com/r/adventofcode/comments/a53r6i/2018_day_11_solutions/ebjogd7/
             int highest = Int32.MinValue;
             int hx = Int32.MinValue;
             int hy = Int32.MinValue;
             int hsize = 0;
             int size = 300;
 
-            while(size >= 1) {
-                for(int y=1; y<=300-size+1; y++) {
-                    for(int x=1; x<=300-size+1; x++){
-                        int tempPowerLevel = 0;
+            // Set zeros to remove some inline if statements later
+            for(int y=0; y<=300; y++)
+                sum[(0, y)] = 0;
+            
+            for(int x=0; x<=300; x++)
+                sum[(x, 0)] = 0;
 
-                        // Need to get all of the possible values
-                        foreach(int dx in Enumerable.Range(0, size))
-                            foreach(int dy in Enumerable.Range(0, size))
-                                tempPowerLevel += fuelCells[(x+dx, y+dy)].powerLevel;
+            // Create the summed area table
+            for(int y=1; y<=300; y++) {
+                for(int x=1; x<=300; x++) {
+                    sum[(x, y)] = fuelCells[(x, y)].powerLevel
+                     + sum[(x-1, y)]
+                     + sum[(x, y-1)]
+                     - sum[(x-1, y-1)];
+                }
+            }
 
+            // Now we can search using only a partial loop setup
+            for(size=1; size<=300; size++) {
+                for(int y=size; y<=300; y++) {
+                    for(int x=size; x<=300; x++) {
+                        int tempPowerLevel = sum[(x, y)]
+                         - sum[(x, y-size)]
+                         - sum[(x-size, y)]
+                         + sum[(x-size, y-size)];
+                        
                         if (tempPowerLevel > highest) {
+                            hx = x - size + 1;
+                            hy = y - size + 1;
                             highest = tempPowerLevel;
-                            hx = x;
-                            hy = y;
                             hsize = size;
                         }
                     }
                 }
-
-                // Move on
-                size--;
             }
 
             return $"[Serial: {gridSerialNumber}] {hx},{hy},{hsize}: {highest}";
