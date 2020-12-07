@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using System.Linq;
+#nullable enable
 
 namespace AdventOfCode.Solutions.Year2020
 {
@@ -65,9 +66,30 @@ namespace AdventOfCode.Solutions.Year2020
             return bags.Count.ToString();
         }
 
+        private int bagCountIB(InnerBag bag) {
+            // Calculate based on the ruleset
+            OuterBag? ob = rules.Where(a => a.color == bag.color).FirstOrDefault();
+            if (ob != null) return bag.qty * bagCount(ob);
+
+            return bag.qty;
+        }
+
+        private int bagCount(OuterBag bag) {
+            // Need to process this rule including ourselve
+            int count = 1;
+
+            // How many inner bags?
+            foreach (var ib in bag.inner)
+                count += bagCountIB(ib);
+
+            return count;
+        }
+
         protected override string SolvePartTwo()
         {
-            return null;
+            // Work down the tree from shiny gold to determine how many bags it must contain
+            // Remove one from the total because we can't count shiny gold
+            return (bagCount(rules.Where(a => a.color == "shiny gold").First())-1).ToString();
         }
     }
 }
