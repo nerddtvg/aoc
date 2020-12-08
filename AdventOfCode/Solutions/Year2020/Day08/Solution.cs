@@ -32,9 +32,16 @@ namespace AdventOfCode.Solutions.Year2020
             accumulator = 0;
         }
 
-        public bool DoOperation() {
-            // Lookup the next step, check if we have done it before and fail out (false)
-            if (this.visited.Contains(this.position)) return false;
+        public GameComputerOps ParseInstructionName(string name) {
+            return (GameComputerOps) Enum.Parse(typeof(GameComputerOps), name, true);
+        }
+
+        public int DoOperation() {
+            // Lookup the next step, check if we have done it before and fail out (0)
+            if (this.visited.Contains(this.position)) return 0;
+
+            // We may be done, if so, return 2
+            if (this.position >= this.instructions.Count) return 2;
 
             // If not, do it!
             var ins = instructions[this.position];
@@ -42,7 +49,7 @@ namespace AdventOfCode.Solutions.Year2020
             // Add it to the list
             this.visited.Add(this.position);
 
-            switch((GameComputerOps) Enum.Parse(typeof(GameComputerOps), ins.instruction, true)) {
+            switch(ParseInstructionName(ins.instruction)) {
                 case GameComputerOps.acc:
                     this.position += 1;
                     this.accumulator += ins.value;
@@ -60,30 +67,66 @@ namespace AdventOfCode.Solutions.Year2020
                     throw new Exception($"Invalid instruction: {ins.instruction}");
             }
 
-            return true;
+            return 1;
         }
     }
 
     class Day08 : ASolution
     {
         GameComputer computer;
+        Dictionary<int, GameComputerOps> instructions;
 
         public Day08() : base(08, 2020, "")
         {
+            // Load the original computer
             computer = new GameComputer(Input);
+
+            // Let's note all of the positions of jmp and nop
+            instructions = new Dictionary<int, GameComputerOps>();
+            for(int i=0; i<computer.instructions.Count; i++) {
+                var name = computer.ParseInstructionName(computer.instructions[i].instruction);
+
+                // Skip acc instructions for Part 2
+                if (name == GameComputerOps.acc) continue;
+
+                // Note the position and instruction we have (to possibly replace)
+                instructions.Add(i, name);
+            }
         }
 
         protected override string SolvePartOne()
         {
             // Go through each step
-            while(computer.DoOperation()) {};
+            while(computer.DoOperation() == 1) {};
 
             return computer.accumulator.ToString();
         }
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // For each instruction to replace, we will re-run this computer again and again
+            foreach(var kvp in instructions) {
+                // Reinitialize from the beginning
+                computer = new GameComputer(Input);
+
+                // Change this one instruction (must be done indirectly since I'm not using a class)
+                var current = computer.instructions[kvp.Key];
+                current.instruction = (kvp.Value == GameComputerOps.jmp ? "nop" : "jmp");
+                computer.instructions[kvp.Key] = current;
+
+                // Go through each step
+                int ret = computer.DoOperation();
+                while(ret == 1) {
+                    ret = computer.DoOperation();
+                }
+
+                // Check if we exited normally
+                if (ret == 2) break;
+
+                // Otherwise, loop again and try over
+            }
+
+            return computer.accumulator.ToString();
         }
     }
 }
