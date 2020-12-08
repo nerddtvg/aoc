@@ -13,18 +13,16 @@ namespace AdventOfCode.Solutions.Year2020
 
     }
 
-    class Day08 : ASolution
-    {
-        List<(string instruction, int value)> instructions = new List<(string instruction, int value)>();
+    class GameComputer {
+        public List<(string instruction, int value)> instructions = new List<(string instruction, int value)>();
 
-        int position = 0;
-        int accumulator = 0;
+        private int position = 0;
+        public int accumulator = 0;
 
-        List<int> visited = new List<int>();
+        private List<int> visited = new List<int>();
 
-        public Day08() : base(08, 2020, "")
-        {
-            foreach(string line in Input.SplitByNewline()) {
+        public GameComputer(string input) {
+            foreach(string line in input.SplitByNewline()) {
                 string[] parts = line.Trim().Split(" ");
                 instructions.Add((parts[0], Int32.Parse(parts[1])));
             }
@@ -34,7 +32,7 @@ namespace AdventOfCode.Solutions.Year2020
             accumulator = 0;
         }
 
-        private bool DoOperation() {
+        public bool DoOperation() {
             // Lookup the next step, check if we have done it before and fail out (false)
             if (this.visited.Contains(this.position)) return false;
 
@@ -64,13 +62,23 @@ namespace AdventOfCode.Solutions.Year2020
 
             return true;
         }
+    }
+
+    class Day08 : ASolution
+    {
+        GameComputer computer;
+
+        public Day08() : base(08, 2020, "")
+        {
+            computer = new GameComputer(Input);
+        }
 
         protected override string SolvePartOne()
         {
             // Go through each step
-            while(DoOperation()) {};
+            while(computer.DoOperation()) {};
 
-            return this.accumulator.ToString();
+            return computer.accumulator.ToString();
         }
 
         protected override string SolvePartTwo()
