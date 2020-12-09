@@ -44,6 +44,28 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
+            // Find a contiguous set of numbers that sum to this
+            int sum = 85848519;
+
+            // Go through each one and now we check if we can make a sum
+            for(int i=0; i<puzzle.Count; i++) {
+                int tSum = 0;
+                int min = Int32.MaxValue;
+                int max = Int32.MinValue;
+
+                for(int q=i+1; q<puzzle.Count && tSum < sum; q++) {
+                    tSum += puzzle[q];
+
+                    if (puzzle[q] < min) min = puzzle[q];
+                    if (puzzle[q] > max) max = puzzle[q];
+                }
+                
+                // If it matches, return our value!
+                if (tSum == sum) {
+                    return (min+max).ToString();
+                }
+            }
+
             return null;
         }
     }
