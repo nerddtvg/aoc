@@ -192,7 +192,7 @@ namespace AdventOfCode.Solutions.Year2019 {
 
                 case Opcode.Output:
                     // Output an integer
-                    this.output_register.Append(GetMemory(ParseParams(instruction.modes, 1)[0]));
+                    this.output_register.Enqueue(GetMemory(ParseParams(instruction.modes, 1)[0]));
 
                     // We should return and wait for the next run command
                     // Move forward for the next time we come back
