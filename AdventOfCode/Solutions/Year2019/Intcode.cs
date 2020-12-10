@@ -54,7 +54,7 @@ namespace AdventOfCode.Solutions.Year2019 {
         public int stopOnOutput = 1;
 
         // Output register
-        public long output_register = Int64.MinValue;
+        public Queue<long> output_register;
 
         // Relative base
         public long relative_base = 0;
@@ -73,6 +73,7 @@ namespace AdventOfCode.Solutions.Year2019 {
             this.State = State.Waiting;
 
             this.input = new Queue<long>();
+            this.output_register = new Queue<long>();
         }
 
         public Intcode(long[] codes, int stopOnOutput, int debugLevel = 0) {
@@ -83,6 +84,7 @@ namespace AdventOfCode.Solutions.Year2019 {
             this.debug_level = debugLevel;
 
             this.input = new Queue<long>();
+            this.output_register = new Queue<long>();
         }
 
         public Intcode(string codes) : this(codes.Split(',').Select(a => Int64.Parse(a)).ToArray()) {
@@ -190,7 +192,7 @@ namespace AdventOfCode.Solutions.Year2019 {
 
                 case Opcode.Output:
                     // Output an integer
-                    this.output_register = GetMemory(ParseParams(instruction.modes, 1)[0]);
+                    this.output_register.Append(GetMemory(ParseParams(instruction.modes, 1)[0]));
 
                     // We should return and wait for the next run command
                     // Move forward for the next time we come back

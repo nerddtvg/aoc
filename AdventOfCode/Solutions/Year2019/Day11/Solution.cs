@@ -70,7 +70,7 @@ namespace AdventOfCode.Solutions.Year2019
                 intcode.Run();
                 
                 // Change direction
-                if (intcode.output_register == 0) {
+                if (intcode.output_register.Dequeue() == 0) {
                     dir -= 1;
                 } else {
                     dir += 1;
@@ -162,7 +162,7 @@ namespace AdventOfCode.Solutions.Year2019
                 intcode.Run();
                 
                 // Change direction
-                if (intcode.output_register == 0) {
+                if (intcode.output_register.Dequeue() == 0) {
                     dir -= 1;
                 } else {
                     dir += 1;

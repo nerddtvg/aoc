@@ -51,7 +51,7 @@ namespace AdventOfCode.Solutions.Year2019
                 intcode1.SetInput(0);
                 intcode1.Run();
 
-                out1 = intcode1.output_register;
+                out1 = intcode1.output_register.Dequeue();
 
                 intcode2.SetInput(p[1]);
                 intcode2.Run();
@@ -60,7 +60,7 @@ namespace AdventOfCode.Solutions.Year2019
                 intcode2.SetInput(out1);
                 intcode2.Run();
 
-                out2 = intcode2.output_register;
+                out2 = intcode2.output_register.Dequeue();
 
                 intcode3.SetInput(p[2]);
                 intcode3.Run();
@@ -69,7 +69,7 @@ namespace AdventOfCode.Solutions.Year2019
                 intcode3.SetInput(out2);
                 intcode3.Run();
 
-                out3 = intcode3.output_register;
+                out3 = intcode3.output_register.Dequeue();
 
                 intcode4.SetInput(p[3]);
                 intcode4.Run();
@@ -78,7 +78,7 @@ namespace AdventOfCode.Solutions.Year2019
                 intcode4.SetInput(out3);
                 intcode4.Run();
 
-                out4 = intcode4.output_register;
+                out4 = intcode4.output_register.Dequeue();
 
                 intcode5.SetInput(p[4]);
                 intcode5.Run();
@@ -87,7 +87,7 @@ namespace AdventOfCode.Solutions.Year2019
                 intcode5.SetInput(out4);
                 intcode5.Run();
 
-                out5 = intcode5.output_register;
+                out5 = intcode5.output_register.Dequeue();
 
                 if (out5 > maxThrust) {
                     maxThrust = out5;
@@ -154,7 +154,7 @@ namespace AdventOfCode.Solutions.Year2019
                         computers[i].Run();
 
                         // Get the output
-                        lastOut[i] = computers[i].output_register;
+                        lastOut[i] = computers[i].output_register.Dequeue();
                     }
 
                     // If this is the last computer, check for output
@@ -166,8 +166,10 @@ namespace AdventOfCode.Solutions.Year2019
                     i = (i+1) % 5;
                 }
 
-                if (computers[4].output_register > maxThrust) {
-                    maxThrust = computers[4].output_register;
+                var thrust = computers[4].output_register.Dequeue();
+
+                if (thrust > maxThrust) {
+                    maxThrust = thrust;
                     maxPhase = p;
                 }
             }
