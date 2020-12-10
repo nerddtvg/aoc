@@ -46,9 +46,30 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartTwo()
         {
             // Find all possible combinations from 0 to Last() respecting the rules
+            // Based on: https://github.com/adrianosmond/adventofcode/blob/master/2020/day10.js
+            // Logic is simple:
+            // * Work from the end to the start
+            // * If the difference between two values <= 3, you can add them on
+            // Similar to a partial sum table
 
+            long[] numRoutes = new long[adapters.Last()+1];
 
-            return null;
+            // Set the end path
+            numRoutes[adapters.Last()] = 1;
+
+            for(int i = adapters.Count-2; i>=0; i--) {
+                // Use the value of the adapter so we ensure we are mapping to the right path count
+                // If we just use the indices, we will add extra paths that are not valid
+                numRoutes[adapters[i]] = 0;
+
+                for(int j=i+1; j<adapters.Count && j<=i+3; j++) {
+                    // We're now checking i+1, i+2, i+3
+                    if (adapters[j] - adapters[i] <= 3)
+                        numRoutes[adapters[i]] += numRoutes[adapters[j]];
+                }
+            }
+
+            return numRoutes[0].ToString();
         }
     }
 }
