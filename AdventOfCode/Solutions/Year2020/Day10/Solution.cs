@@ -33,7 +33,7 @@ namespace AdventOfCode.Solutions.Year2020
             for(int i=0; i<adapters.Count-1; i++) {
                 int diff = adapters[i+1] - adapters[i];
 
-                if (diff > 3) throw new Exception($"Invalid adapters: {adapters[i]} and {adapters[i+1]}");
+                if (diff == 0 || diff > 3) throw new Exception($"Invalid adapters: {adapters[i]} and {adapters[i+1]}");
                 if (diff == 1) diff1++;
                 if (diff == 3) diff3++;
             }
@@ -45,6 +45,9 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
+            // Find all possible combinations from 0 to Last() respecting the rules
+
+
             return null;
         }
     }
