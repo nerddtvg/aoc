@@ -53,9 +53,6 @@ namespace AdventOfCode.Solutions.Year2020
         // If 4 or more adajcent seats are occupied, empty this one
         private WaitingSpotType ToBeEmptied(int x, int y) => GetAdjacentSpots(x, y).Count(a => a == WaitingSpotType.Occupied) >= 4 ? WaitingSpotType.Empty : WaitingSpotType.Occupied;
 
-        // If it is empty and no seats adjacent are occupied, then yes
-        private WaitingSpotType ToBeOccupied2(int x, int y) => GetVisibleSpots(x, y).Count(a => a == WaitingSpotType.Occupied) == 0 ? WaitingSpotType.Occupied : WaitingSpotType.Empty;
-
         // If 4 or more adajcent seats are occupied, empty this one
         private WaitingSpotType ToBeEmptied2(int x, int y) => GetVisibleSpots(x, y).Count(a => a == WaitingSpotType.Occupied) >= 5 ? WaitingSpotType.Empty : WaitingSpotType.Occupied;
 
@@ -108,7 +105,7 @@ namespace AdventOfCode.Solutions.Year2020
             }
 
             // We didn't hit anything in this direction
-            return WaitingSpotType.Empty;
+            return WaitingSpotType.None;
         }
 
         private WaitingSpotType GetSpotType(int x, int y) => map.ContainsKey((x, y)) ? map[(x, y)] : WaitingSpotType.None;
@@ -124,7 +121,7 @@ namespace AdventOfCode.Solutions.Year2020
                         break;
                     
                     case WaitingSpotType.Empty:
-                        newMap[kvp.Key] = (part == 1 ? ToBeOccupied(kvp.Key.x, kvp.Key.y) : ToBeOccupied2(kvp.Key.x, kvp.Key.y));
+                        newMap[kvp.Key] = ToBeOccupied(kvp.Key.x, kvp.Key.y);
                         changes += (newMap[kvp.Key] == kvp.Value ? 0 : 1);
                         break;
                     
