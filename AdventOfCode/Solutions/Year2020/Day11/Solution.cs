@@ -43,8 +43,11 @@ namespace AdventOfCode.Solutions.Year2020
 
         // If it is empty and no seats adjacent are occupied, then yes
         private WaitingSpotType ToBeOccupied(int x, int y) => GetAdjacentSpots(x, y).Count(a => a == WaitingSpotType.Occupied) == 0 ? WaitingSpotType.Occupied : WaitingSpotType.Empty;
+
+        // If 4 or more adajcent seats are occupied, empty this one
         private WaitingSpotType ToBeEmptied(int x, int y) => GetAdjacentSpots(x, y).Count(a => a == WaitingSpotType.Occupied) >= 4 ? WaitingSpotType.Empty : WaitingSpotType.Occupied;
 
+        // Helper to get the adjacent seats
         private List<WaitingSpotType> GetAdjacentSpots(int x, int y) => 
             new List<WaitingSpotType>() {
                 GetSpotType(x-1, y-1),
