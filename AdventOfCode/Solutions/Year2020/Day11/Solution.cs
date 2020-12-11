@@ -47,12 +47,6 @@ namespace AdventOfCode.Solutions.Year2020
             this.maxY = this.map.Max(a => a.Key.y);
         }
 
-        // If it is empty and no seats adjacent are occupied, then yes
-        private WaitingSpotType ToBeOccupied(int x, int y, int part=1) => (part == 1 ? GetAdjacentSpots(x, y) : GetVisibleSpots(x, y)).Count(a => a == WaitingSpotType.Occupied) == 0 ? WaitingSpotType.Occupied : WaitingSpotType.Empty;
-
-        // If 4 or more adajcent seats are occupied, empty this one
-        private WaitingSpotType ToBeEmptied(int x, int y, int part=1) => (part == 1 ? GetAdjacentSpots(x, y) : GetVisibleSpots(x, y)).Count(a => a == WaitingSpotType.Occupied) >= (part == 1 ? 4 : 5) ? WaitingSpotType.Empty : WaitingSpotType.Occupied;
-
         // Helper to get the adjacent seats
         private List<WaitingSpotType> GetAdjacentSpots(int x, int y) => 
             new List<WaitingSpotType>() {
@@ -116,20 +110,30 @@ namespace AdventOfCode.Solutions.Year2020
             int changes = 0;
             
             foreach(var kvp in map) {
-                switch (kvp.Value) {
-                    case WaitingSpotType.Floor:
-                        newMap[kvp.Key] = kvp.Value;
-                        break;
-                    
-                    case WaitingSpotType.Empty:
-                        newMap[kvp.Key] = ToBeOccupied(kvp.Key.x, kvp.Key.y, part);
-                        changes += (newMap[kvp.Key] == kvp.Value ? 0 : 1);
-                        break;
-                    
-                    case WaitingSpotType.Occupied:
-                        newMap[kvp.Key] = ToBeEmptied(kvp.Key.x, kvp.Key.y, part);
-                        changes += (newMap[kvp.Key] == kvp.Value ? 0 : 1);
-                        break;
+                // If this is floor, skip it
+                if (kvp.Value == WaitingSpotType.Floor) {
+                    newMap[kvp.Key] = kvp.Value;
+                    continue;
+                }
+
+                // Get occupied
+                int count = (part == 1 ? GetAdjacentSpots(kvp.Key.x, kvp.Key.y) : GetVisibleSpots(kvp.Key.x, kvp.Key.y)).Count(a => a == WaitingSpotType.Occupied);
+
+                if (kvp.Value == WaitingSpotType.Empty && count == 0) {
+                    // Parts 1 and 2 => Empty has no spots occupied, it will be occupied
+                    newMap[kvp.Key] = WaitingSpotType.Occupied;
+                    changes++;
+                } else if (kvp.Value == WaitingSpotType.Occupied && count >= 4 && part == 1) {
+                    // Part 1 => If 4 or more adjacent spots are occupied, this becomes empty
+                    newMap[kvp.Key] = WaitingSpotType.Empty;
+                    changes++;
+                } else if (kvp.Value == WaitingSpotType.Occupied && count >= 5 && part == 2) {
+                    // Part 2 => If 5 or more *visibly* adjacent spots are occupied, this becomes empty
+                    newMap[kvp.Key] = WaitingSpotType.Empty;
+                    changes++;
+                } else {
+                    // No change
+                    newMap[kvp.Key] = kvp.Value;
                 }
             }
 
