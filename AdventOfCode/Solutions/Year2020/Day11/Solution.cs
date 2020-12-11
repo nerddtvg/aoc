@@ -149,7 +149,7 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartTwo()
         {
             loadMap();
-            while(runMap(1) > 1) {}
+            while(runMap(2) > 1) {}
 
             return this.map.Count(a => a.Value == WaitingSpotType.Occupied).ToString();
         }
