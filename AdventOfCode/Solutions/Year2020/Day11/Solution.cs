@@ -23,7 +23,19 @@ namespace AdventOfCode.Solutions.Year2020
 
         public Day11() : base(11, 2020, "")
         {
-
+            // We set shouldtrim to true so we can indent here
+            DebugInput = @"
+                L.LL.LL.LL
+                LLLLLLL.LL
+                L.L.L..L..
+                LLLL.LL.LL
+                L.LL.LL.LL
+                L.LLLLL.LL
+                ..L.L.....
+                LLLLLLLLLL
+                L.LLLLLL.L
+                L.LLLLL.LL
+                ";
         }
 
         private void loadMap() {
@@ -32,7 +44,7 @@ namespace AdventOfCode.Solutions.Year2020
 
             map = new Dictionary<(int x, int y), WaitingSpotType>();
 
-            foreach(string line in Input.SplitByNewline()) {
+            foreach(string line in Input.SplitByNewline(true)) {
                 x = 0;
 
                 foreach(char c in line) {
