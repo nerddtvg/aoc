@@ -92,29 +92,19 @@ namespace AdventOfCode.Solutions.Year2020
         
         private WaitingSpotType getVisibleSpot(int x, int y, int dx, int dy) {
             // Loop through all of the spots in the direction provided and return the first one
-            if (dx == 0) {
+            for(int tx=x+dx; tx>=0 && tx<=maxX; tx+=dx) {
                 for(int ty=y+dy; ty>=0 && ty<=maxY; ty+=dy) {
-                    var spot = GetSpotType(x, ty);
+                    var spot = GetSpotType(tx, ty);
 
                     // Is this occupied?
                     if (spot == WaitingSpotType.Empty || spot == WaitingSpotType.Occupied) return spot;
-                }
-            } else if (dy == 0) {
-                for(int tx=x+dx; tx>=0 && tx<=maxX; tx+=dx) {
-                    var spot = GetSpotType(tx, y);
 
-                    // Is this occupied?
-                    if (spot == WaitingSpotType.Empty || spot == WaitingSpotType.Occupied) return spot;
+                    // Prevent an infinite loop
+                    if (dy == 0) break;
                 }
-            } else {
-                for(int tx=x+dx; tx>=0 && tx<=maxX; tx+=dx) {
-                    for(int ty=y+dy; ty>=0 && ty<=maxY; ty+=dy) {
-                        var spot = GetSpotType(tx, ty);
 
-                        // Is this occupied?
-                        if (spot == WaitingSpotType.Empty || spot == WaitingSpotType.Occupied) return spot;
-                    }
-                }
+                // Prevent an infinite loop
+                if (dx == 0) break;
             }
 
             // We didn't hit anything in this direction
