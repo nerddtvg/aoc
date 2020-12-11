@@ -24,6 +24,7 @@ namespace AdventOfCode.Solutions.Year2020
         public Day11() : base(11, 2020, "")
         {
             // We set shouldtrim to true so we can indent here
+            /*
             DebugInput = @"
                 L.LL.LL.LL
                 LLLLLLL.LL
@@ -36,6 +37,7 @@ namespace AdventOfCode.Solutions.Year2020
                 L.LLLLLL.L
                 L.LLLLL.LL
                 ";
+            */
         }
 
         private void loadMap() {
@@ -180,9 +182,10 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartTwo()
         {
             loadMap();
-            drawMap();
+            //drawMap();
+            
             while(runMap(2) > 1) {
-                drawMap();
+                //drawMap();
             }
 
             return this.map.Count(a => a.Value == WaitingSpotType.Occupied).ToString();
