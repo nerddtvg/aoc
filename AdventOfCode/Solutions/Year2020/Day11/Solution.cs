@@ -154,6 +154,29 @@ namespace AdventOfCode.Solutions.Year2020
             return changes;
         }
 
+        private void drawMap() {
+            for(int y=0; y<=maxY; y++) {
+                for(int x=0; x<=maxX; x++) {
+                    switch(GetSpotType(x, y)) {
+                        case WaitingSpotType.Empty:
+                            Console.Write("L");
+                            break;
+                        
+                        case WaitingSpotType.Occupied:
+                            Console.Write("#");
+                            break;
+                        
+                        case WaitingSpotType.Floor:
+                            Console.Write(".");
+                            break;
+                        
+                    }
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine();
+        }
+
         protected override string SolvePartOne()
         {
             loadMap();
@@ -165,7 +188,10 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartTwo()
         {
             loadMap();
-            while(runMap(2) > 1) {}
+            drawMap();
+            while(runMap(2) > 1) {
+                drawMap();
+            }
 
             return this.map.Count(a => a.Value == WaitingSpotType.Occupied).ToString();
         }
