@@ -33,7 +33,8 @@ namespace AdventOfCode.Solutions.Year2020
                 x = 0;
 
                 foreach(char c in line) {
-                    map[(c, y)] = (c == '.' ? WaitingSpotType.Floor : (c == 'L' ? WaitingSpotType.Empty : WaitingSpotType.Occupied));
+                    map[(x, y)] = (c == '.' ? WaitingSpotType.Floor : (c == 'L' ? WaitingSpotType.Empty : WaitingSpotType.Occupied));
+                    x++;
                 }
 
                 y++;
@@ -63,12 +64,6 @@ namespace AdventOfCode.Solutions.Year2020
             int changes = 0;
             
             foreach(var kvp in map) {
-                // If this spot is a floor tile, skip it
-                if (kvp.Value == WaitingSpotType.Floor) {
-                    newMap[kvp.Key] = kvp.Value;
-                    continue;
-                }
-
                 switch (kvp.Value) {
                     case WaitingSpotType.Floor:
                         newMap[kvp.Key] = kvp.Value;
@@ -93,7 +88,9 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartOne()
         {
-            return null;
+            while(runMap() > 1) {}
+
+            return this.map.Count(a => a.Value == WaitingSpotType.Occupied).ToString();
         }
 
         protected override string SolvePartTwo()
