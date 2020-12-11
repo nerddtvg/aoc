@@ -48,13 +48,10 @@ namespace AdventOfCode.Solutions.Year2020
         }
 
         // If it is empty and no seats adjacent are occupied, then yes
-        private WaitingSpotType ToBeOccupied(int x, int y) => GetAdjacentSpots(x, y).Count(a => a == WaitingSpotType.Occupied) == 0 ? WaitingSpotType.Occupied : WaitingSpotType.Empty;
+        private WaitingSpotType ToBeOccupied(int x, int y, int part=1) => (part == 1 ? GetAdjacentSpots(x, y) : GetVisibleSpots(x, y)).Count(a => a == WaitingSpotType.Occupied) == 0 ? WaitingSpotType.Occupied : WaitingSpotType.Empty;
 
         // If 4 or more adajcent seats are occupied, empty this one
-        private WaitingSpotType ToBeEmptied(int x, int y) => GetAdjacentSpots(x, y).Count(a => a == WaitingSpotType.Occupied) >= 4 ? WaitingSpotType.Empty : WaitingSpotType.Occupied;
-
-        // If 4 or more adajcent seats are occupied, empty this one
-        private WaitingSpotType ToBeEmptied2(int x, int y) => GetVisibleSpots(x, y).Count(a => a == WaitingSpotType.Occupied) >= 5 ? WaitingSpotType.Empty : WaitingSpotType.Occupied;
+        private WaitingSpotType ToBeEmptied(int x, int y, int part=1) => (part == 1 ? GetAdjacentSpots(x, y) : GetVisibleSpots(x, y)).Count(a => a == WaitingSpotType.Occupied) >= (part == 1 ? 4 : 5) ? WaitingSpotType.Empty : WaitingSpotType.Occupied;
 
         // Helper to get the adjacent seats
         private List<WaitingSpotType> GetAdjacentSpots(int x, int y) => 
@@ -89,6 +86,10 @@ namespace AdventOfCode.Solutions.Year2020
         
         private WaitingSpotType getVisibleSpot(int x, int y, int dx, int dy) {
             // Loop through all of the spots in the direction provided and return the first one
+            // Shortcut some checks
+            if (x + dx < 0 || x + dx > maxX) return WaitingSpotType.None;
+            if (y + dy < 0 || y + dy > maxY) return WaitingSpotType.None;
+
             for(int tx=x+dx; tx>=0 && tx<=maxX; tx+=dx) {
                 for(int ty=y+dy; ty>=0 && ty<=maxY; ty+=dy) {
                     var spot = GetSpotType(tx, ty);
@@ -121,12 +122,12 @@ namespace AdventOfCode.Solutions.Year2020
                         break;
                     
                     case WaitingSpotType.Empty:
-                        newMap[kvp.Key] = ToBeOccupied(kvp.Key.x, kvp.Key.y);
+                        newMap[kvp.Key] = ToBeOccupied(kvp.Key.x, kvp.Key.y, part);
                         changes += (newMap[kvp.Key] == kvp.Value ? 0 : 1);
                         break;
                     
                     case WaitingSpotType.Occupied:
-                        newMap[kvp.Key] = (part == 1 ? ToBeEmptied(kvp.Key.x, kvp.Key.y) : ToBeEmptied2(kvp.Key.x, kvp.Key.y));
+                        newMap[kvp.Key] = ToBeEmptied(kvp.Key.x, kvp.Key.y, part);
                         changes += (newMap[kvp.Key] == kvp.Value ? 0 : 1);
                         break;
                 }
@@ -148,7 +149,7 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartTwo()
         {
             loadMap();
-            while(runMap(2) > 1) {}
+            while(runMap(1) > 1) {}
 
             return this.map.Count(a => a.Value == WaitingSpotType.Occupied).ToString();
         }
