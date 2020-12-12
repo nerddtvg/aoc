@@ -32,7 +32,11 @@ namespace AdventOfCode.Solutions.Year2020
         private void MoveShip((string instruction, int value) input) {
             if (input.instruction == "R" || input.instruction == "L") {
                 // Turn one way or another as many times as we can divide 90 into it
-                dir = (ShipDirection) ((((input.instruction == "L" ? -1 : 1) * (input.value / 90)) + (int) dir) % 4);
+                int v = ((((input.instruction == "L" ? -1 : 1) * (input.value / 90)) + (int) dir) % 4);
+
+                while (v < 0) v += 4;
+
+                dir = (ShipDirection) v;
             } else {
                 // This is a movement instruction
                 switch(input.instruction) {
