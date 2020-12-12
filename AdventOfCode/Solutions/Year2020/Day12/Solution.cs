@@ -24,6 +24,15 @@ namespace AdventOfCode.Solutions.Year2020
 
         public Day12() : base(12, 2020, "")
         {
+            /*
+            DebugInput = @"
+            F10
+            N3
+            F7
+            R90
+            F11";
+            */
+
             x = 0;
             y = 0;
             dir = ShipDirection.East;
@@ -92,46 +101,59 @@ namespace AdventOfCode.Solutions.Year2020
                 // We need to rotate the waypoint around the ship
                 // Count how many times (and what rotation [pos/neg])
                 int v = ((input.instruction == "L" ? -1 : 1) * (input.value / 90));
+                
+                Console.Write($"Rotating waypoint {input.instruction}{input.value} from ({wx}, {wy}) to ");
 
                 // Convert to positive degrees
                 while(v < 0) v += 4;
 
                 for(int i=0; i<v; i++) {
-                    // Rotating around 90 degrees positive is...
-                    // x = y
-                    // y = -x
+                    // Rotating around 90 degrees positive is... (doesn't follow Cartesian plane because we are rotated)
+                    // x = -y
+                    // y = x
 
-                    int tx = wy;
-                    int ty = -1 * wx;
+                    int tx = -1 * wy;
+                    int ty = wx;
 
                     wx = tx;
                     wy = ty;
                 }
+                
+                Console.WriteLine($"({wx}, {wy})");
             } else {
                 // This is a movement instruction
                 switch(input.instruction) {
                     case "N":
+                        Console.Write($"Moved waypoint {input.instruction}{input.value} from ({wx}, {wy}) to ");
                         MoveWaypoint(input.value, ShipDirection.North);
+                        Console.WriteLine($"({wx}, {wy})");
                         break;
                     
                     case "S":
+                        Console.Write($"Moved waypoint {input.instruction}{input.value} from ({wx}, {wy}) to ");
                         MoveWaypoint(input.value, ShipDirection.South);
+                        Console.WriteLine($"({wx}, {wy})");
                         break;
                     
                     case "E":
+                        Console.Write($"Moved waypoint {input.instruction}{input.value} from ({wx}, {wy}) to ");
                         MoveWaypoint(input.value, ShipDirection.East);
+                        Console.WriteLine($"({wx}, {wy})");
                         break;
                     
                     case "W":
+                        Console.Write($"Moved waypoint {input.instruction}{input.value} from ({wx}, {wy}) to ");
                         MoveWaypoint(input.value, ShipDirection.West);
+                        Console.WriteLine($"({wx}, {wy})");
                         break;
                     
                     case "F":
                         // Now we move in the direction of the waypoint * value times
+                        Console.Write($"Moved ship {input.instruction}{input.value} from ({x}, {y}) [({wx}, {wy})] to ");
                         x += wx * input.value;
                         y += wy * input.value;
+                        Console.WriteLine($"({x}, {y})");
                         break;
-                    
                 }
             }
         }
@@ -158,7 +180,7 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartOne()
         {
-            foreach(string line in Input.SplitByNewline())
+            foreach(string line in Input.SplitByNewline(true, true))
                 MoveShip(ParseInstruction(line));
 
             return (Math.Abs(x) + Math.Abs(y)).ToString();
@@ -174,7 +196,7 @@ namespace AdventOfCode.Solutions.Year2020
             wx = 10;
             wy = -1;
 
-            foreach(string line in Input.SplitByNewline())
+            foreach(string line in Input.SplitByNewline(true, true))
                 MoveShip2(ParseInstruction(line));
 
             return (Math.Abs(x) + Math.Abs(y)).ToString();
