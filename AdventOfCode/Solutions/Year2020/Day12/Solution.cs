@@ -16,11 +16,11 @@ namespace AdventOfCode.Solutions.Year2020
 
     class Day12 : ASolution
     {
-        long x, y;
+        int x, y;
         ShipDirection dir;
 
         // Part 2
-        long wx, wy;
+        int wx, wy;
 
         public Day12() : base(12, 2020, "")
         {
@@ -101,8 +101,8 @@ namespace AdventOfCode.Solutions.Year2020
                     // x = y
                     // y = -x
 
-                    long tx = wy;
-                    long ty = -1 * wx;
+                    int tx = wy;
+                    int ty = -1 * wx;
 
                     wx = tx;
                     wy = ty;
@@ -170,7 +170,7 @@ namespace AdventOfCode.Solutions.Year2020
             x = 0;
             y = 0;
 
-            // Waypoint is at -10,1
+            // Waypoint is at 10,-1 (10 east, 1 north of ship)
             wx = 10;
             wy = -1;
 
