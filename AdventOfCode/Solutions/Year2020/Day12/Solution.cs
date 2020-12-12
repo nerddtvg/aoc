@@ -16,8 +16,11 @@ namespace AdventOfCode.Solutions.Year2020
 
     class Day12 : ASolution
     {
-        int x, y;
+        long x, y;
         ShipDirection dir;
+
+        // Part 2
+        long wx, wy;
 
         public Day12() : base(12, 2020, "")
         {
@@ -81,7 +84,75 @@ namespace AdventOfCode.Solutions.Year2020
                 case ShipDirection.West:
                     x -= value;
                     break;
+            }
+        }
+
+        private void MoveShip2((string instruction, int value) input) {
+            if (input.instruction == "R" || input.instruction == "L") {
+                // We need to rotate the waypoint around the ship
+                // Count how many times (and what rotation [pos/neg])
+                int v = ((input.instruction == "L" ? -1 : 1) * (input.value / 90));
+
+                // Convert to positive degrees
+                while(v < 0) v += 4;
+
+                for(int i=0; i<v; i++) {
+                    // Rotating around 90 degrees positive is...
+                    // x = y
+                    // y = -x
+
+                    long tx = wy;
+                    long ty = -1 * wx;
+
+                    wx = tx;
+                    wy = ty;
+                }
+            } else {
+                // This is a movement instruction
+                switch(input.instruction) {
+                    case "N":
+                        MoveWaypoint(input.value, ShipDirection.North);
+                        break;
+                    
+                    case "S":
+                        MoveWaypoint(input.value, ShipDirection.South);
+                        break;
+                    
+                    case "E":
+                        MoveWaypoint(input.value, ShipDirection.East);
+                        break;
+                    
+                    case "W":
+                        MoveWaypoint(input.value, ShipDirection.West);
+                        break;
+                    
+                    case "F":
+                        // Now we move in the direction of the waypoint * value times
+                        x += wx * input.value;
+                        y += wy * input.value;
+                        break;
+                    
+                }
+            }
+        }
+
+        private void MoveWaypoint(int value, ShipDirection direction) {
+            switch(direction) {
+                case ShipDirection.North:
+                    wy -= value;
+                    break;
                 
+                case ShipDirection.South:
+                    wy += value;
+                    break;
+                
+                case ShipDirection.East:
+                    wx += value;
+                    break;
+                
+                case ShipDirection.West:
+                    wx -= value;
+                    break;
             }
         }
 
@@ -95,7 +166,18 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Start back at 0,0
+            x = 0;
+            y = 0;
+
+            // Waypoint is at -10,1
+            wx = 10;
+            wy = -1;
+
+            foreach(string line in Input.SplitByNewline())
+                MoveShip2(ParseInstruction(line));
+
+            return (Math.Abs(x) + Math.Abs(y)).ToString();
         }
     }
 }
