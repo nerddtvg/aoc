@@ -26,7 +26,7 @@ namespace AdventOfCode.Solutions.Year2020
                 if (split[i] == "x") continue;
 
                 // Get the bus ID
-                buses.Add((new BigInteger(UInt64.Parse(split[i])), new BigInteger(Int32.Parse(split[i]) - i)));
+                buses.Add((new BigInteger(Int32.Parse(split[i])), new BigInteger(Int32.Parse(split[i]) - i)));
             }
         }
 
