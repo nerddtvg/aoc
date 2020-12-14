@@ -32,10 +32,29 @@ namespace AdventOfCode.Solutions.Year2020
             mem[26] = 1";
         }
 
-        private ulong ModifyValue(ulong value, string bmask = "") {
-            if (string.IsNullOrWhiteSpace(bmask))
-                bmask = this.bitmask;
+        private ulong ModifyValue(ulong value) {
+            // Using the bitmask, we modify the values
+            for(int i=this.bitlength; i>=0; i--) {
+                int power = this.bitlength - i;
 
+                // Get the character in the bitmask
+                string c = this.bitmask.Substring(i, 1);
+
+                // No action
+                if (c == "X") continue;
+
+                ulong newBit = UInt64.Parse(c);
+
+                // Otherwise we need to set the value of that bit to the bitmask value
+                // https://www.geeksforgeeks.org/modify-bit-given-position/
+                ulong mask = (ulong) 1 << power;
+                value = (value & ~mask) | ((newBit << power) & mask);
+            }
+
+            return value;
+        }
+
+        private ulong ModifyValue2(ulong value, string bmask = "") {
             // Using the bitmask, we modify the values
             for(int i=this.bitlength; i>=0; i--) {
                 int power = this.bitlength - i;
@@ -44,7 +63,7 @@ namespace AdventOfCode.Solutions.Year2020
                 string c = bmask.Substring(i, 1);
 
                 // No action
-                if (c == "X") continue;
+                if (c == "0") continue;
 
                 ulong newBit = UInt64.Parse(c);
 
@@ -139,7 +158,7 @@ namespace AdventOfCode.Solutions.Year2020
 
                     // For each possible bitmask, set the memory
                     bitmasks.ForEach(a => {
-                        this.memory[ModifyValue(address, a)] = value;
+                        this.memory[ModifyValue2(address, a)] = value;
                     });
                 }
             }
