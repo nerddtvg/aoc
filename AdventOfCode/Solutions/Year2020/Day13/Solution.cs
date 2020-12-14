@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using System.Linq;
+using System.Numerics;
 
 namespace AdventOfCode.Solutions.Year2020
 {
@@ -10,8 +11,8 @@ namespace AdventOfCode.Solutions.Year2020
     class Day13 : ASolution
     {
 
-        List<(ulong bus, ulong remainder)> buses = new List<(ulong bus, ulong remainder)>();
-        ulong timestamp = 0;
+        List<(BigInteger bus, BigInteger remainder)> buses = new List<(BigInteger bus, BigInteger remainder)>();
+        BigInteger timestamp = 0;
 
         public Day13() : base(13, 2020, "")
         {
@@ -20,19 +21,19 @@ namespace AdventOfCode.Solutions.Year2020
             timestamp = UInt64.Parse(lines[0]);
 
             var split = lines[1].Split(",");
-            for(ulong i = 0; i<Convert.ToUInt64(split.LongLength); i++) {
+            for(int i = 0; i<split.Length; i++) {
                 // Ignore the x's
                 if (split[i] == "x") continue;
 
                 // Get the bus ID
-                buses.Add((UInt64.Parse(split[i]), i));
+                buses.Add((new BigInteger(UInt64.Parse(split[i])), new BigInteger(i)));
             }
         }
 
         protected override string SolvePartOne()
         {
             // Find an easy multiple of the bus IDs greater than our timestamp
-            for(ulong i=0; i<timestamp + 100000; i++) {
+            for(BigInteger i=0; i<timestamp + 100000; i++) {
                 // Check each bus to see if it is a good multiple
                 foreach(var b in buses) {
                     if ((timestamp+i)% b.bus == 0) {
@@ -52,9 +53,9 @@ namespace AdventOfCode.Solutions.Year2020
         // Returns modulo inverse of a with respect to m using extended 
         // Euclid Algorithm. Refer below post for details: 
         // https://www.geeksforgeeks.org/multiplicative-inverse-under-modulo-m/ 
-        private ulong inv(ulong a, ulong m) {
-            ulong m0 = m, t, q; 
-            ulong x0 = 0, x1 = 1; 
+        private BigInteger inv(BigInteger a, BigInteger m) {
+            BigInteger m0 = m, t, q; 
+            BigInteger x0 = 0, x1 = 1; 
         
             if (m == 1) 
             return 0; 
@@ -107,12 +108,12 @@ namespace AdventOfCode.Solutions.Year2020
                         pp[i] with respect to num[i]
             */
 
-            ulong prod = buses.Select(bus => bus.bus).Aggregate((a,b) => a*b);
+            BigInteger prod = buses.Select(bus => bus.bus).Aggregate((a,b) => a*b);
 
-            ulong result = 0;
+            BigInteger result = 0;
 
             for(int i=0; i<buses.Count; i++) {
-                ulong pp = prod / buses[i].bus;
+                BigInteger pp = prod / buses[i].bus;
                 result += buses[i].remainder * inv(pp, buses[i].bus) * pp;
             }
 
