@@ -25,11 +25,13 @@ namespace AdventOfCode.Solutions.Year2020
             mem[8] = 0";
             */
 
+            /*
             DebugInput = @"
             mask = 000000000000000000000000000000X1001X
             mem[42] = 100
             mask = 00000000000000000000000000000000X0XX
             mem[26] = 1";
+            */
         }
 
         private ulong ModifyValue(ulong value) {
