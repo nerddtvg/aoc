@@ -63,9 +63,9 @@ namespace AdventOfCode.Solutions.Year2020
                 string c = bmask.Substring(i, 1);
 
                 // No action
-                if (c == "0") continue;
+                if (c != "1") continue;
 
-                ulong newBit = UInt64.Parse(c);
+                ulong newBit = (ulong) 1;
 
                 // Otherwise we need to set the value of that bit to the bitmask value
                 // https://www.geeksforgeeks.org/modify-bit-given-position/
@@ -80,7 +80,49 @@ namespace AdventOfCode.Solutions.Year2020
             this.memory[address] = ModifyValue(value);
         }
 
-        private List<string> GetPossibleBitmasks(int start=0) {
+        private string ToBitString(ulong inputValue) {
+            string value = Convert.ToString((long) inputValue, 2);
+            value = value.PadLeft(36, '0');
+            return value;
+        }
+
+        private ulong FromBitString(string inputValue) {
+            ulong ret = 0;
+            int length = inputValue.Length;
+
+            for(int i=length-1; i>=0; i--)
+                if (inputValue.Substring(i, 1) == "1")
+                    ret += (ulong) Math.Pow(2, (length-i-1));
+
+            return ret;
+        }
+
+        private List<string> GetPossibleAddresses(ulong inputValue) {
+            // We need to combine the address and mask
+            string address = "";
+
+            // Convert the input value to bit string
+            var input = ToBitString(inputValue);
+
+            for(int i=0; i<this.bitmask.Length; i++) {
+                // Get the character in the bitmask
+                string c = this.bitmask.Substring(i, 1);
+
+                if (c == "0")
+                    // No change
+                    address += input.Substring(i, 1);
+                else if (c == "1")
+                    // Set to 1
+                    address += "1";
+                else if (c == "X")
+                    address += "X";
+            }
+
+            // Now that we have our messed up address list, get all possible addresses
+            return GetPossibleAddressStrings(0, address);
+        }
+
+        private List<string> GetPossibleAddressStrings(int start, string address) {
             // We look at character at 'start' and see what to do with it
             // First, GetPossibleBitMasks(start+1)
             // Then, if character at start is 0 or 1, return that prepended onto the lists
@@ -90,11 +132,11 @@ namespace AdventOfCode.Solutions.Year2020
             List<string> ret = new List<string>();
 
             // Get the children if possible
-            if (start < this.bitlength)
-                children = GetPossibleBitmasks(start+1);
+            if (start < address.Length-1)
+                children = GetPossibleAddressStrings(start+1, address);
 
             // Get the character in the bitmask
-            string c = this.bitmask.Substring(start, 1);
+            string c = address.Substring(start, 1);
 
             // What do we do?
             if (c == "0" || c == "1") {
@@ -154,11 +196,12 @@ namespace AdventOfCode.Solutions.Year2020
                     ulong value = UInt64.Parse(parts[1]);
 
                     // Get all of the possible bitmasks to apply
-                    var bitmasks = GetPossibleBitmasks();
+                    var addresses = GetPossibleAddresses(address);
 
                     // For each possible bitmask, set the memory
-                    bitmasks.ForEach(a => {
-                        this.memory[ModifyValue2(address, a)] = value;
+                    addresses.ForEach(a => {
+                        var addr = FromBitString(a);
+                        this.memory[addr] = value;
                     });
                 }
             }
