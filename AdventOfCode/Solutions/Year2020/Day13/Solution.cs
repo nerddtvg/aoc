@@ -10,7 +10,7 @@ namespace AdventOfCode.Solutions.Year2020
     class Day13 : ASolution
     {
 
-        List<int> buses = new List<int>();
+        List<(int bus, int remainder)> buses = new List<(int bus, int remainder)>();
         int timestamp = 0;
 
         public Day13() : base(13, 2020, "")
@@ -19,12 +19,17 @@ namespace AdventOfCode.Solutions.Year2020
 
             timestamp = Int32.Parse(lines[0]);
 
+            int i = -1;
+
             foreach(var bus in lines[1].Split(",")) {
+                // Increase the incrementer
+                i++;
+
                 // Ignore the x's
                 if (bus == "x") continue;
 
                 // Get the bus ID
-                buses.Add(Int32.Parse(bus));
+                buses.Add((Int32.Parse(bus), i));
             }
         }
 
@@ -34,13 +39,13 @@ namespace AdventOfCode.Solutions.Year2020
             for(int i=0; i<timestamp + 100000; i++) {
                 // Check each bus to see if it is a good multiple
                 foreach(var b in buses) {
-                    if ((timestamp+i)%b == 0) {
+                    if ((timestamp+i)% b.bus == 0) {
                         Console.WriteLine($"Bus ID: {b}");
                         Console.WriteLine($"Timestamp: {timestamp+i}");
                         Console.WriteLine($"Difference: {i}");
 
                         // Found one!
-                        return (b * i).ToString();
+                        return (b.bus * i).ToString();
                     }
                 }
             }
@@ -50,6 +55,10 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
+            // Chinese Remainder Theorem
+            // https://www.geeksforgeeks.org/chinese-remainder-theorem-set-2-implementation/
+
+
             return null;
         }
     }
