@@ -11,8 +11,8 @@ namespace AdventOfCode.Solutions.Year2020
     class Day15 : ASolution
     {
         // <spoken, positions spoken>
-        Dictionary<int, List<int>> numbers = new Dictionary<int, List<int>>();
-        List<int> spoken = new List<int>();
+        Dictionary<int, Queue<int>> numbers = new Dictionary<int, Queue<int>>();
+        int last_spoken = 0;
         int turn = 0;
 
         public Day15() : base(15, 2020, "")
@@ -31,15 +31,15 @@ namespace AdventOfCode.Solutions.Year2020
             for(int i=0; i<arr.Length; i++) {
                 turn++;
 
-                numbers[arr[i]] = new List<int>{ turn };
-                spoken.Add(arr[i]);
+                numbers[arr[i]] = new Queue<int>();
+                numbers[arr[i]].Enqueue(turn);
+                last_spoken = arr[i];
             }
         }
 
         private void SpeakNumber() {
             // If the previous number had never been spoken before (only one item in list)
             // then the next number is 0
-            int last_spoken = spoken.Last();
             int next = 0;
 
             var position = numbers[last_spoken];
@@ -48,36 +48,37 @@ namespace AdventOfCode.Solutions.Year2020
                 // 0!
             } else {
                 // Need to get the difference between the last two numbers
-                next = position[position.Count-1] - position[position.Count-2];
+                next = position.Last() - position.Dequeue();
             }
 
             // Add to the list of spoke
-            spoken.Add(next);
+            last_spoken = next;
 
             // Increment the turn
             turn++;
 
             if (numbers.ContainsKey(next)) {
-                numbers[next].Add(turn);
+                numbers[next].Enqueue(turn);
             } else {
-                numbers[next] = new List<int>() { turn };
+                numbers[next] = new Queue<int>();
+                numbers[next].Enqueue(turn);
             }
         }
 
         protected override string SolvePartOne()
         {
-            while(spoken.Count < 2020)
+            while(turn < 2020)
                 SpeakNumber();
 
-            return spoken.Last().ToString();
+            return last_spoken.ToString();
         }
 
         protected override string SolvePartTwo()
         {
-            while(spoken.Count < 30000000)
+            while(turn < 30000000)
                 SpeakNumber();
 
-            return spoken.Last().ToString();
+            return last_spoken.ToString();
         }
     }
 }
