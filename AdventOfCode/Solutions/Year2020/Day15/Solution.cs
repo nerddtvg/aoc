@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 
 using System.Linq;
-using System.Collections;
+
+using System.Diagnostics;
 
 namespace AdventOfCode.Solutions.Year2020
 {
@@ -67,16 +68,28 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartOne()
         {
+            var ts = new Stopwatch();
+            ts.Start();
+
             while(turn < 2020)
                 SpeakNumber();
+
+            ts.Stop();
+            Console.WriteLine($"Part 1 Time: {ts.ElapsedMilliseconds}");
 
             return last_spoken.ToString();
         }
 
         protected override string SolvePartTwo()
         {
+            var ts = new Stopwatch();
+            ts.Start();
+
             while(turn < 30000000)
                 SpeakNumber();
+
+            ts.Stop();
+            Console.WriteLine($"Part 2 Time: {ts.ElapsedMilliseconds}");
 
             return last_spoken.ToString();
         }
