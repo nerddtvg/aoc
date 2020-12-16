@@ -37,11 +37,17 @@ namespace AdventOfCode.Solutions.Year2020
 
     class Ticket {
         public List<int> values {get;set;}
+
+        public Ticket(string input) {
+            this.values = input.ToIntArray(",").ToList();
+        }
     }
 
     class Day16 : ASolution
     {
         Dictionary<string, TicketField> fields = new Dictionary<string, TicketField>();
+        List<Ticket> tickets = new List<Ticket>();
+        Ticket mine = null;
 
         public Day16() : base(16, 2020, "")
         {
@@ -71,6 +77,17 @@ namespace AdventOfCode.Solutions.Year2020
                         }
                     }
                 );
+            }
+
+            // Our ticket, skip the header
+            mine = new Ticket(groups[1][1]);
+
+            // Other tickets
+            foreach(var line in groups[2]) {
+                // There is a header
+                if (!line.Contains(",")) continue;
+
+                tickets.Add(new Ticket(line));
             }
         }
 
