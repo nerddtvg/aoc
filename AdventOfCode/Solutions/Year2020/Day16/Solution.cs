@@ -91,9 +91,25 @@ namespace AdventOfCode.Solutions.Year2020
             }
         }
 
+        private int GetInvalidSum(Ticket t) {
+            // Go through each value and identify if it is invalid
+            // If so, add to the sum
+            int sum = 0;
+
+            foreach(int v in t.values) {
+                // Take this value through each possible field
+                // If there is at least one that is valid, it is a valid field
+                bool valid = this.fields.Select(a => a.Value.IsValid(v)).Count(a => a == true) > 0;
+
+                if (!valid) sum += v;
+            }
+
+            return sum;
+        }
+
         protected override string SolvePartOne()
         {
-            return null;
+            return this.tickets.Sum(a => GetInvalidSum(a)).ToString();
         }
 
         protected override string SolvePartTwo()
