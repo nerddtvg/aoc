@@ -4,8 +4,6 @@ using System.Text;
 
 using System.Linq;
 
-using System.Collections;
-
 namespace AdventOfCode.Solutions.Year2020
 {
     class TicketField {
@@ -192,15 +190,15 @@ namespace AdventOfCode.Solutions.Year2020
             } while(removed);
 
             // MANUAL: We stop here to identify if we have duplicates
-            /*
             foreach (var kvp in possibles)
                 Console.WriteLine($"{kvp.Key}: {string.Join(", ", kvp.Value)}");
-            */
 
             // We found the above reduction simplified everything down to a single possible key for each value
-            
+            // Get the keys for every possible value that starts with 'departure'
+            List<int> keys = possibles.Where(kvp => kvp.Value.First().StartsWith("departure")).Select(kvp => kvp.Key).ToList();
 
-            return remove.Count.ToString();
+            // Ensure we use a ulong for this value
+            return keys.Select(a => (ulong) this.mine.values[a]).Aggregate((a,b) => a*b).ToString();
         }
     }
 }
