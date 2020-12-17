@@ -16,22 +16,25 @@ namespace AdventOfCode.Solutions.Year2020
 
         public Day17() : base(17, 2020, "")
         {
+            /*
             DebugInput = @"
             .#.
             ..#
             ###
             ";
+            */
 
             // Load the initial active cubes
             // Initial state is x,y with z=0
             int y = 0;
             foreach(var line in Input.SplitByNewline(true, true)) {
                 for(int x=0; x<line.Length; x++) {
-                    if (line.Substring(x, 1) == "#")
+                    if (line.Substring(x, 1) == "#") {
                         dim[(x, y, 0)] = true;
                         
                         // Part 2
                         dim2[(x, y, 0, 0)] = true;
+                    }
                 }
 
                 y++;
