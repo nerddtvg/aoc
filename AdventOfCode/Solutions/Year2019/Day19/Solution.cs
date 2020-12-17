@@ -28,7 +28,7 @@ namespace AdventOfCode.Solutions.Year2019
                     intcode.Run();
 
                     // Gather the output
-                    map.Add(new BeamTile() { x = x, y = y, state = Convert.ToInt32(intcode.output_register) });
+                    map.Add(new BeamTile() { x = x, y = y, state = Convert.ToInt32(intcode.output_register.Dequeue()) });
                 }
             }
         }
@@ -59,30 +59,22 @@ namespace AdventOfCode.Solutions.Year2019
             decimal fl_2 = 0;
             decimal fr_2 = 0;
             int y;
-            for(y=500; y<100000; y++) {
+            for(y=500; y<10000000; y++) {
                 // For each y, find out:
-                // fr and fl line points
-                // (fr-fl) must be >= 100
-
-                fl_1 = Math.Round(y / slope_l, 0);
+                // fr line point (x,y)
+                // Then find fl where y = y+100
                 fr_1 = Math.Round(y / slope_r, 0);
+                fl_1 = Math.Round((y+100) / slope_l, 0);
 
+                // So if fl_1 <= fr_1 - 100, we found it
                 if ((fr_1 - fl_1) < 100) continue;
-
-                // Now we look down 100 lines and get the next 40 corners
-                fl_2 = Math.Round((y+100) / slope_l, 0);
-                fr_2 = Math.Round((y+100) / slope_r, 0);
-
-                // The box must be valid
-                if (fl_2 > fr_1) continue;
-                if (fr_2 > fr_1) continue;
 
                 // We found it
                 break;
             }
 
             // Point is fl_2, y
-            return ((fl_2 * 10000) + y).ToString();
+            return ((fl_1 * 10000) + y).ToString();
         }
     }
 }
