@@ -96,7 +96,10 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartOne()
         {
-            return null;
+            for(int i=0; i<6; i++)
+                RunGeneration();
+            
+            return this.dim.Count(a => a.Value == true).ToString();
         }
 
         protected override string SolvePartTwo()
