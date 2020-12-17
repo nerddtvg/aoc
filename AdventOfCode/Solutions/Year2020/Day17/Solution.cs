@@ -44,7 +44,7 @@ namespace AdventOfCode.Solutions.Year2020
         private bool GetCubeState((int x, int y, int z) a) =>
             dim.ContainsKey(a) ? dim[a] : false;
 
-        private bool GetCubeState2((int x, int y, int z, int w) a) =>
+        private bool GetCubeState((int x, int y, int z, int w) a) =>
             dim2.ContainsKey(a) ? dim2[a] : false;
         
         private IEnumerable<bool> GetNeighbors((int x, int y, int z) a) {
@@ -60,7 +60,7 @@ namespace AdventOfCode.Solutions.Year2020
             }
         }
         
-        private IEnumerable<bool> GetNeighbors2((int x, int y, int z, int w) a) {
+        private IEnumerable<bool> GetNeighbors((int x, int y, int z, int w) a) {
             for(int dx=-1; dx<=1; dx++) {
                 for(int dy=-1; dy<=1; dy++) {
                     for(int dz=-1; dz<=1; dz++) {
@@ -68,7 +68,7 @@ namespace AdventOfCode.Solutions.Year2020
                             // Only neighbors
                             if (dx == 0 && dy == 0 && dz == 0 && dw == 0) continue;
 
-                            yield return GetCubeState2((a.x+dx, a.y+dy, a.z+dz, a.w+dw));
+                            yield return GetCubeState((a.x+dx, a.y+dy, a.z+dz, a.w+dw));
                         }
                     }
                 }
@@ -95,20 +95,20 @@ namespace AdventOfCode.Solutions.Year2020
             return false;
         }
 
-        private bool CurrentlyInactiveCheck2((int x, int y, int z, int w) a) {
+        private bool CurrentlyInactiveCheck((int x, int y, int z, int w) a) {
             // Cube is currently inactive
             // If a cube is inactive but exactly 3 of its neighbors are active, the cube becomes active
-            var c = GetNeighbors2(a).Count(a => a == true);
+            var c = GetNeighbors(a).Count(a => a == true);
 
             if (c == 3) return true;
 
             return false;
         }
 
-        private bool CurrentlyActiveCheck2((int x, int y, int z, int w) a) {
+        private bool CurrentlyActiveCheck((int x, int y, int z, int w) a) {
             // Cube is currently active
             // If exactly 2 or 3 neighbors are active, cube stays active
-            var c = GetNeighbors2(a).Count(a => a == true);
+            var c = GetNeighbors(a).Count(a => a == true);
 
             if (c == 2 || c == 3) return true;
 
@@ -162,12 +162,12 @@ namespace AdventOfCode.Solutions.Year2020
                     for(int z=minZ-1; z<=maxZ+1; z++) {
                         for(int w=minW-1; w<=maxW+1; w++) {
                             var addr = (x, y, z, w);
-                            var cube = GetCubeState2(addr);
+                            var cube = GetCubeState(addr);
 
                             if (cube)
-                                newDim[addr] = CurrentlyActiveCheck2(addr);
+                                newDim[addr] = CurrentlyActiveCheck(addr);
                             else
-                                newDim[addr] = CurrentlyInactiveCheck2(addr);
+                                newDim[addr] = CurrentlyInactiveCheck(addr);
                         }
                     }
                 }
