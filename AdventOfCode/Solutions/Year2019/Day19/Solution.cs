@@ -41,40 +41,43 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string SolvePartTwo()
         {
-            // Find the furthest right point in the tractor beam
-            BeamTile fr = map.Where(a => a.state == 1).OrderByDescending(a => a.x).First();
-            
-            // Find the furthest left/bottom point in the tractor beam
-            BeamTile fl = map.Where(a => a.state == 1).OrderByDescending(a => a.y).ThenBy(a => a.x).First();
+            // Slopes didn't work, do this the "hard" way
+            // Based on https://github.com/fdouw/AoC2019/blob/master/Day19/Day19.cs
+            int prevStart = 0;      // Improve performance by ignoring the void below the beam
+            int L = 99;             // 100x100 block means x and x+99 inclusive
 
-            Decimal slope_r = (decimal) fr.x / fr.y;
-            Decimal slope_l = (decimal) fl.x / fl.y;
+            Intcode intcode = null;
 
-            // We have line slopes now
-            // y=mx+b right?
-            // b = 0
-            // We can loop through either x or y to find the rest
-            decimal fl_1 = 0;
-            decimal fr_1 = 0;
-            decimal fl_2 = 0;
-            decimal fr_2 = 0;
-            int y;
-            for(y=500; y<10000000; y++) {
-                // For each y, find out:
-                // fr line point (x,y)
-                // Then find fl where y = y+100
-                fr_1 = Math.Round(y / slope_r, 0);
-                fl_1 = Math.Round((y+100) / slope_l, 0);
+            for (int y = L; y < 10_000; y++)
+            {
+                for (int x = prevStart; x < 10_000; x++)
+                {
+                    intcode = new Intcode(Input, 2);
+                    intcode.SetInput(x);
+                    intcode.SetInput(y);
+                    intcode.Run();
 
-                // So if fl_1 <= fr_1 - 100, we found it
-                if ((fr_1 - fl_1) < 100) continue;
+                    if (intcode.output_register.Dequeue() == 1)
+                    {
+                        // prevStart = (x < y) ? x : y;
+                        prevStart = x;
 
-                // We found it
-                break;
+                        intcode = new Intcode(Input, 2);
+                        intcode.SetInput(x + L);
+                        intcode.SetInput(y - L);
+                        intcode.Run();
+
+                        if (intcode.output_register.Dequeue() == 1)
+                        {
+                            return (x * 10_000 + y - L).ToString();
+                        }
+
+                        break;
+                    }
+                }
             }
 
-            // Point is fl_2, y
-            return ((fl_1 * 10000) + y).ToString();
+            return null;
         }
     }
 }
