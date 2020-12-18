@@ -15,10 +15,10 @@ namespace AdventOfCode.Solutions.Year2020
 
         }
 
-        private long SolvePuzzle(List<string> input) =>
-            SolvePuzzle(string.Join(" ", input));
+        private long SolvePuzzle(List<string> input, int PuzzlePart=1) =>
+            SolvePuzzle(string.Join(" ", input), PuzzlePart);
 
-        private long SolvePuzzle(string input) {
+        private long SolvePuzzle(string input, int PuzzlePart=1) {
             // This goes entry by character to determine what to do
             // When we hit a '(', we find its corresponding ')' and replace the expression with SolvePuzzle(child_expression)
 
@@ -58,7 +58,7 @@ namespace AdventOfCode.Solutions.Year2020
                     }
 
                     // Once pCount is 0, we found the end
-                    finalExpression.Add(SolvePuzzle(tempExpression).ToString());
+                    finalExpression.Add(SolvePuzzle(tempExpression, PuzzlePart).ToString());
 
                     // Skip ahead!
                     i = q-1;
@@ -74,32 +74,65 @@ namespace AdventOfCode.Solutions.Year2020
             string op = string.Empty;
             long value = 0;
 
-            foreach(var exp in finalExpression) {
-                if (lastOperator && (exp == "*" || exp == "+"))
-                    throw new Exception("Received operator when none expected.");
-                
-                if (!lastOperator && (exp != "*" && exp != "+"))
-                    throw new Exception("Received numeric value when operator expected.");
-                
-                if (lastOperator) {
-                    lastOperator = false;
+            if (PuzzlePart == 1) {
+                foreach(var exp in finalExpression) {
+                    if (lastOperator && (exp == "*" || exp == "+"))
+                        throw new Exception("Received operator when none expected.");
+                    
+                    if (!lastOperator && (exp != "*" && exp != "+"))
+                        throw new Exception("Received numeric value when operator expected.");
+                    
+                    if (lastOperator) {
+                        lastOperator = false;
 
-                    if (op == string.Empty) {
-                        // This is the first entry
-                        value = Int32.Parse(exp);
+                        if (op == string.Empty) {
+                            // This is the first entry
+                            value = Int64.Parse(exp);
+                        } else {
+                            // We have an operation to perform!
+                            if (op == "*")
+                                value *= Int64.Parse(exp);
+                            else
+                                value += Int64.Parse(exp);
+                        }
                     } else {
-                        // We have an operation to perform!
-                        if (op == "*")
-                            value *= Int32.Parse(exp);
-                        else
-                            value += Int32.Parse(exp);
+                        // Expecting an operator
+                        // We've already checked above for a valid operator value
+                        lastOperator = true;
+                        op = exp;
                     }
-                } else {
-                    // Expecting an operator
-                    // We've already checked above for a valid operator value
-                    lastOperator = true;
-                    op = exp;
                 }
+            } else {
+                // For part 2, we will parse through and "solve" for the addition first, then simply go through this again with part=1
+                if (!finalExpression.Contains("+")) return SolvePuzzle(finalExpression, 1);
+
+                List<string> tempExpression = new List<string>();
+                long lastValue = 0;
+                bool lastOperatorWasAddition = false;
+                
+                // Need to find all of the "+" positions and "fix" them
+                for(int i=1; i<finalExpression.Count-1; i+=2) {
+                    // We hop forward to only look at operators
+                    if (finalExpression[i] == "+") {
+                        // If we have a length, we need to remove the last to replace it
+                        if (tempExpression.Count > 0)
+                            tempExpression.RemoveAt(tempExpression.Count-1);
+
+                        lastValue = (lastOperatorWasAddition ? lastValue : Int64.Parse(finalExpression[i-1])) + Int64.Parse(finalExpression[i+1]);
+                        tempExpression.Add(lastValue.ToString());
+
+                        lastOperatorWasAddition = true;
+                    } else {
+                        // Not addition, just append these entries (if the last one was addition, we already have the entry)
+                        if (tempExpression.Count == 0) tempExpression.Add(finalExpression[i-1]);
+                        tempExpression.Add(finalExpression[i]);
+                        tempExpression.Add(finalExpression[i+1]);
+
+                        lastOperatorWasAddition = false;
+                    }
+                }
+
+                return SolvePuzzle(tempExpression, 1);
             }
 
             return value;
@@ -112,7 +145,7 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return Input.SplitByNewline(true, true).Sum(a => SolvePuzzle(a, 2)).ToString();
         }
     }
 }
