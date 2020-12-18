@@ -15,10 +15,10 @@ namespace AdventOfCode.Solutions.Year2020
 
         }
 
-        private int SolvePuzzle(List<string> input) =>
+        private long SolvePuzzle(List<string> input) =>
             SolvePuzzle(string.Join(" ", input));
 
-        private int SolvePuzzle(string input) {
+        private long SolvePuzzle(string input) {
             // This goes entry by character to determine what to do
             // When we hit a '(', we find its corresponding ')' and replace the expression with SolvePuzzle(child_expression)
 
@@ -37,8 +37,8 @@ namespace AdventOfCode.Solutions.Year2020
                     part = part.Substring(1);
 
                     // Determine how many we have in this entry
-                    int pCount = 0;
-                    while(part.Substring(pCount, 1) == "(")
+                    int pCount = 1;
+                    while(part.Substring(pCount-1, 1) == "(")
                         pCount++;
                     
                     // Add to the tempExpression
@@ -51,16 +51,17 @@ namespace AdventOfCode.Solutions.Year2020
                         // Then find any new ')' and remove the count
                         pCount += parts[q].Count(a => a == '(');
                         pCount -= parts[q].Count(a => a == ')');
-                    
+
+                        // If this is the very last one (pCount is now 0), we need to remove the last paren
                         // Add to the tempExpression
-                        tempExpression.Add(parts[q]);
+                        tempExpression.Add(pCount == 0 ? parts[q].Substring(0, parts[q].Length-1) : parts[q]);
                     }
 
                     // Once pCount is 0, we found the end
                     finalExpression.Add(SolvePuzzle(tempExpression).ToString());
 
                     // Skip ahead!
-                    i = q;
+                    i = q-1;
                 } else {
                     // This is just a number or operator (should have no parens)
                     finalExpression.Add(part);
@@ -71,16 +72,18 @@ namespace AdventOfCode.Solutions.Year2020
             // Set this to true so we know to expect a number, if we don't get a number, we have a problem
             bool lastOperator = true;
             string op = string.Empty;
-            int value = 0;
+            long value = 0;
 
             foreach(var exp in finalExpression) {
                 if (lastOperator && (exp == "*" || exp == "+"))
                     throw new Exception("Received operator when none expected.");
                 
-                if (!lastOperator && (exp != "*" || exp != "+"))
+                if (!lastOperator && (exp != "*" && exp != "+"))
                     throw new Exception("Received numeric value when operator expected.");
                 
                 if (lastOperator) {
+                    lastOperator = false;
+
                     if (op == string.Empty) {
                         // This is the first entry
                         value = Int32.Parse(exp);
@@ -104,7 +107,7 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartOne()
         {
-            return null;
+            return Input.SplitByNewline(true, true).Sum(a => SolvePuzzle(a)).ToString();
         }
 
         protected override string SolvePartTwo()
