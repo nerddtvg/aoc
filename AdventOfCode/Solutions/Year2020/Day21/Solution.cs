@@ -88,7 +88,42 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Now we need to figure out what ingredient has what allergen
+            // We will work to reduce the ingredientAllergens list to do this
+
+            while(true) {
+                bool removed = false;
+
+                // Get a list of all ingredientAllergens that have only one ingredient (known match)
+                var ingredients = this.ingredientAllergens.Where(a => a.Value.Count == 1).Select(a => a.Value[0]);
+
+                // Remove any from the lists
+                foreach(var ing in ingredients)
+                    foreach(var kvp in this.ingredientAllergens) {
+                        // Only remove if we have more than one listed
+                        if (kvp.Value.Count == 1) continue;
+
+                        bool tRemoved = this.ingredientAllergens[kvp.Key].Remove(ing);
+
+                        // Save this if we removed anything
+                        removed = removed || tRemoved;
+                    }
+
+                if (!removed) break;
+            }
+
+            // Blank line for easier reading
+            Console.WriteLine("");
+
+            foreach(var kvp in this.ingredientAllergens)
+                Console.WriteLine($"Allergen: {kvp.Key}, Ingredients: {string.Join(", ", kvp.Value)}");
+            
+            // Now we return a string of ingredients sorted by allergen alphabetically
+            List<string> output = new List<string>();
+            foreach (var key in this.ingredientAllergens.Keys.OrderBy(a => a))
+                output.Add(this.ingredientAllergens[key][0]);
+
+            return string.Join(",", output);
         }
     }
 }
