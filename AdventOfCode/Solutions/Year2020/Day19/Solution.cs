@@ -54,7 +54,10 @@ namespace AdventOfCode.Solutions.Year2020
         }
 
         // Generates a regex for this
-        public string getParsedRules(List<ImageRule> rules) {
+        public string getParsedRules(List<ImageRule> rules, int depth=1) {
+            // We won't go too far down the rabbit hole
+            if (depth++ > 25) return "";
+
             // It's possible we have the rules already
             if (this.parsedRules.Length > 0) return this.parsedRules;
 
@@ -66,7 +69,7 @@ namespace AdventOfCode.Solutions.Year2020
                 string tRule = "";
 
                 foreach(var part in rule)
-                    tRule += rules.Where(a => a.id == part).First().getParsedRules(rules);
+                    tRule += rules.Where(a => a.id == part).First().getParsedRules(rules, depth);
                 
                 tRules.Add(tRule);
             }
@@ -103,7 +106,31 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Reset for round 2
+            // Includes infinite recursion
+            // We get around this by simply limiting our depth since we know the string lengths aren't super long
+
+            this.rules.Clear();
+            foreach(var line in Input.SplitByBlankLine()[0]) {
+                this.rules.Add(new ImageRule(line));
+            }
+
+            // Change rules 8 and 11
+            /*
+            8: 42 | 42 8
+            11: 42 31 | 42 11 31
+            */
+
+            this.rules.Remove(this.rules.Where(a => a.id == "8").First());
+            this.rules.Remove(this.rules.Where(a => a.id == "11").First());
+
+            this.rules.Add(new ImageRule("8: 42 | 42 8"));
+            this.rules.Add(new ImageRule("11: 42 31 | 42 11 31"));
+
+            // Now find the matching regex
+            var regex = new Regex("^" + this.rules.Where(a => a.id == "0").First().getParsedRules(this.rules) + "$", RegexOptions.IgnoreCase);
+
+            return Input.SplitByBlankLine()[1].Count(a => regex.IsMatch(a)).ToString();
         }
     }
 }
