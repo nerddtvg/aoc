@@ -79,7 +79,17 @@ namespace AdventOfCode.Solutions.Year2020
                 int winner;
                 if (this.player1.Count >= p1 && this.player2.Count >= p2) {
                     CombatGame game2 = new CombatGame();
-                    game2.LoadPlayers(string.Join("\n", this.player1) + "\n\n" + string.Join("\n", this.player2));
+
+                    // New decks are ONLY the quantity of cards drawn (so if p1 == 3, only get 3 cards from the deck)
+                    string deck = "";
+                    for(int i=0; i<p1; i++)
+                        deck += this.player1.ElementAt(i) + "\n";
+                    
+                    deck += "\n";
+                    for(int i=0; i<p2; i++)
+                        deck += this.player2.ElementAt(i) + "\n";
+
+                    game2.LoadPlayers(deck.Trim());
 
                     winner = game2.PlayRecursiveGame();
                 } else {
