@@ -71,10 +71,6 @@ namespace AdventOfCode.Solutions.Year2020
                 p1 = this.player1.Dequeue();
                 p2 = this.player2.Dequeue();
 
-                //Console.WriteLine();
-                //Console.WriteLine($"Player 1's Deck: {string.Join(", ", player1)}");
-                //Console.WriteLine($"Player 2's Deck: {string.Join(", ", player2)}");
-
                 // Now add it to the previous round remembering list
                 this.rounds.Add(key);
 
