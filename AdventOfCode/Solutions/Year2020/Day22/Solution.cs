@@ -51,54 +51,48 @@ namespace AdventOfCode.Solutions.Year2020
         public int PlayRecursiveGame() {
             // Returns 1 for player 1 winning, 2 for player 2
             while(player1.Count > 0 && player2.Count > 0) {
-                int p1,p2;
-
-                Console.WriteLine();
-                Console.WriteLine($"Player 1's Deck: {string.Join(", ", player1)}");
-                Console.WriteLine($"Player 2's Deck: {string.Join(", ", player2)}");
-
                 // First we need to determine if this has been played before
-                string key = player1.First().ToString() + "-" + player2.First().ToString();
+                string key = player1.First().ToString("00") + player2.First().ToString("00");
                 if (rounds.Contains(key)) {
                     // Player 1 wins!
-                    p1 = player1.Dequeue();
-                    p2 = player2.Dequeue();
-                    player1.Enqueue(p1);
-                    player1.Enqueue(p2);
-                    return 0;
+                    return 1;
                 }
+
+                int p1,p2;
+                p1 = player1.Dequeue();
+                p2 = player2.Dequeue();
+
+                //Console.WriteLine();
+                //Console.WriteLine($"Player 1's Deck: {string.Join(", ", player1)}");
+                //Console.WriteLine($"Player 2's Deck: {string.Join(", ", player2)}");
 
                 // Now add it to the previous round remembering list
                 rounds.Add(key);
 
                 // If we have at least as many cards in our decks as the top cards for each player (account for popping one off)
                 // New game of recursive combat
-                if (player1.Count > player1.First() && player2.Count > player2.First()) {
+                int winner;
+                if (player1.Count >= p1 && player2.Count >= p2) {
                     CombatGame game2 = new CombatGame();
-
-                    p1 = player1.Dequeue();
-                    p2 = player2.Dequeue();
-
                     game2.LoadPlayers(string.Join("\n", player1) + "\n\n" + string.Join("\n", player2));
 
-                    int winner = game2.PlayRecursiveGame();
-                    
-                    if (winner == 1) {
-                        player1.Enqueue(p1);
-                        player1.Enqueue(p2);
-                    } else if (winner == 2) {
-                        player2.Enqueue(p2);
-                        player2.Enqueue(p1);
+                    winner = game2.PlayRecursiveGame();
+                } else {
+                    // If not any of the above, the winner has the higher card
+                    if (p1 > p2) {
+                        winner = 1;
                     } else {
-                        // Need to end here
-                        return 0;
+                        winner = 2;
                     }
-
-                    continue;
                 }
-
-                // If not any of the above, the winner has the higher card
-                PlayClassicGame();
+                    
+                if (winner == 1) {
+                    player1.Enqueue(p1);
+                    player1.Enqueue(p2);
+                } else if (winner == 2) {
+                    player2.Enqueue(p2);
+                    player2.Enqueue(p1);
+                }
             }
 
             return (player1.Count > 0 ? 1 : 2);
@@ -148,7 +142,7 @@ namespace AdventOfCode.Solutions.Year2020
             4
             7
             10";
-            / **/
+            /**/
         }
 
         protected override string SolvePartOne()
