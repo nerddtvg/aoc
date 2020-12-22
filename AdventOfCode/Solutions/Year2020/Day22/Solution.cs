@@ -48,33 +48,42 @@ namespace AdventOfCode.Solutions.Year2020
             }
         }
 
+        private string DeckId(Queue<int> deck) {
+            string o = "";
+
+            foreach(var d in deck)
+                o += d.ToString("00");
+            
+            return o;
+        }
+
         public int PlayRecursiveGame() {
             // Returns 1 for player 1 winning, 2 for player 2
             while(player1.Count > 0 && player2.Count > 0) {
                 // First we need to determine if this has been played before
-                string key = player1.First().ToString("00") + player2.First().ToString("00");
-                if (rounds.Contains(key)) {
+                string key = DeckId(player1) + "-" + DeckId(player2);
+                if (this.rounds.Contains(key)) {
                     // Player 1 wins!
                     return 1;
                 }
 
                 int p1,p2;
-                p1 = player1.Dequeue();
-                p2 = player2.Dequeue();
+                p1 = this.player1.Dequeue();
+                p2 = this.player2.Dequeue();
 
                 //Console.WriteLine();
                 //Console.WriteLine($"Player 1's Deck: {string.Join(", ", player1)}");
                 //Console.WriteLine($"Player 2's Deck: {string.Join(", ", player2)}");
 
                 // Now add it to the previous round remembering list
-                rounds.Add(key);
+                this.rounds.Add(key);
 
                 // If we have at least as many cards in our decks as the top cards for each player (account for popping one off)
                 // New game of recursive combat
                 int winner;
-                if (player1.Count >= p1 && player2.Count >= p2) {
+                if (this.player1.Count >= p1 && this.player2.Count >= p2) {
                     CombatGame game2 = new CombatGame();
-                    game2.LoadPlayers(string.Join("\n", player1) + "\n\n" + string.Join("\n", player2));
+                    game2.LoadPlayers(string.Join("\n", this.player1) + "\n\n" + string.Join("\n", this.player2));
 
                     winner = game2.PlayRecursiveGame();
                 } else {
@@ -87,15 +96,15 @@ namespace AdventOfCode.Solutions.Year2020
                 }
                     
                 if (winner == 1) {
-                    player1.Enqueue(p1);
-                    player1.Enqueue(p2);
+                    this.player1.Enqueue(p1);
+                    this.player1.Enqueue(p2);
                 } else if (winner == 2) {
-                    player2.Enqueue(p2);
-                    player2.Enqueue(p1);
+                    this.player2.Enqueue(p2);
+                    this.player2.Enqueue(p1);
                 }
             }
 
-            return (player1.Count > 0 ? 1 : 2);
+            return (this.player1.Count > 0 ? 1 : 2);
         }
 
         public int PlayFullGame(int part=1) {
