@@ -17,6 +17,11 @@ namespace AdventOfCode.Solutions.Year2020
 
         public bool searched {get;set;}
 
+        public override string ToString()
+        {
+            return $"{this.id}: {string.Join(", ", this.edges)}";
+        }
+
         public SatTile(string[] input) {
             this.edges = new List<string>();
 
@@ -93,6 +98,8 @@ namespace AdventOfCode.Solutions.Year2020
             if (this.searched) return;
             this.searched = true;
 
+            Console.WriteLine($"FindNeighbors: {this.id}, {this.x}, {this.y}");
+
             // We need to look for each of our neighbors (up, right, down, left)
             // Find up
             FindNeighbor(ref tiles, 0);
@@ -135,6 +142,8 @@ namespace AdventOfCode.Solutions.Year2020
                 dir.x = newX;
                 dir.y = newY;
                 dir.FindNeighbors(ref tiles);
+            } else {
+                Console.WriteLine($"No Neighbor: {this.id}, {this.x}, {this.y}, direction: {direction}");
             }
         }
     }
@@ -146,17 +155,140 @@ namespace AdventOfCode.Solutions.Year2020
 
         public Day20() : base(20, 2020, "")
         {
+            // Debug Input
+            DebugInput = @"
+            Tile 2311:
+            ..##.#..#.
+            ##..#.....
+            #...##..#.
+            ####.#...#
+            ##.##.###.
+            ##...#.###
+            .#.#.#..##
+            ..#....#..
+            ###...#.#.
+            ..###..###
+
+            Tile 1951:
+            #.##...##.
+            #.####...#
+            .....#..##
+            #...######
+            .##.#....#
+            .###.#####
+            ###.##.##.
+            .###....#.
+            ..#.#..#.#
+            #...##.#..
+
+            Tile 1171:
+            ####...##.
+            #..##.#..#
+            ##.#..#.#.
+            .###.####.
+            ..###.####
+            .##....##.
+            .#...####.
+            #.##.####.
+            ####..#...
+            .....##...
+
+            Tile 1427:
+            ###.##.#..
+            .#..#.##..
+            .#.##.#..#
+            #.#.#.##.#
+            ....#...##
+            ...##..##.
+            ...#.#####
+            .#.####.#.
+            ..#..###.#
+            ..##.#..#.
+
+            Tile 1489:
+            ##.#.#....
+            ..##...#..
+            .##..##...
+            ..#...#...
+            #####...#.
+            #..#.#.#.#
+            ...#.#.#..
+            ##.#...##.
+            ..##.##.##
+            ###.##.#..
+
+            Tile 2473:
+            #....####.
+            #..#.##...
+            #.##..#...
+            ######.#.#
+            .#...#.#.#
+            .#########
+            .###.#..#.
+            ########.#
+            ##...##.#.
+            ..###.#.#.
+
+            Tile 2971:
+            ..#.#....#
+            #...###...
+            #.#.###...
+            ##.##..#..
+            .#####..##
+            .#..####.#
+            #..#.#..#.
+            ..####.###
+            ..#.#.###.
+            ...#.#.#.#
+
+            Tile 2729:
+            ...#.#.#.#
+            ####.#....
+            ..#.#.....
+            ....#..#.#
+            .##..##.#.
+            .#.####...
+            ####.#.#..
+            ##.####...
+            ##..#.##..
+            #.##...##.
+
+            Tile 3079:
+            #.#.#####.
+            .#..######
+            ..#.......
+            ######....
+            ####.#..#.
+            .#...#.##.
+            #.#####.##
+            ..#.###...
+            ..#.......
+            ..#.###...";
+
             // Load the tiles
             foreach(var tile in Input.SplitByBlankLine(true))
                 tiles.Add(new SatTile(tile));
+
+            // Go through and find the corners
+            tiles.ForEach(tile => {
+                // If a tile only matches on two sides, it's a corner
             
-            // Get all edges
-            allEdges = tiles.SelectMany(a => a.edges).ToList();
+                // Get all edges that are not this one
+                var allEdges = tiles.Where(a => a.id != tile.id).SelectMany(a => a.edges).Distinct().ToList();
+                var matches = tile.edges.Intersect(allEdges);
+                var count = matches.Count();
+
+                Console.WriteLine($"{tile.id}: {count}");
+
+                // Check if we only have two matching
+                if (count == 2)
+                    tile.corner = true;
+            });
 
             // Just start with the first tile and let's go through the list
-            tiles[0].x = 0;
-            tiles[0].y = 0;
-            tiles[0].FindNeighbors(ref tiles);
+            //tiles[0].x = 0;
+            //tiles[0].y = 0;
+            //tiles[0].FindNeighbors(ref tiles);
         }
 
         protected override string SolvePartOne()
