@@ -4,18 +4,20 @@ using System.Text;
 
 using System.Linq;
 
+using System.Text.RegularExpressions;
+
 namespace AdventOfCode.Solutions.Year2020
 {
     class ImageRule {
         public string id {get;set;}
         public string original {get;set;}
         public List<List<string>> rules {get;set;}
-        public List<string> parsedRules {get;set;}
+        public string parsedRules {get;set;}
         public List<string> dependencies {get;set;}
 
         public ImageRule(string input) {
             this.rules = new List<List<string>>();
-            this.parsedRules = new List<string>();
+            this.parsedRules = "";
             this.dependencies = new List<string>();
 
             // Parse the incoming rule set
@@ -37,7 +39,7 @@ namespace AdventOfCode.Solutions.Year2020
             if (this.original.Contains("\"")) {
                 // Just a character!
                 // Consider this parsed
-                this.parsedRules.Add(this.original.Replace("\"", "").Trim());
+                this.parsedRules = this.original.Replace("\"", "").Trim();
             } else {
                 // One or more rules
                 var tRules = this.original.Split("|", StringSplitOptions.TrimEntries);
@@ -51,37 +53,29 @@ namespace AdventOfCode.Solutions.Year2020
             }
         }
 
-        public List<string> getParsedRules(List<ImageRule> rules) {
+        // Generates a regex for this
+        public string getParsedRules(List<ImageRule> rules) {
             // It's possible we have the rules already
-            if (this.parsedRules.Count > 0) return this.parsedRules;
+            if (this.parsedRules.Length > 0) return this.parsedRules;
+
+            List<string> tRules = new List<string>();
 
             // If not, we need to figure out what to return
             foreach(var rule in this.rules) {
-                // New string to return
-                List<List<string>> ret = new List<List<string>>();
+                // We need to get every part of our possible rules and add them
+                string tRule = "";
 
-                foreach(var item in rule)
-                    ret.Add(rules.Where(a => a.id == item).First().getParsedRules(rules));
-
-                // Now that we have all possible outputs of each rule
-                // We need all combinations of each
-                List<string> temp = ret[0];
-
-                for(int i=1; i<ret.Count; i++) {
-                    List<string> tTemp = new List<string>();
-
-                    // For each result here...
-                    foreach(var r in ret[i])
-                        // Append it to a copy of the previous results, making ths list longer and longer
-                        for(int q=0; q<temp.Count; q++)
-                            tTemp.Add(temp[q] + r);
-                    
-                    // Replace
-                    temp = tTemp;
-                }
-
-                this.parsedRules.AddRange(temp);
+                foreach(var part in rule)
+                    tRule += rules.Where(a => a.id == part).First().getParsedRules(rules);
+                
+                tRules.Add(tRule);
             }
+
+            // If we have more than one
+            if (tRules.Count > 1)
+                this.parsedRules = "(" + string.Join("|", tRules) + ")";
+            else
+                this.parsedRules = tRules[0];
 
             // Return the objects
             return this.parsedRules;
@@ -98,15 +92,13 @@ namespace AdventOfCode.Solutions.Year2020
             foreach(var line in Input.SplitByBlankLine()[0]) {
                 this.rules.Add(new ImageRule(line));
             }
-
-            // Get all possible image combinations
-            this.possibleValues = this.rules.Where(a => a.id == "0").First().getParsedRules(this.rules);
-            this.possibleValues.Sort();
         }
 
         protected override string SolvePartOne()
         {
-            return Input.SplitByBlankLine()[1].Count(line => this.possibleValues.Contains(line, StringComparer.InvariantCulture)).ToString();
+            var regex = new Regex("^" + this.rules.Where(a => a.id == "0").First().getParsedRules(this.rules) + "$", RegexOptions.IgnoreCase);
+
+            return Input.SplitByBlankLine()[1].Count(a => regex.IsMatch(a)).ToString();
         }
 
         protected override string SolvePartTwo()
