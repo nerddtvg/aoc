@@ -7,12 +7,12 @@ using System.Linq;
 namespace AdventOfCode.Solutions.Year2020
 {
     class SatTileVariant {
-        public string tile {get;set;}
+        public List<List<string>> tile {get;set;}
         public List<string> edges {get;set;}
 
         public SatTileVariant(string[] input) {
             // Input is an array of strings (one per line of the tile)
-            this.tile = string.Join("\n", input);
+            this.tile = input.Select(a => a.Select(b => b.ToString()).ToList()).ToList();
 
             // Set the edges (top, right, bottom, left)
             this.edges = new List<string>();
@@ -25,7 +25,7 @@ namespace AdventOfCode.Solutions.Year2020
 
     class SatTile {
         public int id {get;set;}
-        public string tile {get;set;}
+        public List<List<string>> tile {get;set;}
 
         public int x {get;set;}
         public int y {get;set;}
@@ -56,7 +56,7 @@ namespace AdventOfCode.Solutions.Year2020
 
             // The rest of the input...
             input = input.Skip(1).ToArray();
-            this.tile = string.Join("\n", input);
+            this.tile = input.Select(a => a.Select(b => b.ToString()).ToList()).ToList();
 
             // Set our edges for part 1
             this.edges = new List<string>();
@@ -88,9 +88,9 @@ namespace AdventOfCode.Solutions.Year2020
             }
         }
 
-        public string getTileWithoutBorder() =>
+        public List<string> getTileWithoutBorder() =>
             // This returns the tile string without the borders (1 pixel on each side)
-            string.Join("\n", this.tile.SplitByNewline().Skip(1).Take(8).Select(a => a.Substring(1, 8)));
+            this.tile.Skip(1).Take(8).Select(a => string.Join("", a.Skip(1).Take(8))).ToList();
 
         public string[] rotateArray(string[] input) {
             // Take the input array and rotate it 90 degrees
@@ -108,6 +108,11 @@ namespace AdventOfCode.Solutions.Year2020
 
             return outArr;
         }
+
+        public List<List<string>> rotateArray(List<List<string>> input) =>
+            rotateArray(
+                input.Select(a => string.Join("", a)).ToArray()
+            ).Select(a => a.Select(a => a.ToString()).ToList()).ToList();
 
         public void FindNeighbors(ref List<SatTile> tiles) {
             // Avoiding stack issues
@@ -346,10 +351,10 @@ namespace AdventOfCode.Solutions.Year2020
             for(int y=minY; y<=maxY; y++)
                 for(int x=minX; x<=maxX; x++) {
                     var tile = tiles.FirstOrDefault(a => a.x == x && a.y == y);
-                    string[] tileString;
+                    List<string> tileString;
 
                     if (tile != null) {
-                        tileString = tile.getTileWithoutBorder().SplitByNewline(false, false);
+                        tileString = tile.getTileWithoutBorder();
                     } else {
                         throw new Exception($"Ended up with a missing tile: X: {x}, Y: {y}");
                     }
@@ -357,7 +362,7 @@ namespace AdventOfCode.Solutions.Year2020
                     // Go through the image and add this on to each line
                     int b = (y - minY);     // What "line" are we one, jumps of 10
                     
-                    for(int i=0; i<tileString.Length; i++) {
+                    for(int i=0; i<tileString.Count; i++) {
                         int key = (b * 10) + i;
 
                         if(image.ContainsKey(key)) {
@@ -370,7 +375,7 @@ namespace AdventOfCode.Solutions.Year2020
             
             // Get the image in array form (so we can work with it again)
             // 2D array: [y][x]
-            var imageArr = image.OrderBy(a => a.Key).Select(a => a.Value.Select(a => a.ToString()).ToArray()).ToArray();
+            var imageArr = image.OrderBy(a => a.Key).Select(a => a.Value.Select(a => a.ToString()).ToList()).ToList();
 
             // Now we have an array of strings that form our image
             // We need to go through and find all of the sea monsters
@@ -418,18 +423,16 @@ namespace AdventOfCode.Solutions.Year2020
             int monsterHeight = 3;
 
             // Print the starting image
-            Console.WriteLine("\n" + string.Join("\n", imageArr.Select(a => string.Join("", a))));
+            Console.WriteLine("\n" + string.Join("\n", imageArr));
             Console.WriteLine();
 
             int monsters = 0;
             for(int flip=0; flip<2; flip++) {
                 for(int rotate=0; rotate<4; rotate++) {
                     // We need to go through and find all instances where the '#' lines up to a monster
-                    for(int y=0; y<imageArr.Length-monsterHeight+1; y++) {
-                        for(int x=0; x<imageArr[0].Length-monsterWidth+1; x++) {
+                    for(int y=0; y<imageArr.Count-monsterHeight+1; y++) {
+                        for(int x=0; x<imageArr[0].Count-monsterWidth+1; x++) {
                             // If we have the same number of '#' as the monster array, then we have a monster!
-                            var test = monster.Select(a => imageArr[y+a.dy][x+a.dx]).ToList();
-
                             if (monster.Count(a => imageArr[y+a.dy][x+a.dx] == "#") == monster.Count) {
                                 monsters++;
 
@@ -443,14 +446,14 @@ namespace AdventOfCode.Solutions.Year2020
                     if (monsters > 0) break;
 
                     // Using the helper to rotate the image
-                    imageArr = this.tiles[0].rotateArray(imageArr.Select(a => string.Join("", a)).ToArray()).Select(a => a.Select(a => a.ToString()).ToArray()).ToArray();
+                    imageArr = this.tiles[0].rotateArray(imageArr);
                 }
 
                 // If we found monsters, we're in the right position, break out
                 if (monsters > 0) break;
 
                 // Need to flip the image
-                imageArr = imageArr.Select(a => a.Reverse().ToArray()).ToArray();
+                imageArr.ForEach(a => a.Reverse());
             }
 
             // Print the final image
