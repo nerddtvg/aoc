@@ -11,23 +11,39 @@ namespace AdventOfCode.Solutions.Year2020
         private LinkedListNode<int> currentCup {get;set;}
         public int highest {get;set;}
 
-        public CupGame(string input) => Init(input.ToIntArray());
+        // Keep a record of all nodes
+        private Dictionary<int, LinkedListNode<int>> references {get;set;}
 
-        public CupGame(int[] input) => Init(input);
+        public CupGame(string input, int padding=0) => Init(input.ToIntArray(), padding);
 
-        private void Init(int[] input) {
+        public CupGame(int[] input, int padding=0) => Init(input, padding);
+
+        private void Init(int[] input, int padding) {
             // Initialize
             this.cups = new LinkedList<int>();
+            this.references = new Dictionary<int, LinkedListNode<int>>();
             
             // Load in order
             foreach(var i in input)
-                this.cups.AddLast(i);
+                this.addCup(i);
             
             // Set the current cup to the start
             this.currentCup = this.cups.First;
 
             // Get the highest value for later
             this.highest = this.cups.Max(a => a);
+
+            // Now we will also pad this as requested
+            for(int i=this.highest+1; i<padding; i++)
+                this.addCup(i);
+
+            // Reset the highest
+            this.highest = Math.Max(padding, this.highest);
+        }
+
+        private void addCup(int value) {
+            this.cups.AddLast(value);
+            this.references.Add(value, this.cups.Last);
         }
 
         public void playRound() {
@@ -38,6 +54,9 @@ namespace AdventOfCode.Solutions.Year2020
             for(int i=0; i<3; i++) {
                 var tNode = getNextNode(this.currentCup);
                 hand.Add(tNode.Value);
+
+                // Remove from the lists
+                this.references.Remove(tNode.Value);
                 this.cups.Remove(tNode);
             }
 
@@ -48,7 +67,12 @@ namespace AdventOfCode.Solutions.Year2020
                 // Loop through the list of cups to find the destination value
                 // If it is not found, reduce the destination value
                 // If destination value < 1, loop to the highest value of cup
-                destinationCup = this.cups.Find(destination--);
+                if (this.references.ContainsKey(destination)) {
+                    destinationCup = this.references[destination];
+                }
+
+                // Decrement
+                destination--;
 
                 if (destinationCup == null) {
                     // Not found
@@ -60,8 +84,10 @@ namespace AdventOfCode.Solutions.Year2020
             // Now we have a destination cup
             // Place our hand back down (we reverse the order so it is placed back correctly)
             hand.Reverse();
-            foreach(var i in hand)
+            foreach(var i in hand) {
                 this.cups.AddAfter(destinationCup, i);
+                this.references.Add(i, destinationCup.Next);
+            }
             
             // New current cup is +1
             this.currentCup = getNextNode(this.currentCup);
@@ -137,18 +163,12 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartTwo()
         {
             // Load the initial game
-            game = new CupGame(Input);
+            game = new CupGame(Input, 1000000);
 
             // Get a stopwatch ready!
             var sw = new System.Diagnostics.Stopwatch();
 
             Console.WriteLine($"Part 2 Started");
-
-            // Need to increase the cup count to 1 million (1000000)
-            sw.Start();
-            for(int i=game.highest+1; i<=1000000; i++)
-                game.cups.AddLast(i);
-            sw.Stop();
 
             Console.WriteLine($"Part 2 Loading: {new TimeSpan(sw.ElapsedTicks)}");
 
