@@ -88,6 +88,10 @@ namespace AdventOfCode.Solutions.Year2020
             }
         }
 
+        public string getTileWithoutBorder() =>
+            // This returns the tile string without the borders (1 pixel on each side)
+            string.Join("\n", this.tile.SplitByNewline().Skip(1).Take(8).Select(a => a.Substring(1, 8)));
+
         public string[] rotateArray(string[] input) {
             // Take the input array and rotate it 90 degrees
             string[] outArr = new string[input.Length];
@@ -110,7 +114,7 @@ namespace AdventOfCode.Solutions.Year2020
             if (this.searched) return;
             this.searched = true;
 
-            Console.WriteLine($"FindNeighbors: {this.id}, {this.x}, {this.y}");
+            //Console.WriteLine($"FindNeighbors: {this.id}, {this.x}, {this.y}");
 
             // We need to look for each of our neighbors (up, right, down, left)
             // Find up
@@ -133,27 +137,36 @@ namespace AdventOfCode.Solutions.Year2020
             // Already done
             if (tiles.Count(a => a.x == newX && a.y == newY) > 0) return;
 
-            // Find a tile that has a variant matches our desired edge
-            var dir = tiles.Where(a => a.searched == false && a.variants.SelectMany(b => b.edges).Contains(this.edges[direction])).FirstOrDefault();
+            //if (this.id == 1171) System.Diagnostics.Debugger.Break();
 
-            if (dir != null) {
+            // Find a tile that has a variant matches our desired edge
+            // Since we have every variant of each tile, we should be able to find one where the side we want is opposite our current side
+            int newDirection = (direction + 2) % 4;
+
+            var newTile = tiles.Where(a => a.searched == false && a.variants.Select(b => b.edges[newDirection]).Contains(this.edges[direction])).FirstOrDefault();
+
+            if (newTile != null) {
                 // Found it!
+                //if (dir.id == 2473) System.Diagnostics.Debugger.Break();
 
                 // Get the specific variant
-                var variant = dir.variants.First(a => a.edges.Contains(this.edges[direction]));
+                var variant = newTile.variants.First(a => a.edges[newDirection] == this.edges[direction]);
 
                 // Replace this tile information to account for the new rotation/flip information
-                dir.tile = variant.tile;
-                dir.edges = variant.edges;
+                newTile.tile = variant.tile;
+                newTile.edges = variant.edges;
+
+                // Clear the variants to prevent double-matching later
+                newTile.variants.Clear();
                 
                 // Set the new x,y
-                dir.x = newX;
-                dir.y = newY;
+                newTile.x = newX;
+                newTile.y = newY;
 
                 // Find neighbors!
-                dir.FindNeighbors(ref tiles);
+                newTile.FindNeighbors(ref tiles);
             } else {
-                Console.WriteLine($"No Neighbor: {this.id}, {this.x}, {this.y}, direction: {direction}");
+                //Console.WriteLine($"No Neighbor: {this.id}, {this.x}, {this.y}, direction: {direction}");
             }
         }
     }
@@ -166,7 +179,7 @@ namespace AdventOfCode.Solutions.Year2020
         public Day20() : base(20, 2020, "")
         {
             // Debug Input
-            /*
+            /** /
             DebugInput = @"
             Tile 2311:
             ..##.#..#.
@@ -275,7 +288,7 @@ namespace AdventOfCode.Solutions.Year2020
             ..#.###...
             ..#.......
             ..#.###...";
-            */
+            /**/
 
             // Load the tiles
             foreach(var tile in Input.SplitByBlankLine(true))
@@ -308,12 +321,69 @@ namespace AdventOfCode.Solutions.Year2020
         {
             // We need to count the '#' that are not a part of the sea monsters
             // Sea monsters are 15 '#' characters
+            /*
+                              # 
+            #    ##    ##    ###
+             #  #  #  #  #  #   
+            */
             // We need to remove the edges from each tile before stitching them together
-            this.tiles[0].x = 0;
-            this.tiles[0].y = 0;
-            this.tiles[0].FindNeighbors(ref tiles);
+            
+            // First we get the tiles in order
+            // Start in a corner
+            var corner = tiles.First(a => a.corner == true);
+            corner.x = 0;
+            corner.y = 0;
+            corner.FindNeighbors(ref tiles);
 
-            return null;
+            // Let's go through and put all of these together into one large image
+            int minX = tiles.Where(a => a.searched).Min(a => a.x);
+            int maxX = tiles.Where(a => a.searched).Max(a => a.x);
+            int minY = tiles.Where(a => a.searched).Min(a => a.y);
+            int maxY = tiles.Where(a => a.searched).Max(a => a.y);
+
+            Dictionary<int, string> image = new Dictionary<int, string>();
+
+            for(int y=minY; y<=maxY; y++)
+                for(int x=minX; x<=maxX; x++) {
+                    var tile = tiles.FirstOrDefault(a => a.x == x && a.y == y);
+                    string[] tileString;
+
+                    if (tile != null) {
+                        tileString = tile.getTileWithoutBorder().SplitByNewline(false, false);
+                    } else {
+                        // 10 blank lines
+                        // When we remove the borders, we get 8 blank lines of 8 spaces
+                        // This should never happen and is only for debugging
+                        tileString = new string[] {
+                            "        ",
+                            "        ",
+                            "        ",
+                            "        ",
+                            "        ",
+                            "        ",
+                            "        ",
+                            "        "
+                        };
+                    }
+
+                    // Go through the image and add this on to each line
+                    int b = (y - minY);     // What "line" are we one, jumps of 10
+                    
+                    for(int i=0; i<tileString.Length; i++) {
+                        int key = (b * 10) + i;
+
+                        if(image.ContainsKey(key)) {
+                            image[key] += tileString[i];
+                        } else {
+                            image[key] = tileString[i];
+                        }
+                    }
+                }
+
+            foreach(var key in image.Keys.OrderBy(a => a))
+                Console.WriteLine(image[key]);
+
+            return this.tiles.Count(a => a.x == Int32.MinValue).ToString();
         }
     }
 }
