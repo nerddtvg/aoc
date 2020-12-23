@@ -42,7 +42,7 @@ namespace AdventOfCode.Solutions.Year2020
 
         public override string ToString()
         {
-            return $"{this.id}: {string.Join(", ", this.variants[0].edges)}";
+            return $"{this.id} [{(this.x == Int32.MinValue ? "unk" : this.x)}, {(this.y == Int32.MinValue ? "unk" : this.y)}]: {string.Join(", ", this.variants[0].edges)}";
         }
 
         public SatTile(string[] input) {
