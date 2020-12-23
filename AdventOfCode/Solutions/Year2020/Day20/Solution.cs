@@ -351,19 +351,7 @@ namespace AdventOfCode.Solutions.Year2020
                     if (tile != null) {
                         tileString = tile.getTileWithoutBorder().SplitByNewline(false, false);
                     } else {
-                        // 10 blank lines
-                        // When we remove the borders, we get 8 blank lines of 8 spaces
-                        // This should never happen and is only for debugging
-                        tileString = new string[] {
-                            "        ",
-                            "        ",
-                            "        ",
-                            "        ",
-                            "        ",
-                            "        ",
-                            "        ",
-                            "        "
-                        };
+                        throw new Exception($"Ended up with a missing tile: X: {x}, Y: {y}");
                     }
 
                     // Go through the image and add this on to each line
@@ -379,11 +367,75 @@ namespace AdventOfCode.Solutions.Year2020
                         }
                     }
                 }
+            
+            // Get the image in array form (so we can work with it again)
+            // 2D array: [y][x]
+            var imageArr = image.OrderBy(a => a.Key).Select(a => a.Value.Split()).ToArray();
 
-            foreach(var key in image.Keys.OrderBy(a => a))
-                Console.WriteLine(image[key]);
+            // Now we have an array of strings that form our image
+            // We need to go through and find all of the sea monsters
+            // Then replace those with 'O' so we don't double-count
+            // Be sure to rotate the image to find all of them
+            
+            // We define an array of 'monster' dx,dy of what is expected
+            /*
+                        1111111111
+              01234567890123456789
+             +--------------------+
+            0|                #   |0
+             +--------------------+
+            1|#    ##    ##    ###|1
+             +--------------------+
+            2| #  #  #  #  #  #   |2
+             +--------------------+
+              01234567890123456789
+                        1111111111
+            */
+            List<(int dx, int dy)> monster = new List<(int dx, int dy)>() {
+                (0, 16),
+                (1, 0),
+                (1, 5),
+                (1, 6),
+                (1, 11),
+                (1, 12),
+                (1, 17),
+                (1, 18),
+                (1, 19),
+                (2, 1),
+                (2, 4),
+                (2, 7),
+                (2, 10),
+                (2, 13),
+                (2, 16)
+            };
 
-            return this.tiles.Count(a => a.x == Int32.MinValue).ToString();
+            // Helpers for loops later
+            int monsterWidth = 20;
+            int monsterHeight = 20;
+
+            int monsters = 0;
+            for(int rotate=0; rotate<4; rotate++) {
+                // We need to go through and find all instances where the '#' lines up to a monster
+                for(int y=0; y<imageArr.Length-monsterHeight; y++) {
+                    for(int x=0; x<imageArr[0].Length-monsterWidth; x++) {
+                        // If we have the same number of '#' as the monster array, then we have a monster!
+                        if (monster.Count(a => imageArr[y+a.dy][x+a.dx] == "#") == monster.Count) {
+                            monsters++;
+
+                            // Change all of them to 'O' to avoid double counting
+                            monster.ForEach(a => imageArr[y+a.dy][x+a.dx] = "O");
+                        }
+                    }
+                }
+
+                // Using the helper to rotate the image
+                imageArr = this.tiles[0].rotateArray(imageArr.Select(a => string.Join("", a)).ToArray()).Select(a => a.Split()).ToArray();
+            }
+
+            // Print the final image
+            Console.WriteLine("\n" + string.Join("\n", imageArr.Select(a => string.Join("", a))));
+
+            return imageArr.Sum(a => a.Count(b => b == "#")).ToString();
         }
     }
 }
