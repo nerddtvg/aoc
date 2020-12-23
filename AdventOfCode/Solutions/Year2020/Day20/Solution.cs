@@ -119,8 +119,6 @@ namespace AdventOfCode.Solutions.Year2020
             if (this.searched) return;
             this.searched = true;
 
-            //Console.WriteLine($"FindNeighbors: {this.id}, {this.x}, {this.y}");
-
             // We need to look for each of our neighbors (up, right, down, left)
             // Find up
             FindNeighbor(ref tiles, 0);
