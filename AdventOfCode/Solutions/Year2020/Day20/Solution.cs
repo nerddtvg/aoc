@@ -370,7 +370,7 @@ namespace AdventOfCode.Solutions.Year2020
             
             // Get the image in array form (so we can work with it again)
             // 2D array: [y][x]
-            var imageArr = image.OrderBy(a => a.Key).Select(a => a.Value.Split()).ToArray();
+            var imageArr = image.OrderBy(a => a.Key).Select(a => a.Value.Select(a => a.ToString()).ToArray()).ToArray();
 
             // Now we have an array of strings that form our image
             // We need to go through and find all of the sea monsters
@@ -382,17 +382,21 @@ namespace AdventOfCode.Solutions.Year2020
                         1111111111
               01234567890123456789
              +--------------------+
-            0|                #   |0
+            0|                  # |0
+             +--------------------+
+             |          1111111111|
+             |01234567890123456789|
              +--------------------+
             1|#    ##    ##    ###|1
              +--------------------+
+             |          1111111111|
+             |01234567890123456789|
+             +--------------------+
             2| #  #  #  #  #  #   |2
              +--------------------+
-              01234567890123456789
-                        1111111111
             */
-            List<(int dx, int dy)> monster = new List<(int dx, int dy)>() {
-                (0, 16),
+            List<(int dy, int dx)> monster = new List<(int dy, int dx)>() {
+                (0, 18),
                 (1, 0),
                 (1, 5),
                 (1, 6),
@@ -413,12 +417,18 @@ namespace AdventOfCode.Solutions.Year2020
             int monsterWidth = 20;
             int monsterHeight = 20;
 
+            // Print the starting image
+            Console.WriteLine("\n" + string.Join("\n", imageArr.Select(a => string.Join("", a))));
+            Console.WriteLine();
+
             int monsters = 0;
             for(int rotate=0; rotate<4; rotate++) {
                 // We need to go through and find all instances where the '#' lines up to a monster
                 for(int y=0; y<imageArr.Length-monsterHeight; y++) {
                     for(int x=0; x<imageArr[0].Length-monsterWidth; x++) {
                         // If we have the same number of '#' as the monster array, then we have a monster!
+                        var test = monster.Select(a => imageArr[y+a.dy][x+a.dx]).ToList();
+
                         if (monster.Count(a => imageArr[y+a.dy][x+a.dx] == "#") == monster.Count) {
                             monsters++;
 
@@ -429,11 +439,13 @@ namespace AdventOfCode.Solutions.Year2020
                 }
 
                 // Using the helper to rotate the image
-                imageArr = this.tiles[0].rotateArray(imageArr.Select(a => string.Join("", a)).ToArray()).Select(a => a.Split()).ToArray();
+                imageArr = this.tiles[0].rotateArray(imageArr.Select(a => string.Join("", a)).ToArray()).Select(a => a.Select(a => a.ToString()).ToArray()).ToArray();
             }
 
             // Print the final image
             Console.WriteLine("\n" + string.Join("\n", imageArr.Select(a => string.Join("", a))));
+
+            Console.WriteLine($"Monsters: {monsters}");
 
             return imageArr.Sum(a => a.Count(b => b == "#")).ToString();
         }
