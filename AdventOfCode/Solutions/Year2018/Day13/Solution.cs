@@ -66,6 +66,13 @@ namespace AdventOfCode.Solutions.Year2018
 
         public Day13() : base(13, 2018, "")
         {
+            LoadInput();
+        }
+
+        private void LoadInput() {
+            this.trackTiles = new List<MineTrackTile>();
+            this.carts = new List<MineCart>();
+
             // We need to go over the input one character at a time and determine what we have and where we have it
             int y = 0;
             foreach(var line in Input.SplitByNewline(false)) {
