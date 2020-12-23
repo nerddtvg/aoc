@@ -422,24 +422,35 @@ namespace AdventOfCode.Solutions.Year2020
             Console.WriteLine();
 
             int monsters = 0;
-            for(int rotate=0; rotate<4; rotate++) {
-                // We need to go through and find all instances where the '#' lines up to a monster
-                for(int y=0; y<imageArr.Length-monsterHeight+1; y++) {
-                    for(int x=0; x<imageArr[0].Length-monsterWidth+1; x++) {
-                        // If we have the same number of '#' as the monster array, then we have a monster!
-                        var test = monster.Select(a => imageArr[y+a.dy][x+a.dx]).ToList();
+            for(int flip=0; flip<2; flip++) {
+                for(int rotate=0; rotate<4; rotate++) {
+                    // We need to go through and find all instances where the '#' lines up to a monster
+                    for(int y=0; y<imageArr.Length-monsterHeight+1; y++) {
+                        for(int x=0; x<imageArr[0].Length-monsterWidth+1; x++) {
+                            // If we have the same number of '#' as the monster array, then we have a monster!
+                            var test = monster.Select(a => imageArr[y+a.dy][x+a.dx]).ToList();
 
-                        if (monster.Count(a => imageArr[y+a.dy][x+a.dx] == "#") == monster.Count) {
-                            monsters++;
+                            if (monster.Count(a => imageArr[y+a.dy][x+a.dx] == "#") == monster.Count) {
+                                monsters++;
 
-                            // Change all of them to 'O' to avoid double counting
-                            monster.ForEach(a => imageArr[y+a.dy][x+a.dx] = "O");
+                                // Change all of them to 'O' to avoid double counting
+                                monster.ForEach(a => imageArr[y+a.dy][x+a.dx] = "O");
+                            }
                         }
                     }
+
+                    // If we found monsters, we're in the right position, break out
+                    if (monsters > 0) break;
+
+                    // Using the helper to rotate the image
+                    imageArr = this.tiles[0].rotateArray(imageArr.Select(a => string.Join("", a)).ToArray()).Select(a => a.Select(a => a.ToString()).ToArray()).ToArray();
                 }
 
-                // Using the helper to rotate the image
-                imageArr = this.tiles[0].rotateArray(imageArr.Select(a => string.Join("", a)).ToArray()).Select(a => a.Select(a => a.ToString()).ToArray()).ToArray();
+                // If we found monsters, we're in the right position, break out
+                if (monsters > 0) break;
+
+                // Need to flip the image
+                imageArr = imageArr.Select(a => a.Reverse().ToArray()).ToArray();
             }
 
             // Print the final image
