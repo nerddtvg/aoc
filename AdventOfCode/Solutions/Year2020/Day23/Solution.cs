@@ -9,7 +9,7 @@ namespace AdventOfCode.Solutions.Year2020
     class CupGame {
         public LinkedList<int> cups {get;set;}
         private LinkedListNode<int> currentCup {get;set;}
-        private int highest {get;set;}
+        public int highest {get;set;}
 
         public CupGame(string input) => Init(input.ToIntArray());
 
@@ -79,6 +79,21 @@ namespace AdventOfCode.Solutions.Year2020
                 return node.Next;
         }
 
+        public long getCupsAfter1() {
+            // For Part 2 we only want the two cups immediately after '1'
+            // Multiply them together
+            var start = this.cups.Find(1);
+            long output;
+
+            start = getNextNode(start);
+            output = start.Value;
+
+            start = getNextNode(start);
+            output *= start.Value;
+
+            return output;
+        }
+
         public override string ToString()
         {
             // This is how we will return our score
@@ -121,7 +136,40 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Load the initial game
+            game = new CupGame(Input);
+
+            // Get a stopwatch ready!
+            var sw = new System.Diagnostics.Stopwatch();
+
+            Console.WriteLine($"Part 2 Started");
+
+            // Need to increase the cup count to 1 million (1000000)
+            sw.Start();
+            for(int i=game.highest+1; i<=1000000; i++)
+                game.cups.AddLast(i);
+            sw.Stop();
+
+            Console.WriteLine($"Part 2 Loading: {new TimeSpan(sw.ElapsedTicks)}");
+
+            // Now play the game ten million (10000000) times
+            sw.Reset();
+            sw.Start();
+            for(int i=0; i<10000000; i++) {
+                game.playRound();
+
+                // Every 100,000 print time
+                if (i > 0 && i % 100000 == 0)
+                    Console.WriteLine($"Part 2 Round {i.ToString("N0")}: {new TimeSpan(sw.ElapsedTicks)}");
+            }
+            sw.Stop();
+
+            Console.WriteLine($"Part 2 Calculation: {new TimeSpan(sw.ElapsedTicks)}");
+
+            Console.WriteLine($"Part 2 Complete");
+            
+            // Now we only want the two cups immediately clockwise of cup 1
+            return game.getCupsAfter1().ToString();
         }
     }
 }
