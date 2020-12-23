@@ -142,8 +142,6 @@ namespace AdventOfCode.Solutions.Year2020
             // Already done
             if (tiles.Count(a => a.x == newX && a.y == newY) > 0) return;
 
-            //if (this.id == 1171) System.Diagnostics.Debugger.Break();
-
             // Find a tile that has a variant matches our desired edge
             // Since we have every variant of each tile, we should be able to find one where the side we want is opposite our current side
             int newDirection = (direction + 2) % 4;
@@ -152,7 +150,6 @@ namespace AdventOfCode.Solutions.Year2020
 
             if (newTile != null) {
                 // Found it!
-                //if (dir.id == 2473) System.Diagnostics.Debugger.Break();
 
                 // Get the specific variant
                 var variant = newTile.variants.First(a => a.edges[newDirection] == this.edges[direction]);
@@ -170,8 +167,6 @@ namespace AdventOfCode.Solutions.Year2020
 
                 // Find neighbors!
                 newTile.FindNeighbors(ref tiles);
-            } else {
-                //Console.WriteLine($"No Neighbor: {this.id}, {this.x}, {this.y}, direction: {direction}");
             }
         }
     }
