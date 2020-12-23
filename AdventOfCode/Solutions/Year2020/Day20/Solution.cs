@@ -174,7 +174,6 @@ namespace AdventOfCode.Solutions.Year2020
     class Day20 : ASolution
     {
         List<SatTile> tiles = new List<SatTile>();
-        List<string> allEdges;
 
         public Day20() : base(20, 2020, "")
         {
