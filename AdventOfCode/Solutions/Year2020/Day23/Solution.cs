@@ -16,6 +16,9 @@ namespace AdventOfCode.Solutions.Year2020
         public CupGame(int[] input) => Init(input);
 
         private void Init(int[] input) {
+            // Initialize
+            this.cups = new LinkedList<int>();
+            
             // Load in order
             foreach(var i in input)
                 this.cups.AddLast(i);
@@ -75,19 +78,45 @@ namespace AdventOfCode.Solutions.Year2020
             else
                 return node.Next;
         }
+
+        public override string ToString()
+        {
+            // This is how we will return our score
+            // Start *after* the cup labeled 1 and put each number in place
+            // Stop at the number *before* 1, so 1 does not appear
+            var start = this.cups.Find(1);
+            string output = "";
+
+            do {
+                // Get the next cup
+                start = getNextNode(start);
+
+                // Did we hit the end?
+                if (start.Value == 1) break;
+
+                output += start.Value.ToString();
+            } while(true);
+
+            return output;
+        }
     }
 
     class Day23 : ASolution
     {
+        CupGame game;
 
         public Day23() : base(23, 2020, "")
         {
-
+            // DebugInput = "389125467";
         }
 
         protected override string SolvePartOne()
         {
-            return null;
+            game = new CupGame(Input);
+            for(int i=0; i<100; i++)
+                game.playRound();
+
+            return game.ToString();
         }
 
         protected override string SolvePartTwo()
