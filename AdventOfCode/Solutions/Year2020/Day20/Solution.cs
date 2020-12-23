@@ -105,57 +105,6 @@ namespace AdventOfCode.Solutions.Year2020
             return outArr;
         }
 
-        /*
-        public void RotateTile(int count=0) {
-            // We will rotate the tile X times 90 degrees
-            while(count < 0) count += 4;
-            count = count % 4;
-
-            // If this is 0, we don't do anything
-            if (count == 0) return;
-
-            // Re-order the edges (top, right, bottom, left)
-            List<string> tEdges = new List<string>();
-            for(int i=count; i<this.edges.Count; i++)
-                tEdges.Add(this.edges[i]);
-
-            for(int i=0; i<count; i++)
-                tEdges.Add(this.edges[i]);
-            
-            this.edges = tEdges;
-
-            // Trim out the newlines because they will trip up the math
-            this.tile = this.tile.Replace("\n", "");
-            string tTile = "";
-            if (count == 1) {
-                // Bottom to top, left to right
-                for(int x=0; x<10; x++) {
-                    for(int y=9; y>=0; y--)
-                        tTile += this.tile.Substring((y*10)+x, 1);
-                    
-                    tTile += "\n";
-                }
-            } else if (count == 2) {
-                // Right to left, bottom to top
-                for(int y=9; y>=0; y--) {
-                    for(int x=9; x>=0; x--)
-                        tTile += this.tile.Substring((y*10)+x, 1);
-                    
-                    tTile += "\n";
-                }
-            } else if (count == 3) {
-                // Bottom to top, right to left
-                for(int x=9; x>=0; x--) {
-                    for(int y=9; y>=0; y--)
-                        tTile += this.tile.Substring((y*10)+x, 1);
-                    
-                    tTile += "\n";
-                }
-            }
-
-            this.tile = tTile;
-        }
-
         public void FindNeighbors(ref List<SatTile> tiles) {
             // Avoiding stack issues
             if (this.searched) return;
@@ -175,12 +124,6 @@ namespace AdventOfCode.Solutions.Year2020
 
             // Find left
             FindNeighbor(ref tiles, 3);
-
-            // Now we need to find the neighbor's neighbors
-            //tiles.Where(a => a.x == this.x && a.y == this.y-1).FirstOrDefault()?.FindNeighbors(ref tiles);
-            //tiles.Where(a => a.x == this.x && a.y == this.y+1).FirstOrDefault()?.FindNeighbors(ref tiles);
-            //tiles.Where(a => a.x == this.x-1 && a.y == this.y).FirstOrDefault()?.FindNeighbors(ref tiles);
-            //tiles.Where(a => a.x == this.x+1 && a.y == this.y).FirstOrDefault()?.FindNeighbors(ref tiles);
         }
 
         private void FindNeighbor(ref List<SatTile> tiles, int direction) {
@@ -190,26 +133,29 @@ namespace AdventOfCode.Solutions.Year2020
             // Already done
             if (tiles.Count(a => a.x == newX && a.y == newY) > 0) return;
 
-            // Find a tile that matches our desired edge
-            var dir = tiles.Where(a => a.searched == false && a.edges.Contains(this.edges[direction])).FirstOrDefault();
+            // Find a tile that has a variant matches our desired edge
+            var dir = tiles.Where(a => a.searched == false && a.variants.SelectMany(b => b.edges).Contains(this.edges[direction])).FirstOrDefault();
 
             if (dir != null) {
                 // Found it!
-                // Figure out the direction we need to rotate (if any)
-                for(int i=0; i<dir.edges.Count; i++)
-                    if (dir.edges[i] == this.edges[direction]) {
-                        dir.RotateTile((direction+2)-i);
-                        break;
-                    }
+
+                // Get the specific variant
+                var variant = dir.variants.First(a => a.edges.Contains(this.edges[direction]));
+
+                // Replace this tile information to account for the new rotation/flip information
+                dir.tile = variant.tile;
+                dir.edges = variant.edges;
                 
+                // Set the new x,y
                 dir.x = newX;
                 dir.y = newY;
+
+                // Find neighbors!
                 dir.FindNeighbors(ref tiles);
             } else {
                 Console.WriteLine($"No Neighbor: {this.id}, {this.x}, {this.y}, direction: {direction}");
             }
         }
-        */
     }
 
     class Day20 : ASolution
@@ -363,6 +309,9 @@ namespace AdventOfCode.Solutions.Year2020
             // We need to count the '#' that are not a part of the sea monsters
             // Sea monsters are 15 '#' characters
             // We need to remove the edges from each tile before stitching them together
+            this.tiles[0].x = 0;
+            this.tiles[0].y = 0;
+            this.tiles[0].FindNeighbors(ref tiles);
 
             return null;
         }
