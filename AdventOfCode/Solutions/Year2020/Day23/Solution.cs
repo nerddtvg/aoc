@@ -148,7 +148,7 @@ namespace AdventOfCode.Solutions.Year2020
 
         public Day23() : base(23, 2020, "")
         {
-            DebugInput = "389125467";
+            //DebugInput = "389125467";
         }
 
         protected override string SolvePartOne()
