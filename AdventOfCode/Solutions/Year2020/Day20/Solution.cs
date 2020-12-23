@@ -9,7 +9,7 @@ namespace AdventOfCode.Solutions.Year2020
     class SatTile {
         public int id {get;set;}
         public string tile {get;set;}
-        public List<uint> edges {get;set;}
+        public List<string> edges {get;set;}
 
         public int x {get;set;}
         public int y {get;set;}
@@ -23,7 +23,7 @@ namespace AdventOfCode.Solutions.Year2020
         }
 
         public SatTile(string[] input) {
-            this.edges = new List<uint>();
+            this.edges = new List<string>();
 
             this.x = Int32.MinValue;
             this.y = Int32.MinValue;
@@ -37,22 +37,10 @@ namespace AdventOfCode.Solutions.Year2020
             this.tile = string.Join("\n", input.Skip(1));
 
             // Set the edges (top, right, bottom, left)
-            this.edges.Add(HashEdge(input[1]));
-            this.edges.Add(HashEdge(string.Join("", input.Skip(1).Select(a => a.Substring(a.Length-1, 1)))));
-            this.edges.Add(HashEdge(input[10]));
-            this.edges.Add(HashEdge(string.Join("", input.Skip(1).Select(a => a.Substring(0, 1)))));
-        }
-
-        private uint HashEdge(string edge) {
-            // Change all of the '.' to 0 and '#' to 1s
-            // Then we can bitwise match against these values
-            uint ret = 0b_0000000000;
-            int pow = edge.Length;
-
-            for(int i=0; i<edge.Length; i++)
-                ret += edge.Substring(i, 1) == "#" ? (uint) Math.Pow(2, (pow-i)) : 0;
-            
-            return ret;
+            this.edges.Add(input[1]);
+            this.edges.Add(string.Join("", input.Skip(1).Select(a => a.Substring(a.Length-1, 1))));
+            this.edges.Add(input[10]);
+            this.edges.Add(string.Join("", input.Skip(1).Select(a => a.Substring(0, 1))));
         }
 
         /*
@@ -170,6 +158,7 @@ namespace AdventOfCode.Solutions.Year2020
         public Day20() : base(20, 2020, "")
         {
             // Debug Input
+            /*
             DebugInput = @"
             Tile 2311:
             ..##.#..#.
@@ -278,6 +267,7 @@ namespace AdventOfCode.Solutions.Year2020
             ..#.###...
             ..#.......
             ..#.###...";
+            */
 
             // Load the tiles
             foreach(var tile in Input.SplitByBlankLine(true))
@@ -288,8 +278,8 @@ namespace AdventOfCode.Solutions.Year2020
                 // If a tile only matches on two sides, it's a corner
             
                 // Get all edges that are not this one
-                // Get the bitwise inverse to match against flips
-                var allEdges = tiles.Where(a => a.id != tile.id).SelectMany(a => a.edges.Union(a.edges.Select(a => ~a))).Distinct().ToList();
+                // Get the reverse of each to match against flips
+                var allEdges = tiles.Where(a => a.id != tile.id).SelectMany(a => a.edges.Union(a.edges.Select(a => a.Reverse()))).Distinct().ToList();
                 var matches = tile.edges.Intersect(allEdges);
                 var count = matches.Count();
 
@@ -299,16 +289,11 @@ namespace AdventOfCode.Solutions.Year2020
                 if (count == 2)
                     tile.corner = true;
             });
-
-            // Just start with the first tile and let's go through the list
-            //tiles[0].x = 0;
-            //tiles[0].y = 0;
-            //tiles[0].FindNeighbors(ref tiles);
         }
 
         protected override string SolvePartOne()
         {
-            return tiles.Where(a => a.corner == true).Count().ToString();
+            return tiles.Where(a => a.corner == true).Aggregate((long) 1, (x, y) => x * (long) y.id).ToString();
         }
 
         protected override string SolvePartTwo()
