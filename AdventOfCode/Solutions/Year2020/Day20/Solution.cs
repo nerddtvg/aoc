@@ -9,7 +9,7 @@ namespace AdventOfCode.Solutions.Year2020
     class SatTile {
         public int id {get;set;}
         public string tile {get;set;}
-        public List<string> edges {get;set;}
+        public List<uint> edges {get;set;}
 
         public int x {get;set;}
         public int y {get;set;}
@@ -23,7 +23,7 @@ namespace AdventOfCode.Solutions.Year2020
         }
 
         public SatTile(string[] input) {
-            this.edges = new List<string>();
+            this.edges = new List<uint>();
 
             this.x = Int32.MinValue;
             this.y = Int32.MinValue;
@@ -37,12 +37,25 @@ namespace AdventOfCode.Solutions.Year2020
             this.tile = string.Join("\n", input.Skip(1));
 
             // Set the edges (top, right, bottom, left)
-            this.edges.Add(input[1]);
-            this.edges.Add(string.Join("", input.Skip(1).Select(a => a.Substring(a.Length-1, 1))));
-            this.edges.Add(input[10]);
-            this.edges.Add(string.Join("", input.Skip(1).Select(a => a.Substring(0, 1))));
+            this.edges.Add(HashEdge(input[1]));
+            this.edges.Add(HashEdge(string.Join("", input.Skip(1).Select(a => a.Substring(a.Length-1, 1)))));
+            this.edges.Add(HashEdge(input[10]));
+            this.edges.Add(HashEdge(string.Join("", input.Skip(1).Select(a => a.Substring(0, 1)))));
         }
 
+        private uint HashEdge(string edge) {
+            // Change all of the '.' to 0 and '#' to 1s
+            // Then we can bitwise match against these values
+            uint ret = 0b_0000000000;
+            int pow = edge.Length;
+
+            for(int i=0; i<edge.Length; i++)
+                ret += edge.Substring(i, 1) == "#" ? (uint) Math.Pow(2, (pow-i)) : 0;
+            
+            return ret;
+        }
+
+        /*
         public void RotateTile(int count=0) {
             // We will rotate the tile X times 90 degrees
             while(count < 0) count += 4;
@@ -146,6 +159,7 @@ namespace AdventOfCode.Solutions.Year2020
                 Console.WriteLine($"No Neighbor: {this.id}, {this.x}, {this.y}, direction: {direction}");
             }
         }
+        */
     }
 
     class Day20 : ASolution
@@ -274,7 +288,8 @@ namespace AdventOfCode.Solutions.Year2020
                 // If a tile only matches on two sides, it's a corner
             
                 // Get all edges that are not this one
-                var allEdges = tiles.Where(a => a.id != tile.id).SelectMany(a => a.edges).Distinct().ToList();
+                // Get the bitwise inverse to match against flips
+                var allEdges = tiles.Where(a => a.id != tile.id).SelectMany(a => a.edges.Union(a.edges.Select(a => ~a))).Distinct().ToList();
                 var matches = tile.edges.Intersect(allEdges);
                 var count = matches.Count();
 
