@@ -34,7 +34,7 @@ namespace AdventOfCode.Solutions.Year2020
             this.highest = this.cups.Max(a => a);
 
             // Now we will also pad this as requested
-            for(int i=this.highest+1; i<padding; i++)
+            for(int i=this.highest+1; i<=padding; i++)
                 this.addCup(i);
 
             // Reset the highest
@@ -148,7 +148,7 @@ namespace AdventOfCode.Solutions.Year2020
 
         public Day23() : base(23, 2020, "")
         {
-            // DebugInput = "389125467";
+            DebugInput = "389125467";
         }
 
         protected override string SolvePartOne()
