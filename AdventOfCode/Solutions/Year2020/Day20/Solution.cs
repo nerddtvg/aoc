@@ -415,7 +415,7 @@ namespace AdventOfCode.Solutions.Year2020
 
             // Helpers for loops later
             int monsterWidth = 20;
-            int monsterHeight = 20;
+            int monsterHeight = 3;
 
             // Print the starting image
             Console.WriteLine("\n" + string.Join("\n", imageArr.Select(a => string.Join("", a))));
@@ -424,8 +424,8 @@ namespace AdventOfCode.Solutions.Year2020
             int monsters = 0;
             for(int rotate=0; rotate<4; rotate++) {
                 // We need to go through and find all instances where the '#' lines up to a monster
-                for(int y=0; y<imageArr.Length-monsterHeight; y++) {
-                    for(int x=0; x<imageArr[0].Length-monsterWidth; x++) {
+                for(int y=0; y<imageArr.Length-monsterHeight+1; y++) {
+                    for(int x=0; x<imageArr[0].Length-monsterWidth+1; x++) {
                         // If we have the same number of '#' as the monster array, then we have a monster!
                         var test = monster.Select(a => imageArr[y+a.dy][x+a.dx]).ToList();
 
