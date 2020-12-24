@@ -82,7 +82,7 @@ namespace AdventOfCode.Solutions.Year2018
 
             // We need to go over the input one character at a time and determine what we have and where we have it
             int y = 0;
-            foreach(var line in Input.SplitByNewline(false)) {
+            foreach(var line in Input.SplitByNewline(false, false)) {
                 // Split the line out into individual characters
                 for(int x=0; x<line.Length; x++) {
                     // Get this position
@@ -137,7 +137,7 @@ namespace AdventOfCode.Solutions.Year2018
                             if (neighbors[CartDirection.Up] != null && (((MineTrackTile) neighbors[CartDirection.Up]).type == TrackType.Vertical || ((MineTrackTile) neighbors[CartDirection.Up]).type == TrackType.Intersection)) {
                                 // One of the UL or UR tiles
                                 // We can't search right because we haven't gotten there
-                                if (neighbors[CartDirection.Left] != null)
+                                if (neighbors[CartDirection.Left] != null && (((MineTrackTile) neighbors[CartDirection.Left]).type == TrackType.Horizontal || ((MineTrackTile) neighbors[CartDirection.Left]).type == TrackType.Intersection))
                                     this.trackTiles.Add(new MineTrackTile() {
                                         x = x,
                                         y = y,
