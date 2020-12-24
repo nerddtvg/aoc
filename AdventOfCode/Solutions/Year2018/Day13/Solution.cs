@@ -10,10 +10,11 @@ using System.Collections;
 
 namespace AdventOfCode.Solutions.Year2018
 {
+    // Needs to be in order of turning
     enum CartDirection {
-        Up,
         Down,
         Left,
+        Up,
         Right
     }
 
@@ -60,8 +61,8 @@ namespace AdventOfCode.Solutions.Year2018
         Queue<(int x, int y)> collisions = new Queue<(int x, int y)>();
 
         // Looking up helpers
-        // Same order as CartDirection to make it easier
-        private readonly string cartTiles = "^v<>";
+        // Same order as CartDirection to make it indexing work properly
+        private readonly string cartTiles = "v<^>";
         
         // Different turns
         private readonly string turnTiles = "\\/";
@@ -252,32 +253,32 @@ namespace AdventOfCode.Solutions.Year2018
                     d %= 4;
 
                     // Save it
-                    cart.direction = (CartDirection) ((int) cart.direction + d);
+                    cart.direction = (CartDirection) d;
                     cart.turnCounter = (TurnDirection) ((((int) cart.turnCounter) + 1) % 3);
                 } else {
                     // We've hit a corner
                     // Change direction!
                     if(cart.direction == CartDirection.Left) {
-                        // UL or DL
-                        if (newTile.type == TrackType.TurnUL)
-                            cart.direction = CartDirection.Up;
-                        else
-                            cart.direction = CartDirection.Down;
-                    } else if(cart.direction == CartDirection.Right) {
                         // UR or DR
                         if (newTile.type == TrackType.TurnUR)
                             cart.direction = CartDirection.Up;
                         else
                             cart.direction = CartDirection.Down;
-                    } else if(cart.direction == CartDirection.Up) {
-                        // UL or UR
+                    } else if(cart.direction == CartDirection.Right) {
+                        // UL or DL
                         if (newTile.type == TrackType.TurnUL)
+                            cart.direction = CartDirection.Up;
+                        else
+                            cart.direction = CartDirection.Down;
+                    } else if(cart.direction == CartDirection.Up) {
+                        // DL or DR
+                        if (newTile.type == TrackType.TurnDL)
                             cart.direction = CartDirection.Left;
                         else
                             cart.direction = CartDirection.Right;
                     } else if(cart.direction == CartDirection.Down) {
-                        // DL or DR
-                        if (newTile.type == TrackType.TurnDL)
+                        // UL or UR
+                        if (newTile.type == TrackType.TurnUL)
                             cart.direction = CartDirection.Left;
                         else
                             cart.direction = CartDirection.Right;
@@ -301,8 +302,12 @@ namespace AdventOfCode.Solutions.Year2018
         protected override string SolvePartOne()
         {
             // Run the ticks until we have a collision
-            while(this.collisions.Count == 0)
+            int tick = 0;
+            while(this.collisions.Count == 0) {
+                Console.WriteLine($"Tick: {tick++}");
+                if (tick == 4) System.Diagnostics.Debugger.Break();
                 RunTick();
+            }
 
             return $"{this.collisions.First().x},{this.collisions.First().y}";
         }
