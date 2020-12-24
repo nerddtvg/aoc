@@ -66,6 +66,9 @@ namespace AdventOfCode.Solutions.Year2018
         
         // Different turns
         private readonly string turnTiles = "\\/";
+        
+        // Track types (this is for printing only) and should match the TrackType order
+        private readonly string tileStrings = "-|+/\\\\/";
 
         public Day13() : base(13, 2018, "")
         {
@@ -131,7 +134,7 @@ namespace AdventOfCode.Solutions.Year2018
                             // Turn! Need to figure out what direction
 
                             // We can't search downwards because we haven't gotten there
-                            if (neighbors[CartDirection.Up] != null) {
+                            if (neighbors[CartDirection.Up] != null && (((MineTrackTile) neighbors[CartDirection.Up]).type == TrackType.Vertical || ((MineTrackTile) neighbors[CartDirection.Up]).type == TrackType.Intersection)) {
                                 // One of the UL or UR tiles
                                 // We can't search right because we haven't gotten there
                                 if (neighbors[CartDirection.Left] != null)
@@ -149,7 +152,7 @@ namespace AdventOfCode.Solutions.Year2018
                             } else {
                                 // One of the DL or DR tiles
                                 // We can't search right because we haven't gotten there
-                                if (neighbors[CartDirection.Left] != null)
+                                if (neighbors[CartDirection.Left] != null && (((MineTrackTile) neighbors[CartDirection.Left]).type == TrackType.Horizontal || ((MineTrackTile) neighbors[CartDirection.Left]).type == TrackType.Intersection))
                                     this.trackTiles.Add(new MineTrackTile() {
                                         x = x,
                                         y = y,
@@ -299,15 +302,49 @@ namespace AdventOfCode.Solutions.Year2018
                 this.collisions.Enqueue(a);
         }
 
+        private void printTrack() {
+            int maxX = this.trackTiles.Max(a => a.x);
+            int maxY = this.trackTiles.Max(a => a.y);
+
+            for(int y=0; y<=maxY; y++) {
+                for(int x=0; x<=maxX; x++) {
+                    // Check if there is a cart here
+                    if (this.carts.Count(a => a.Value.x == x && a.Value.y == y) > 0) {
+                        Console.Write(this.cartTiles.Substring((int) this.carts.First(a => a.Value.x == x && a.Value.y == y).Value.direction, 1));
+                    } else {
+                        // Hopefully there is a track here
+                        var tile = this.getTile(x, y);
+
+                        if (tile != null) {
+                            Console.Write(this.tileStrings.Substring((int) tile.type, 1));
+                        } else {
+                            Console.Write(" ");
+                        }
+                    }
+                }
+
+                Console.WriteLine();
+            }
+
+            Console.WriteLine();
+        }
+
         protected override string SolvePartOne()
         {
             // Run the ticks until we have a collision
             int tick = 0;
-            while(this.collisions.Count == 0) {
+            printTrack();
+            
+            while(tick <= 15 && this.collisions.Count == 0) {
                 Console.WriteLine($"Tick: {tick++}");
-                if (tick == 4) System.Diagnostics.Debugger.Break();
+
+                if (tick == 18) System.Diagnostics.Debugger.Break();
+
                 RunTick();
+                printTrack();
             }
+
+            if (this.collisions.Count == 0) return null;
 
             return $"{this.collisions.First().x},{this.collisions.First().y}";
         }
