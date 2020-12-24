@@ -333,13 +333,12 @@ namespace AdventOfCode.Solutions.Year2018
         {
             // Run the ticks until we have a collision
             int tick = 0;
-            bool draw = true;
+            bool draw = false;
 
             if (draw) this.printTrack();
             
-            while(tick <= 15 && this.collisions.Count == 0) {
-                Console.WriteLine($"Tick: {tick++}");
-
+            while(this.collisions.Count == 0) {
+                if (draw) Console.WriteLine($"Tick: {tick++}");
                 this.RunTick();
                 if (draw) this.printTrack();
             }
