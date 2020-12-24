@@ -298,7 +298,7 @@ namespace AdventOfCode.Solutions.Year2018
                     c.Add((kvp.Value.x, kvp.Value.y));
             
             // Break the loop
-            foreach(var a in c.OrderBy(a => a.x).ThenBy(a => a.y).Distinct().Where(a => !c.Contains(a)))
+            foreach(var a in c.OrderBy(a => a.x).ThenBy(a => a.y).Distinct().Where(a => !this.collisions.Contains(a)))
                 this.collisions.Enqueue(a);
         }
 
@@ -337,8 +337,6 @@ namespace AdventOfCode.Solutions.Year2018
             
             while(tick <= 15 && this.collisions.Count == 0) {
                 Console.WriteLine($"Tick: {tick++}");
-
-                if (tick == 18) System.Diagnostics.Debugger.Break();
 
                 RunTick();
                 printTrack();
