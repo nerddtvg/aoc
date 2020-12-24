@@ -106,7 +106,7 @@ namespace AdventOfCode.Solutions.Year2018
                         // We also need to determine what tile is underneath this position
                         // We can only find up and left neighbors (we haven't gotten further right or down)
                         // Since we can't land on an intersection or turn (rules), we can just check if we have a left
-                        if (neighbors[CartDirection.Left] != null) {
+                        if (neighbors[CartDirection.Left] != null && ((MineTrackTile) neighbors[CartDirection.Left]).type != TrackType.Vertical) {
                             // This is a horizontal tile
                             this.trackTiles.Add(new MineTrackTile() {
                                 x = x,
@@ -348,9 +348,34 @@ namespace AdventOfCode.Solutions.Year2018
             return $"{this.collisions.First().x},{this.collisions.First().y}";
         }
 
+        private void removeCollisions() {
+            // If we have collisions, remove the offending carts
+            var ids = this.carts.Where(a => this.collisions.Contains((a.Value.x, a.Value.y))).Select(a => a.Key).ToList();
+            
+            // Remove them!
+            if (ids != null && ids.Count > 0)
+                ids.ForEach(id => this.carts.Remove(id));
+            
+            // Remove the collisions
+            this.collisions.Clear();
+        }
+
         protected override string SolvePartTwo()
         {
-            return null;
+            // Remove all crashed carts until only one remains
+            while(this.carts.Count > 1) {
+                this.removeCollisions();
+                this.RunTick();
+
+                if (this.carts.Count <= 3) this.printTrack();
+            }
+
+            // There can be ONLY ONE!
+            if (this.carts.Count == 0) return null;
+            
+            this.RunTick();
+
+            return $"{this.carts.First().Value.x},{this.carts.First().Value.y}";
         }
     }
 }
