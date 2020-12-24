@@ -97,7 +97,9 @@ namespace AdventOfCode.Solutions.Year2018
                         });
 
                         // We also need to determine what tile is underneath this position
-                        if (neighbors[CartDirection.Left] != null && neighbors[CartDirection.Right] != null) {
+                        // We can only find up and left neighbors (we haven't gotten further right or down)
+                        // Since we can't land on an intersection or turn (rules), we can just check if we have a left
+                        if (neighbors[CartDirection.Left] != null) {
                             // This is a horizontal tile
                             this.trackTiles.Add(new MineTrackTile() {
                                 x = x,
@@ -123,8 +125,11 @@ namespace AdventOfCode.Solutions.Year2018
                             });
                         } else if (this.turnTiles.Contains(c)) {
                             // Turn! Need to figure out what direction
+
+                            // We can't search downwards because we haven't gotten there
                             if (neighbors[CartDirection.Up] != null) {
                                 // One of the UL or UR tiles
+                                // We can't search right because we haven't gotten there
                                 if (neighbors[CartDirection.Left] != null)
                                     this.trackTiles.Add(new MineTrackTile() {
                                         x = x,
@@ -139,6 +144,7 @@ namespace AdventOfCode.Solutions.Year2018
                                     });
                             } else {
                                 // One of the DL or DR tiles
+                                // We can't search right because we haven't gotten there
                                 if (neighbors[CartDirection.Left] != null)
                                     this.trackTiles.Add(new MineTrackTile() {
                                         x = x,
@@ -152,6 +158,18 @@ namespace AdventOfCode.Solutions.Year2018
                                         type = TrackType.TurnDR
                                     });
                             }
+                        } else if (c == '-') {
+                            this.trackTiles.Add(new MineTrackTile() {
+                                x = x,
+                                y = y,
+                                type = TrackType.Horizontal
+                            });
+                        } else if (c == '|') {
+                            this.trackTiles.Add(new MineTrackTile() {
+                                x = x,
+                                y = y,
+                                type = TrackType.Vertical
+                            });
                         }
                     }
                 }
