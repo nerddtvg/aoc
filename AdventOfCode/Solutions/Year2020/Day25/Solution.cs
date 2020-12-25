@@ -68,7 +68,7 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartOne()
         {
-            return null;
+            return this.encryptionKey.ToString();
         }
 
         protected override string SolvePartTwo()
