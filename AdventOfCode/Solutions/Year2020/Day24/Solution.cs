@@ -142,7 +142,8 @@ namespace AdventOfCode.Solutions.Year2020
             int maxX = this.tiles.Max(a => a.Key.x)+1;
             int minY = this.tiles.Min(a => a.Key.y)-1;
             int maxY = this.tiles.Max(a => a.Key.y)+1;
-            for(int y=minY; y<=minY; y++) {
+
+            for(int y=minY; y<=maxY; y++) {
                 for(int x=minX; x<=maxX; x++) {
                     (int x, int y) pos = (x, y);
                     var neighbors = this.getNeighbors(pos);
@@ -153,7 +154,7 @@ namespace AdventOfCode.Solutions.Year2020
                     } else {
                         // This tile is white
                         // Any white tile with exactly 2 black tiles immediately adjacent to it is flipped to black.
-                        newTiles[pos] = (neighbors.Count(a => a) == 2) ? false : true;
+                        newTiles[pos] = (neighbors.Count(a => a) == 2) ? true : false;
                     }
                 }
             }
@@ -169,8 +170,13 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartTwo()
         {
             // We need to run through each day 100 times
-            for(int i=0; i<100; i++)
+            int i=0;
+            for(i=0; i<100; i++) {
+                Console.WriteLine($"Day {i}: {this.tiles.Count(a => a.Value).ToString()}");
                 RunDay();
+            }
+            
+            Console.WriteLine($"Day {i}: {this.tiles.Count(a => a.Value).ToString()}");
 
             return this.tiles.Count(a => a.Value).ToString();
         }
