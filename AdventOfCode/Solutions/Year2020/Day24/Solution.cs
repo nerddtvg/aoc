@@ -72,8 +72,6 @@ namespace AdventOfCode.Solutions.Year2020
                 // This tile isn't set already, assume it's white
                 // And now we're setting it means it is black
                 tiles[pos] = true;
-            
-            Console.WriteLine($"{pos}: {getTile(pos)}");
         }
 
         private bool getTile((int x, int y) pos) {
@@ -119,6 +117,50 @@ namespace AdventOfCode.Solutions.Year2020
             }
         }
 
+        private List<bool> getNeighbors((int x, int y) pos) =>
+            new List<bool>() {
+                // NW
+                getTile((pos.x-1, pos.y+1)),
+                // NE
+                getTile((pos.x, pos.y+1)),
+                // E
+                getTile((pos.x+1, pos.y)),
+                // SE
+                getTile((pos.x+1, pos.y-1)),
+                // SW
+                getTile((pos.x, pos.y-1)),
+                // W
+                getTile((pos.x-1, pos.y))
+            };
+        
+        private void RunDay() {
+            // Make a copy of the list
+            Dictionary<(int x, int y), bool> newTiles = new Dictionary<(int x, int y), bool>();
+
+            // For each tile, go off the rules
+            int minX = this.tiles.Min(a => a.Key.x)-1;
+            int maxX = this.tiles.Max(a => a.Key.x)+1;
+            int minY = this.tiles.Min(a => a.Key.y)-1;
+            int maxY = this.tiles.Max(a => a.Key.y)+1;
+            for(int y=minY; y<=minY; y++) {
+                for(int x=minX; x<=maxX; x++) {
+                    (int x, int y) pos = (x, y);
+                    var neighbors = this.getNeighbors(pos);
+                    if (getTile(pos)) {
+                        // This tile is black
+                        // Any black tile with zero or more than 2 black tiles immediately adjacent to it is flipped to white.
+                        newTiles[pos] = (neighbors.Count(a => a) == 0 || neighbors.Count(a => a) > 2) ? false : true;
+                    } else {
+                        // This tile is white
+                        // Any white tile with exactly 2 black tiles immediately adjacent to it is flipped to black.
+                        newTiles[pos] = (neighbors.Count(a => a) == 2) ? false : true;
+                    }
+                }
+            }
+
+            this.tiles = newTiles;
+        }
+
         protected override string SolvePartOne()
         {
             return this.tiles.Count(a => a.Value).ToString();
@@ -126,7 +168,11 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // We need to run through each day 100 times
+            for(int i=0; i<100; i++)
+                RunDay();
+
+            return this.tiles.Count(a => a.Value).ToString();
         }
     }
 }
