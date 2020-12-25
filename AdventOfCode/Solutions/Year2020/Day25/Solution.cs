@@ -11,23 +11,37 @@ namespace AdventOfCode.Solutions.Year2020
 
     class Day25 : ASolution
     {
+        int cardPubKey {get;set;}
+        int doorPubKey {get;set;}
+        int cardLoopSize {get;set;}
+        int doorLoopSize {get;set;}
+        int pubKeySubject {get;set;}
+        int divisor {get;set;}
 
         public Day25() : base(25, 2020, "")
         {
+            /** /
             DebugInput = @"5764801
                 17807724";
+            /**/
 
+            // Parsing the input
             var lines = Input.SplitByNewline(true, true);
-            int cardPubKey = Int32.Parse(lines[0]);
-            int doorPubKey = Int32.Parse(lines[1]);
 
-            int pubKeySubject = 7;
+            // Get the public keys
+            this.cardPubKey = Int32.Parse(lines[0]);
+            this.doorPubKey = Int32.Parse(lines[1]);
 
-            var cardLoopSize = getLoopSize(pubKeySubject, cardPubKey);
-            var doorLoopSize = getLoopSize(pubKeySubject, doorPubKey);
+            // Defined in the puzzle
+            this.pubKeySubject = 7;
+            this.divisor = 20201227;
 
-            Console.WriteLine(cardLoopSize);
-            Console.WriteLine(doorLoopSize);
+            // Determine the loop sizes
+            this.cardLoopSize = getLoopSize(pubKeySubject, cardPubKey);
+            this.doorLoopSize = getLoopSize(pubKeySubject, doorPubKey);
+
+            Console.WriteLine($"Card Loop Size: {cardLoopSize}");
+            Console.WriteLine($"Door Loop Size: {doorLoopSize}");
         }
 
         private int getLoopSize(int subject, int remainder) {
@@ -35,9 +49,9 @@ namespace AdventOfCode.Solutions.Year2020
             int i = 0;
             var biS = new BigInteger(subject);
             var biR = new BigInteger(remainder);
-            var biD = new BigInteger(20201227);
+            var biD = new BigInteger(this.divisor);
 
-            for(i=1; i<50; i++) {
+            for(i=1; i<1000000; i++) {
                 biS *= subject;
                 BigInteger r = biS % biD;
 
