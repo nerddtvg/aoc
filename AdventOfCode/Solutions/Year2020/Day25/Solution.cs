@@ -11,12 +11,13 @@ namespace AdventOfCode.Solutions.Year2020
 
     class Day25 : ASolution
     {
-        int cardPubKey {get;set;}
-        int doorPubKey {get;set;}
-        int cardLoopSize {get;set;}
-        int doorLoopSize {get;set;}
-        int pubKeySubject {get;set;}
-        int divisor {get;set;}
+        uint cardPubKey {get;set;}
+        uint doorPubKey {get;set;}
+        uint cardLoopSize {get;set;}
+        uint doorLoopSize {get;set;}
+        uint pubKeySubject {get;set;}
+        uint divisor {get;set;}
+        uint encryptionKey {get;set;}
 
         public Day25() : base(25, 2020, "")
         {
@@ -29,8 +30,8 @@ namespace AdventOfCode.Solutions.Year2020
             var lines = Input.SplitByNewline(true, true);
 
             // Get the public keys
-            this.cardPubKey = Int32.Parse(lines[0]);
-            this.doorPubKey = Int32.Parse(lines[1]);
+            this.cardPubKey = UInt32.Parse(lines[0]);
+            this.doorPubKey = UInt32.Parse(lines[1]);
 
             // Defined in the puzzle
             this.pubKeySubject = 7;
@@ -40,31 +41,29 @@ namespace AdventOfCode.Solutions.Year2020
             this.cardLoopSize = getLoopSize(pubKeySubject, cardPubKey);
             this.doorLoopSize = getLoopSize(pubKeySubject, doorPubKey);
 
-            Console.WriteLine($"Card Loop Size: {cardLoopSize}");
-            Console.WriteLine($"Door Loop Size: {doorLoopSize}");
+            Console.WriteLine($"Card Loop Size: {this.cardLoopSize}");
+            Console.WriteLine($"Door Loop Size: {this.doorLoopSize}");
+
+            // Calculate the encryption key
+            this.encryptionKey = this.getEncryptionKey(this.doorPubKey, this.cardLoopSize);
+            Console.WriteLine($"Ecnryption Key: {this.encryptionKey}");
         }
 
-        private int getLoopSize(int subject, int remainder) {
+        private uint getEncryptionKey(uint subject, uint loopSize) =>
+            UInt32.Parse(
+                BigInteger.ModPow(new BigInteger(subject), new BigInteger(loopSize), new BigInteger(this.divisor)).ToString()
+            );
+
+        private uint getLoopSize(uint subject, uint remainder) {
             // Figure out how many times we have to loop through the subject to get the remainder
+            var biS = new BigInteger(subject);
             var biR = new BigInteger(remainder);
             var biD = new BigInteger(this.divisor);
 
-            // We know that pow(subject, X) % divisor == remainder for some value of X
-            // What if we simply loop at (divisor * Y) + remainder == pow(subject, X) for all values of Y
-            // Formula: ((divisor * Y) + remainder) / log(subject) = X
-            // That might be faster?
-            for(UInt64 y=0; y<=UInt64.MaxValue; y++) {
-                var largeNumber = (biD * y) + biR;
-
-                // Need to find if this is an integer power or not
-                var biExponent = BigInteger.Log(largeNumber) / Math.Log(subject);
-
-                // If this is an integer, it means we found a good loop size
-                if (biExponent % 1 == 0)
-                    return (int) (biExponent);
-            }
-
-            return 0;
+            // Big Integer math was the fastest, not sure why the first time didn't work well
+            for(BigInteger i=0; ; i += 1)
+                if (BigInteger.ModPow(subject, i, biD) == biR)
+                    return UInt32.Parse(i.ToString());
         }
 
         protected override string SolvePartOne()
