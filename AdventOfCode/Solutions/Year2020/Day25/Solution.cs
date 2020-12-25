@@ -46,20 +46,25 @@ namespace AdventOfCode.Solutions.Year2020
 
         private int getLoopSize(int subject, int remainder) {
             // Figure out how many times we have to loop through the subject to get the remainder
-            int i = 0;
-            var biS = new BigInteger(subject);
             var biR = new BigInteger(remainder);
             var biD = new BigInteger(this.divisor);
 
-            for(i=1; i<1000000; i++) {
-                biS *= subject;
-                BigInteger r = biS % biD;
+            // We know that pow(subject, X) % divisor == remainder for some value of X
+            // What if we simply loop at (divisor * Y) + remainder == pow(subject, X) for all values of Y
+            // Formula: ((divisor * Y) + remainder) / log(subject) = X
+            // That might be faster?
+            for(UInt64 y=0; y<=UInt64.MaxValue; y++) {
+                var largeNumber = (biD * y) + biR;
 
-                // Did we find it?
-                if (r == biR) break;
+                // Need to find if this is an integer power or not
+                var biExponent = BigInteger.Log(largeNumber) / Math.Log(subject);
+
+                // If this is an integer, it means we found a good loop size
+                if (biExponent % 1 == 0)
+                    return (int) (biExponent);
             }
 
-            return i+1;
+            return 0;
         }
 
         protected override string SolvePartOne()
