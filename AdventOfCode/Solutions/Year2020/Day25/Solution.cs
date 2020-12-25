@@ -73,7 +73,7 @@ namespace AdventOfCode.Solutions.Year2020
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return "None";
         }
     }
 }
