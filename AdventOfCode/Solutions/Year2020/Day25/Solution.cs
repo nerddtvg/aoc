@@ -40,13 +40,13 @@ namespace AdventOfCode.Solutions.Year2020
             // Determine the loop sizes
             this.cardLoopSize = getLoopSize(pubKeySubject, cardPubKey);
             this.doorLoopSize = getLoopSize(pubKeySubject, doorPubKey);
-
             Console.WriteLine($"Card Loop Size: {this.cardLoopSize}");
             Console.WriteLine($"Door Loop Size: {this.doorLoopSize}");
 
             // Calculate the encryption key
             this.encryptionKey = this.getEncryptionKey(this.doorPubKey, this.cardLoopSize);
-            Console.WriteLine($"Ecnryption Key: {this.encryptionKey}");
+            Console.WriteLine($"Card Encryption Key: {this.encryptionKey}");
+            Console.WriteLine($"Door Encryption Key [verify]: {this.getEncryptionKey(this.cardPubKey, this.doorLoopSize)}");
         }
 
         private uint getEncryptionKey(uint subject, uint loopSize) =>
