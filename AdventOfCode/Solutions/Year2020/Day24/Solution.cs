@@ -28,8 +28,31 @@ namespace AdventOfCode.Solutions.Year2020
 
         public Day24() : base(24, 2020, "")
         {
+            /** /
+            DebugInput = @"sesenwnenenewseeswwswswwnenewsewsw
+                neeenesenwnwwswnenewnwwsewnenwseswesw
+                seswneswswsenwwnwse
+                nwnwneseeswswnenewneswwnewseswneseene
+                swweswneswnenwsewnwneneseenw
+                eesenwseswswnenwswnwnwsewwnwsene
+                sewnenenenesenwsewnenwwwse
+                wenwwweseeeweswwwnwwe
+                wsweesenenewnwwnwsenewsenwwsesesenwne
+                neeswseenwwswnwswswnw
+                nenwswwsewswnenenewsenwsenwnesesenew
+                enewnwewneswsewnwswenweswnenwsenwsw
+                sweneswneswneneenwnewenewwneswswnese
+                swwesenesewenwneswnwwneseswwne
+                enesenwswwswneneswsenwnewswseenwsese
+                wnwnesenesenenwwnenwsewesewsesesew
+                nenewswnwewswnenesenwnesewesw
+                eneswnwswnwsenenwnwnwwseeswneewsenese
+                neswnwewnwnwseenwseesewsenwsweewe
+                wseweeenwnesenwwwswnew";
+            /**/
+
             // We need to go through each line and process it
-            foreach(var line in Input.SplitByNewline()) {
+            foreach(var line in Input.SplitByNewline(true)) {
                 // Everything starts at 0,0
                 (int x, int y) pos = (0, 0);
 
@@ -49,6 +72,8 @@ namespace AdventOfCode.Solutions.Year2020
                 // This tile isn't set already, assume it's white
                 // And now we're setting it means it is black
                 tiles[pos] = true;
+            
+            Console.WriteLine($"{pos}: {getTile(pos)}");
         }
 
         private bool getTile((int x, int y) pos) {
@@ -76,7 +101,7 @@ namespace AdventOfCode.Solutions.Year2020
                     return (pos.x+1, pos.y);
                     
                 case "sw":
-                    return (pos.x-1, pos.y-1);
+                    return (pos.x, pos.y-1);
                     
                 case "se":
                     return (pos.x+1, pos.y-1);
@@ -88,7 +113,7 @@ namespace AdventOfCode.Solutions.Year2020
                     return (pos.x-1, pos.y+1);
                     
                 case "ne":
-                    return (pos.x+1, pos.y+1);
+                    return (pos.x, pos.y+1);
                 
                 default: throw new Exception($"Invalid direction: {dir}");
             }
