@@ -37,6 +37,8 @@ namespace AdventOfCode.Solutions.Year2018
     class MineCart {
         public CartDirection direction {get;set;}
         public TurnDirection turnCounter {get;set;}
+        public bool crashed {get;set;}
+        public int id {get;set;}
 
         public int x {get;set;}
         public int y {get;set;}
@@ -44,6 +46,7 @@ namespace AdventOfCode.Solutions.Year2018
         public MineCart() {
             // Starts with turning left at the first intersection
             this.turnCounter = TurnDirection.Left;
+            this.crashed = false;
         }
     }
 
@@ -100,6 +103,7 @@ namespace AdventOfCode.Solutions.Year2018
                         this.carts.Add(this.carts.Count, new MineCart() {
                             x = x,
                             y = y,
+                            id = this.carts.Count,
                             direction = (CartDirection) (this.cartTiles.IndexOf(c))
                         });
 
@@ -220,11 +224,17 @@ namespace AdventOfCode.Solutions.Year2018
 
         private void RunTick() {
             // Get the order of carts to operate on in order of x then y
-            List<int> ids = this.carts.OrderBy(a => a.Value.x).ThenBy(a => a.Value.y).Select(a => a.Key).ToList();
+            List<int> ids = this.carts.Where(a => a.Value.crashed != true).OrderBy(a => a.Value.x).ThenBy(a => a.Value.y).Select(a => a.Key).ToList();
+
+            // Save these for later
+            List<int> crashedIds = new List<int>();
 
             // Now for each cart, we go through and update its location information
             ids.ForEach(id => {
                 var cart = this.carts[id];
+
+                // Don't operate if this cart has crashed (could happen mid-loop)
+                if (cart.crashed) return;
 
                 // Get our new position
                 var newXY = this.getNewXY(cart);
@@ -237,69 +247,73 @@ namespace AdventOfCode.Solutions.Year2018
                 cart.y = newXY.y;
 
                 if (newTile.type == TrackType.Horizontal || newTile.type == TrackType.Vertical) {
-                    // Nothing to do, just update the xy
-                    return;
+                    // Nothing to do, just update the xy and check for crashes
+                } else {
+                    // Check for an intersection
+                    if (newTile.type == TrackType.Intersection) {
+                        // Change our direction!
+                        var d = (int) cart.direction;
+                        if (cart.turnCounter == TurnDirection.Left) {
+                            d--;
+                        } else if (cart.turnCounter == TurnDirection.Right) {
+                            d++;
+                        }
+
+                        // Reset to a valid direction
+                        while(d<0) d+=4;
+                        d %= 4;
+
+                        // Save it
+                        cart.direction = (CartDirection) d;
+                        cart.turnCounter = (TurnDirection) ((((int) cart.turnCounter) + 1) % 3);
+                    } else {
+                        // We've hit a corner
+                        // Change direction!
+                        if(cart.direction == CartDirection.Left) {
+                            // UR or DR
+                            if (newTile.type == TrackType.TurnUR)
+                                cart.direction = CartDirection.Up;
+                            else
+                                cart.direction = CartDirection.Down;
+                        } else if(cart.direction == CartDirection.Right) {
+                            // UL or DL
+                            if (newTile.type == TrackType.TurnUL)
+                                cart.direction = CartDirection.Up;
+                            else
+                                cart.direction = CartDirection.Down;
+                        } else if(cart.direction == CartDirection.Up) {
+                            // DL or DR
+                            if (newTile.type == TrackType.TurnDL)
+                                cart.direction = CartDirection.Left;
+                            else
+                                cart.direction = CartDirection.Right;
+                        } else if(cart.direction == CartDirection.Down) {
+                            // UL or UR
+                            if (newTile.type == TrackType.TurnUL)
+                                cart.direction = CartDirection.Left;
+                            else
+                                cart.direction = CartDirection.Right;
+                        }
+                    }
                 }
 
-                // Check for an intersection
-                if (newTile.type == TrackType.Intersection) {
-                    // Change our direction!
-                    var d = (int) cart.direction;
-                    if (cart.turnCounter == TurnDirection.Left) {
-                        d--;
-                    } else if (cart.turnCounter == TurnDirection.Right) {
-                        d++;
-                    }
+                // Find if we collided with anyone
+                var eCart = this.carts.Where(a => a.Value.crashed == false && a.Key != id && a.Value.x == cart.x && a.Value.y == cart.y).Select(a => a.Key).ToList();
+                if (eCart.Count > 0) {
+                    // CRASHED!
+                    cart.crashed = true;
+                    eCart.ForEach(a => this.carts[a].crashed = true);
 
-                    // Reset to a valid direction
-                    while(d<0) d+=4;
-                    d %= 4;
+                    crashedIds.Add(id);
+                    crashedIds.AddRange(eCart);
 
-                    // Save it
-                    cart.direction = (CartDirection) d;
-                    cart.turnCounter = (TurnDirection) ((((int) cart.turnCounter) + 1) % 3);
-                } else {
-                    // We've hit a corner
-                    // Change direction!
-                    if(cart.direction == CartDirection.Left) {
-                        // UR or DR
-                        if (newTile.type == TrackType.TurnUR)
-                            cart.direction = CartDirection.Up;
-                        else
-                            cart.direction = CartDirection.Down;
-                    } else if(cart.direction == CartDirection.Right) {
-                        // UL or DL
-                        if (newTile.type == TrackType.TurnUL)
-                            cart.direction = CartDirection.Up;
-                        else
-                            cart.direction = CartDirection.Down;
-                    } else if(cart.direction == CartDirection.Up) {
-                        // DL or DR
-                        if (newTile.type == TrackType.TurnDL)
-                            cart.direction = CartDirection.Left;
-                        else
-                            cart.direction = CartDirection.Right;
-                    } else if(cart.direction == CartDirection.Down) {
-                        // UL or UR
-                        if (newTile.type == TrackType.TurnUL)
-                            cart.direction = CartDirection.Left;
-                        else
-                            cart.direction = CartDirection.Right;
-                    }
+                    // Add this to the list
+                    this.collisions.Enqueue((cart.x, cart.y));
                 }
             });
 
-            // Find any collisions
-            List<(int x, int y)> c = new List<(int x, int y)>();
-
-            // Go through each cart that isn't this one (based on id) and see if they share the same XY
-            foreach(var kvp in this.carts)
-                if (this.carts.Count(a => a.Key != kvp.Key && a.Value.x == kvp.Value.x && a.Value.y == kvp.Value.y) > 0)
-                    c.Add((kvp.Value.x, kvp.Value.y));
-            
-            // Break the loop
-            foreach(var a in c.OrderBy(a => a.x).ThenBy(a => a.y).Distinct().Where(a => !this.collisions.Contains(a)))
-                this.collisions.Enqueue(a);
+            // Remove those that have crashed
+            crashedIds.ForEach(id => this.carts.Remove(id));
         }
 
         private void printTrack() {
@@ -309,8 +323,9 @@ namespace AdventOfCode.Solutions.Year2018
             for(int y=0; y<=maxY; y++) {
                 for(int x=0; x<=maxX; x++) {
                     // Check if there is a cart here
-                    if (this.carts.Count(a => a.Value.x == x && a.Value.y == y) > 0) {
-                        Console.Write(this.cartTiles.Substring((int) this.carts.First(a => a.Value.x == x && a.Value.y == y).Value.direction, 1));
+                    List<int> ids = this.carts.Where(a => a.Value.crashed != true && a.Value.x == x && a.Value.y == y).Select(a => a.Key).ToList();
+                    if (ids.Count > 0) {
+                        Console.Write(this.cartTiles.Substring((int) this.carts[ids.First()].direction, 1));
                     } else {
                         // Hopefully there is a track here
                         var tile = this.getTile(x, y);
@@ -348,32 +363,15 @@ namespace AdventOfCode.Solutions.Year2018
             return $"{this.collisions.First().x},{this.collisions.First().y}";
         }
 
-        private void removeCollisions() {
-            // If we have collisions, remove the offending carts
-            var ids = this.carts.Where(a => this.collisions.Contains((a.Value.x, a.Value.y))).Select(a => a.Key).ToList();
-            
-            // Remove them!
-            if (ids != null && ids.Count > 0)
-                ids.ForEach(id => this.carts.Remove(id));
-            
-            // Remove the collisions
-            this.collisions.Clear();
-        }
-
         protected override string SolvePartTwo()
         {
             // Remove all crashed carts until only one remains
-            while(this.carts.Count > 1) {
-                this.removeCollisions();
+            while(this.carts.Where(a => a.Value.crashed != true).Count() > 2) {
                 this.RunTick();
-
-                if (this.carts.Count <= 3) this.printTrack();
             }
 
             // There can be ONLY ONE!
-            if (this.carts.Count == 0) return null;
-            
-            this.RunTick();
+            if (this.carts.Count != 1) return null;
 
             return $"{this.carts.First().Value.x},{this.carts.First().Value.y}";
         }
