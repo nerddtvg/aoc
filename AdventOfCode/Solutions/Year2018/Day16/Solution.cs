@@ -61,69 +61,74 @@ namespace AdventOfCode.Solutions.Year2018
             // Copy registers into after
             registers.ForEach(a => after.Add(a));
 
+            // Easier referencing
+            var a = ops[(int) WristInstruction.A];
+            var b = ops[(int) WristInstruction.B];
+            var c = ops[(int) WristInstruction.C];
+
             switch(code) {
                 case WristOpCode.addr:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] + registers[ops[(int) WristInstruction.B]]);
+                    after[c] = (registers[a] + registers[b]);
                     break;
                 
                 case WristOpCode.addi:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] + ops[(int) WristInstruction.B]);
+                    after[c] = (registers[a] + b);
                     break;
                 
                 case WristOpCode.mulr:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] * registers[ops[(int) WristInstruction.B]]);
+                    after[c] = (registers[a] * registers[b]);
                     break;
                 
                 case WristOpCode.muli:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] * ops[(int) WristInstruction.B]);
+                    after[c] = (registers[a] * b);
                     break;
                 
                 case WristOpCode.banr:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] & registers[ops[(int) WristInstruction.B]]);
+                    after[c] = (registers[a] & registers[b]);
                     break;
                 
                 case WristOpCode.bani:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] & ops[(int) WristInstruction.B]);
+                    after[c] = (registers[a] & b);
                     break;
                 
                 case WristOpCode.borr:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] ^ registers[ops[(int) WristInstruction.B]]);
+                    after[c] = (registers[a] ^ registers[b]);
                     break;
                 
                 case WristOpCode.bori:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] ^ ops[(int) WristInstruction.B]);
+                    after[c] = (registers[a] ^ b);
                     break;
                 
                 case WristOpCode.setr:
-                    after[ops[(int) WristInstruction.C]] = registers[ops[(int) WristInstruction.A]];
+                    after[c] = registers[a];
                     break;
                 
                 case WristOpCode.seti:
-                    after[ops[(int) WristInstruction.C]] = ops[(int) WristInstruction.A];
+                    after[c] = a;
                     break;
                 
                 case WristOpCode.gtir:
-                    after[ops[(int) WristInstruction.C]] = (ops[(int) WristInstruction.A] > registers[ops[(int) WristInstruction.B]] ? 1 : 0);
+                    after[c] = (a > registers[b] ? 1 : 0);
                     break;
                 
                 case WristOpCode.gtri:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] > ops[(int) WristInstruction.B] ? 1 : 0);
+                    after[c] = (registers[a] > b ? 1 : 0);
                     break;
                 
                 case WristOpCode.gtrr:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] > registers[ops[(int) WristInstruction.B]] ? 1 : 0);
+                    after[c] = (registers[a] > registers[b] ? 1 : 0);
                     break;
                 
                 case WristOpCode.eqir:
-                    after[ops[(int) WristInstruction.C]] = (ops[(int) WristInstruction.A] == registers[ops[(int) WristInstruction.B]] ? 1 : 0);
+                    after[c] = (a == registers[b] ? 1 : 0);
                     break;
                 
                 case WristOpCode.eqri:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] == ops[(int) WristInstruction.B] ? 1 : 0);
+                    after[c] = (registers[a] == b ? 1 : 0);
                     break;
                 
                 case WristOpCode.eqrr:
-                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] == registers[ops[(int) WristInstruction.B]] ? 1 : 0);
+                    after[c] = (registers[a] == registers[b] ? 1 : 0);
                     break;
             }
 
