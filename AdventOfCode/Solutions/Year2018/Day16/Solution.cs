@@ -37,6 +37,9 @@ namespace AdventOfCode.Solutions.Year2018
         List<List<string>> samples = new List<List<string>>();
         List<List<WristOpCode>> sampleMatches = new List<List<WristOpCode>>();
 
+        // This will contain our opcode list reduced from sampleMatches
+        Dictionary<int, List<WristOpCode>> opcodeMatches = new Dictionary<int, List<WristOpCode>>();
+
         public Day16() : base(16, 2018, "")
         {
             /** /
@@ -159,8 +162,17 @@ namespace AdventOfCode.Solutions.Year2018
                 var afterList = this.performOperation(before.ToList(), ops.ToList(), code);
 
                 // Check the results
-                if (afterList.SequenceEqual(after)) ret.Add(code);
+                if (afterList.SequenceEqual(after)) {
+                    // Add this to the list
+                    ret.Add(code);
+                }
             }
+
+            // Help reduce down the lists
+            if (this.opcodeMatches.ContainsKey(ops[(int) WristInstruction.op]))
+                this.opcodeMatches[(int) ops[(int) WristInstruction.op]] = this.opcodeMatches[(int) ops[(int) WristInstruction.op]].Intersect(ret).ToList();
+            else
+                this.opcodeMatches[(int) ops[(int) WristInstruction.op]] = ret;
 
             return ret;
         }
@@ -181,6 +193,9 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartTwo()
         {
+            foreach(var kvp in this.opcodeMatches.OrderBy(a => a.Key))
+                Console.WriteLine($"{kvp.Key}: {string.Join(", ", kvp.Value)}");
+
             return null;
         }
     }
