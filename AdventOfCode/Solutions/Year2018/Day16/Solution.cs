@@ -34,6 +34,8 @@ namespace AdventOfCode.Solutions.Year2018
 
     class Day16 : ASolution
     {
+        List<List<string>> samples = new List<List<string>>();
+        List<List<WristOpCode>> sampleMatches = new List<List<WristOpCode>>();
 
         public Day16() : base(16, 2018, "")
         {
@@ -169,19 +171,12 @@ namespace AdventOfCode.Solutions.Year2018
             var examples = Input.Split("\n\n\n\n")[0].Trim();
 
             // For each sample, count if they match 3 or more possibilities
-            List<List<string>> samples = new List<List<string>>();
-            List<List<WristOpCode>> sampleMatches = new List<List<WristOpCode>>();
-
             foreach(var sample in examples.SplitByBlankLine(true)) {
-                samples.Add(sample.ToList());
-                sampleMatches.Add(this.identifyOpCode(sample));
+                this.samples.Add(sample.ToList());
+                this.sampleMatches.Add(this.identifyOpCode(sample));
             }
 
-            sampleMatches.ForEach(a => Console.WriteLine(string.Join(", ", a)));
-
-            Console.WriteLine($"Samples Count: {samples.Count}");
-
-            return sampleMatches.Count(a => a.Count >= 3).ToString();
+            return this.sampleMatches.Count(a => a.Count >= 3).ToString();
         }
 
         protected override string SolvePartTwo()
