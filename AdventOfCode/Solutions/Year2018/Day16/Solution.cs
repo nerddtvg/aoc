@@ -37,12 +37,12 @@ namespace AdventOfCode.Solutions.Year2018
 
         public Day16() : base(16, 2018, "")
         {
-            /*
+            /** /
             DebugInput = @"
             Before: [3, 2, 1, 1]
             9 2 1 2
             After:  [3, 2, 2, 1]";
-            */
+            /**/
         }
 
         private int[] getState(string input)
@@ -54,7 +54,7 @@ namespace AdventOfCode.Solutions.Year2018
         private List<int> performOperation(List<int> registers, List<int> ops, WristOpCode? code = null) {
             // The code override is used for testing in Part 1
             if (!code.HasValue)
-                code = (WristOpCode) ops[0];
+                code = (WristOpCode) ops[(int) WristInstruction.op];
 
             List<int> after = new List<int>();
 
