@@ -87,11 +87,11 @@ namespace AdventOfCode.Solutions.Year2018
                     break;
                 
                 case WristOpCode.borr:
-                    registers[c] = (registers[a] ^ registers[b]);
+                    registers[c] = (registers[a] | registers[b]);
                     break;
                 
                 case WristOpCode.bori:
-                    registers[c] = (registers[a] ^ b);
+                    registers[c] = (registers[a] | b);
                     break;
                 
                 case WristOpCode.setr:
