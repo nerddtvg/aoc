@@ -56,11 +56,6 @@ namespace AdventOfCode.Solutions.Year2018
             if (!code.HasValue)
                 code = (WristOpCode) ops[(int) WristInstruction.op];
 
-            List<int> after = new List<int>();
-
-            // Copy registers into after
-            registers.ForEach(a => after.Add(a));
-
             // Easier referencing
             var a = ops[(int) WristInstruction.A];
             var b = ops[(int) WristInstruction.B];
@@ -68,71 +63,71 @@ namespace AdventOfCode.Solutions.Year2018
 
             switch(code) {
                 case WristOpCode.addr:
-                    after[c] = (registers[a] + registers[b]);
+                    registers[c] = (registers[a] + registers[b]);
                     break;
                 
                 case WristOpCode.addi:
-                    after[c] = (registers[a] + b);
+                    registers[c] = (registers[a] + b);
                     break;
                 
                 case WristOpCode.mulr:
-                    after[c] = (registers[a] * registers[b]);
+                    registers[c] = (registers[a] * registers[b]);
                     break;
                 
                 case WristOpCode.muli:
-                    after[c] = (registers[a] * b);
+                    registers[c] = (registers[a] * b);
                     break;
                 
                 case WristOpCode.banr:
-                    after[c] = (registers[a] & registers[b]);
+                    registers[c] = (registers[a] & registers[b]);
                     break;
                 
                 case WristOpCode.bani:
-                    after[c] = (registers[a] & b);
+                    registers[c] = (registers[a] & b);
                     break;
                 
                 case WristOpCode.borr:
-                    after[c] = (registers[a] ^ registers[b]);
+                    registers[c] = (registers[a] ^ registers[b]);
                     break;
                 
                 case WristOpCode.bori:
-                    after[c] = (registers[a] ^ b);
+                    registers[c] = (registers[a] ^ b);
                     break;
                 
                 case WristOpCode.setr:
-                    after[c] = registers[a];
+                    registers[c] = registers[a];
                     break;
                 
                 case WristOpCode.seti:
-                    after[c] = a;
+                    registers[c] = a;
                     break;
                 
                 case WristOpCode.gtir:
-                    after[c] = (a > registers[b] ? 1 : 0);
+                    registers[c] = (a > registers[b] ? 1 : 0);
                     break;
                 
                 case WristOpCode.gtri:
-                    after[c] = (registers[a] > b ? 1 : 0);
+                    registers[c] = (registers[a] > b ? 1 : 0);
                     break;
                 
                 case WristOpCode.gtrr:
-                    after[c] = (registers[a] > registers[b] ? 1 : 0);
+                    registers[c] = (registers[a] > registers[b] ? 1 : 0);
                     break;
                 
                 case WristOpCode.eqir:
-                    after[c] = (a == registers[b] ? 1 : 0);
+                    registers[c] = (a == registers[b] ? 1 : 0);
                     break;
                 
                 case WristOpCode.eqri:
-                    after[c] = (registers[a] == b ? 1 : 0);
+                    registers[c] = (registers[a] == b ? 1 : 0);
                     break;
                 
                 case WristOpCode.eqrr:
-                    after[c] = (registers[a] == registers[b] ? 1 : 0);
+                    registers[c] = (registers[a] == registers[b] ? 1 : 0);
                     break;
             }
 
-            return after;
+            return registers;
         }
 
         private List<WristOpCode> identifyOpCode(string[] sample) {
