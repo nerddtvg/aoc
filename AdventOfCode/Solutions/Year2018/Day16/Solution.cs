@@ -50,6 +50,85 @@ namespace AdventOfCode.Solutions.Year2018
             // Before: [3, 2, 1, 1]
             // After:  [3, 2, 2, 1]
             => input.Split("[")[1].Replace("]", "").Replace(" ", "").ToIntArray(",");
+        
+        private List<int> performOperation(List<int> registers, List<int> ops, WristOpCode? code = null) {
+            // The code override is used for testing in Part 1
+            if (!code.HasValue)
+                code = (WristOpCode) ops[0];
+
+            List<int> after = new List<int>();
+
+            // Copy registers into after
+            registers.ForEach(a => after.Add(a));
+
+            switch(code) {
+                case WristOpCode.addr:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] + registers[ops[(int) WristInstruction.B]]);
+                    break;
+                
+                case WristOpCode.addi:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] + ops[(int) WristInstruction.B]);
+                    break;
+                
+                case WristOpCode.mulr:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] * registers[ops[(int) WristInstruction.B]]);
+                    break;
+                
+                case WristOpCode.muli:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] * ops[(int) WristInstruction.B]);
+                    break;
+                
+                case WristOpCode.banr:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] & registers[ops[(int) WristInstruction.B]]);
+                    break;
+                
+                case WristOpCode.bani:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] & ops[(int) WristInstruction.B]);
+                    break;
+                
+                case WristOpCode.borr:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] ^ registers[ops[(int) WristInstruction.B]]);
+                    break;
+                
+                case WristOpCode.bori:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] ^ ops[(int) WristInstruction.B]);
+                    break;
+                
+                case WristOpCode.setr:
+                    after[ops[(int) WristInstruction.C]] = registers[ops[(int) WristInstruction.A]];
+                    break;
+                
+                case WristOpCode.seti:
+                    after[ops[(int) WristInstruction.C]] = ops[(int) WristInstruction.A];
+                    break;
+                
+                case WristOpCode.gtir:
+                    after[ops[(int) WristInstruction.C]] = (ops[(int) WristInstruction.A] > registers[ops[(int) WristInstruction.B]] ? 1 : 0);
+                    break;
+                
+                case WristOpCode.gtri:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] > ops[(int) WristInstruction.B] ? 1 : 0);
+                    break;
+                
+                case WristOpCode.gtrr:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] > registers[ops[(int) WristInstruction.B]] ? 1 : 0);
+                    break;
+                
+                case WristOpCode.eqir:
+                    after[ops[(int) WristInstruction.C]] = (ops[(int) WristInstruction.A] == registers[ops[(int) WristInstruction.B]] ? 1 : 0);
+                    break;
+                
+                case WristOpCode.eqri:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] == ops[(int) WristInstruction.B] ? 1 : 0);
+                    break;
+                
+                case WristOpCode.eqrr:
+                    after[ops[(int) WristInstruction.C]] = (registers[ops[(int) WristInstruction.A]] == registers[ops[(int) WristInstruction.B]] ? 1 : 0);
+                    break;
+            }
+
+            return after;
+        }
 
         private List<WristOpCode> identifyOpCode(string[] sample) {
             // We should receive something like this:
@@ -69,102 +148,16 @@ namespace AdventOfCode.Solutions.Year2018
             // Need to go through each possible value of WristOpCode and check it
             int min = (int) Enum.GetValues(typeof(WristOpCode)).Cast<WristOpCode>().Min();
             int max = (int) Enum.GetValues(typeof(WristOpCode)).Cast<WristOpCode>().Max();
+
             for(int i=min; i<=max; i++) {
+                // What code are we testing?
                 var code = (WristOpCode) i;
-                bool possible = false;
 
-                switch(code) {
-                    case WristOpCode.addr:
-                        possible = after[ops[(int) WristInstruction.C]] == (before[ops[(int) WristInstruction.A]] + before[ops[(int) WristInstruction.B]]);
-                        break;
-                    
-                    case WristOpCode.addi:
-                        possible = after[ops[(int) WristInstruction.C]] == (before[ops[(int) WristInstruction.A]] + ops[(int) WristInstruction.B]);
-                        break;
-                    
-                    case WristOpCode.mulr:
-                        possible = after[ops[(int) WristInstruction.C]] == (before[ops[(int) WristInstruction.A]] * before[ops[(int) WristInstruction.B]]);
-                        break;
-                    
-                    case WristOpCode.muli:
-                        possible = after[ops[(int) WristInstruction.C]] == (before[ops[(int) WristInstruction.A]] * ops[(int) WristInstruction.B]);
-                        break;
-                    
-                    case WristOpCode.banr:
-                        possible = after[ops[(int) WristInstruction.C]] == (before[ops[(int) WristInstruction.A]] & before[ops[(int) WristInstruction.B]]);
-                        break;
-                    
-                    case WristOpCode.bani:
-                        possible = after[ops[(int) WristInstruction.C]] == (before[ops[(int) WristInstruction.A]] & ops[(int) WristInstruction.B]);
-                        break;
-                    
-                    case WristOpCode.borr:
-                        possible = after[ops[(int) WristInstruction.C]] == (before[ops[(int) WristInstruction.A]] ^ before[ops[(int) WristInstruction.B]]);
-                        break;
-                    
-                    case WristOpCode.bori:
-                        possible = after[ops[(int) WristInstruction.C]] == (before[ops[(int) WristInstruction.A]] ^ ops[(int) WristInstruction.B]);
-                        break;
-                    
-                    case WristOpCode.setr:
-                        possible = after[ops[(int) WristInstruction.C]] == before[ops[(int) WristInstruction.A]] && after[(int) WristInstruction.B] == after[(int) WristInstruction.B];
-                        break;
-                    
-                    case WristOpCode.seti:
-                        possible = after[ops[(int) WristInstruction.C]] == ops[(int) WristInstruction.A] && after[(int) WristInstruction.B] == after[(int) WristInstruction.B];
-                        break;
-                    
-                    case WristOpCode.gtir:
-                        possible = (
-                            (ops[(int) WristInstruction.A] > before[ops[(int) WristInstruction.B]] && after[ops[(int) WristInstruction.C]] == 1)
-                            ||
-                            (ops[(int) WristInstruction.A] <= before[ops[(int) WristInstruction.B]] && after[ops[(int) WristInstruction.C]] == 0)
-                        );
-                        break;
-                    
-                    case WristOpCode.gtri:
-                        possible = (
-                            (before[ops[(int) WristInstruction.A]] > ops[(int) WristInstruction.B] && after[ops[(int) WristInstruction.C]] == 1)
-                            ||
-                            (before[ops[(int) WristInstruction.A]] <= ops[(int) WristInstruction.B] && after[ops[(int) WristInstruction.C]] == 0)
-                        );
-                        break;
-                    
-                    case WristOpCode.gtrr:
-                        possible = (
-                            (before[ops[(int) WristInstruction.A]] > before[ops[(int) WristInstruction.B]] && after[ops[(int) WristInstruction.C]] == 1)
-                            ||
-                            (before[ops[(int) WristInstruction.A]] <= before[ops[(int) WristInstruction.B]] && after[ops[(int) WristInstruction.C]] == 0)
-                        );
-                        break;
-                    
-                    case WristOpCode.eqir:
-                        possible = (
-                            (ops[(int) WristInstruction.A] == before[ops[(int) WristInstruction.B]] && after[ops[(int) WristInstruction.C]] == 1)
-                            ||
-                            (ops[(int) WristInstruction.A] != before[ops[(int) WristInstruction.B]] && after[ops[(int) WristInstruction.C]] == 0)
-                        );
-                        break;
-                    
-                    case WristOpCode.eqri:
-                        possible = (
-                            (before[ops[(int) WristInstruction.A]] == ops[(int) WristInstruction.B] && after[ops[(int) WristInstruction.C]] == 1)
-                            ||
-                            (before[ops[(int) WristInstruction.A]] != ops[(int) WristInstruction.B] && after[ops[(int) WristInstruction.C]] == 0)
-                        );
-                        break;
-                    
-                    case WristOpCode.eqrr:
-                        possible = (
-                            (before[ops[(int) WristInstruction.A]] == before[ops[(int) WristInstruction.B]] && after[ops[(int) WristInstruction.C]] == 1)
-                            ||
-                            (before[ops[(int) WristInstruction.A]] != before[ops[(int) WristInstruction.B]] && after[ops[(int) WristInstruction.C]] == 0)
-                        );
-                        break;
-                    
-                }
+                // Get the results
+                var afterList = this.performOperation(before.ToList(), ops.ToList(), code);
 
-                if (possible) ret.Add(code);
+                // Check the results
+                if (afterList.SequenceEqual(after)) ret.Add(code);
             }
 
             return ret;
