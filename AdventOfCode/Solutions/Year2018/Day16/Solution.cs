@@ -195,8 +195,42 @@ namespace AdventOfCode.Solutions.Year2018
         {
             foreach(var kvp in this.opcodeMatches.OrderBy(a => a.Key))
                 Console.WriteLine($"{kvp.Key}: {string.Join(", ", kvp.Value)}");
+            
+            // We now have a list partially reduced
+            // We need to reduce it completely
+            bool removed = false;
+            do {
+                removed = false;
 
-            return null;
+                // Get a list of all single, identified opcodes
+                List<WristOpCode> singles = this.opcodeMatches.Where(a => a.Value.Count == 1).Select(a => a.Value.First()).ToList();
+
+                // Go through the rest and remove this
+                foreach(var kvp in this.opcodeMatches.Where(a => a.Value.Count > 1))
+                    foreach(var single in singles)
+                        removed = removed || kvp.Value.Remove(single);
+            } while(removed);
+            
+            // At this point we have a fully reduced list
+            // We can now run the sample program
+            
+            // In this input, example sets are split from example code with 4 \n's
+            var program = Input.Split("\n\n\n\n")[1].Trim();
+
+            // Registers start at zero
+            List<int> registers = new List<int>() { 0, 0, 0, 0 };
+
+            // For each sample, count if they match 3 or more possibilities
+            foreach(var line in program.SplitByNewline(true, true)) {
+                var lineList = line.ToIntArray(" ").ToList();
+
+                // We have to override the code with our dictionary
+                var code = this.opcodeMatches[lineList[(int) WristInstruction.op]].First();
+
+                registers = this.performOperation(registers, lineList, code);
+            }
+
+            return registers[0].ToString();
         }
     }
 }
