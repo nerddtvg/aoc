@@ -33,11 +33,7 @@ namespace AdventOfCode.Solutions.Year2019
             };
         
         public bool getNewValue(bool current, (int x, int y) pos) =>
-            (
-                (current && getNeighbors(pos).Count(a => a) == 1)
-                ||
-                (!current && (getNeighbors(pos).Count(a => a) == 1 || getNeighbors(pos).Count(a => a) == 2))
-            );
+            getNewValue(current, getNeighbors(pos));
         
         public bool getNewValue(bool current, List<bool> neighbors) =>
             (
