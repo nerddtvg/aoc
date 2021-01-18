@@ -44,7 +44,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         public Day24() : base(24, 2019, "")
         {
-            /**/
+            /** /
             DebugInput = @"
             ....#
             #..#.
@@ -169,13 +169,13 @@ namespace AdventOfCode.Solutions.Year2019
                         neighbors.Add(getValue((0, 2, pos.z-1)));
                         neighbors.Add(getValue((0, 3, pos.z-1)));
                         neighbors.Add(getValue((0, 4, pos.z-1)));
-                    } else if (i == 14) {
+                    } else if (i == 13) {
                         neighbors.Add(getValue((4, 0, pos.z-1)));
                         neighbors.Add(getValue((4, 1, pos.z-1)));
                         neighbors.Add(getValue((4, 2, pos.z-1)));
                         neighbors.Add(getValue((4, 3, pos.z-1)));
                         neighbors.Add(getValue((4, 4, pos.z-1)));
-                    } else if (i == 18) {
+                    } else if (i == 17) {
                         neighbors.Add(getValue((0, 4, pos.z-1)));
                         neighbors.Add(getValue((1, 4, pos.z-1)));
                         neighbors.Add(getValue((2, 4, pos.z-1)));
@@ -203,7 +203,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string SolvePartTwo()
         {
-            for(int i=0; i<10; i++)
+            for(int i=0; i<200; i++)
                 this.runGeneration2();
             
             return this.tilesZ.Count(a => a.Value == true).ToString();
