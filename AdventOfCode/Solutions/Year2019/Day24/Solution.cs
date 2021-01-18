@@ -122,8 +122,8 @@ namespace AdventOfCode.Solutions.Year2019
             Dictionary<(int x, int y, int z), bool> newTiles = new Dictionary<(int x, int y, int z), bool>();
 
             // We need to search up and down 1 level from our min and max depths
-            int minZ = this.tilesZ.Min(a => a.Key.z);
-            int maxZ = this.tilesZ.Max(a => a.Key.z);
+            int minZ = this.tilesZ.Min(a => a.Key.z)-1;
+            int maxZ = this.tilesZ.Max(a => a.Key.z)+1;
             
             // We have to search this manually so we can keep track of where we are in the cube to determine neighbors
             for(int z=minZ; z<=maxZ; z++)
@@ -153,11 +153,11 @@ namespace AdventOfCode.Solutions.Year2019
                         neighbors.Add(getValue((2, 3, pos.z+1)));
 
                     // If we are on the left column, get depth up one
-                    if (i / 5 == 4)
+                    if (i % 5 == 0)
                         neighbors.Add(getValue((1, 2, pos.z+1)));
 
                     // If we are on the right column, get depth up one
-                    if (i / 5 == 4)
+                    if (i % 5 == 4)
                         neighbors.Add(getValue((3, 2, pos.z+1)));
                     
                     // Now for the hard part: The internals down one level
@@ -207,7 +207,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string SolvePartTwo()
         {
-            for(int i=0; i<200; i++)
+            for(int i=0; i<10; i++)
                 this.runGeneration2();
             
             return this.tilesZ.Count(a => a.Value == true).ToString();
