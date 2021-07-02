@@ -1,5 +1,8 @@
-﻿param(
-    [int]$Year = (Get-Date).Year
+﻿[CmdletBinding()]
+param (
+    [Parameter(HelpMessage = "The year to generate files for (i.e. 2019)")]
+    [int]
+    $Year = (Get-Date).Year
 )
 
 $template = @"
