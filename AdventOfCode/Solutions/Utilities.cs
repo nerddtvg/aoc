@@ -192,6 +192,11 @@ namespace AdventOfCode.Solutions
             return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);
         }
 
+        public static int ManhattanDistance((int x, int y, int z) a, (int x, int y, int z) b)
+        {
+            return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y) + Math.Abs(a.z - b.z);
+        }
+
         public static double FindGCD(double a, double b) => (a % b == 0) ? b : FindGCD(b, a % b);
 
         public static double FindLCM(double a, double b) => a * b / FindGCD(a, b);
@@ -199,6 +204,67 @@ namespace AdventOfCode.Solutions
         public static void Repeat(this Action action, int count)
         {
             for(int i = 0; i < count; i++) action();
+        }
+
+        // Based on: https://stackoverflow.com/a/45508660 and https://stackoverflow.com/a/60022011
+        public static T[] GetDigits<T>(T source) where T : unmanaged, IComparable, IEquatable<T>
+        {
+            Stack<T> digits = new Stack<T>();
+
+            // Verify we have a type we can work with
+            if (
+                typeof(T) != typeof(Int16) &&
+                typeof(T) != typeof(Int32) &&
+                typeof(T) != typeof(Int64) &&
+                typeof(T) != typeof(UInt16) &&
+                typeof(T) != typeof(UInt32) &&
+                typeof(T) != typeof(UInt64)
+            )
+                throw new ArgumentException($"Invalid type '{typeof(T).Name}' provided, expected int or uint.", paramName: nameof(source));
+
+            // CompareTo == 0 means they're equal, < 0 means the source is negative
+            while (source.CompareTo(0) > 0)
+            {
+                T? digit = null;
+
+                switch(typeof(T).Name)
+                {
+                    case "Int16":
+                        digit = (T)(object)((Int16)(object)source % 10);
+                        source = (T)(object)((Int16)(object)source / 10);
+                        break;
+                        
+                    case "Int32":
+                        digit = (T)(object)((Int32)(object)source % 10);
+                        source = (T)(object)((Int32)(object)source / 10);
+                        break;
+                        
+                    case "Int64":
+                        digit = (T)(object)((Int64)(object)source % 10);
+                        source = (T)(object)((Int64)(object)source / 10);
+                        break;
+
+                    case "UInt16":
+                        digit = (T)(object)((UInt64)(object)source % 10);
+                        source = (T)(object)((UInt64)(object)source / 10);
+                        break;
+
+                    case "UInt32":
+                        digit = (T)(object)((UInt64)(object)source % 10);
+                        source = (T)(object)((UInt64)(object)source / 10);
+                        break;
+
+                    case "UInt64":
+                        digit = (T)(object)((UInt64)(object)source % 10);
+                        source = (T)(object)((UInt64)(object)source / 10);
+                        break;
+                }
+
+                if (digit.HasValue)
+                    digits.Push(digit.Value);
+            }
+
+            return digits.ToArray();
         }
 
         // https://github.com/tslater2006/AdventOfCode2019
