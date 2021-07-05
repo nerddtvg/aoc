@@ -222,8 +222,38 @@ namespace AdventOfCode.Solutions
             )
                 throw new ArgumentException($"Invalid type '{typeof(T).Name}' provided, expected int or uint.", paramName: nameof(source));
 
+            // We use this to compare objects
+            T? compare = null;
+
+            switch(typeof(T).Name)
+            {
+                case "Int16":
+                    compare = (T)(object)(Int16)0;
+                    break;
+                    
+                case "Int32":
+                    compare = (T)(object)(Int32)0;
+                    break;
+                    
+                case "Int64":
+                    compare = (T)(object)(Int64)0;
+                    break;
+
+                case "UInt16":
+                    compare = (T)(object)(UInt16)0;
+                    break;
+
+                case "UInt32":
+                    compare = (T)(object)(UInt32)0;
+                    break;
+
+                case "UInt64":
+                    compare = (T)(object)(UInt64)0;
+                    break;
+            }
+
             // CompareTo == 0 means they're equal, < 0 means the source is negative
-            while (source.CompareTo(0) > 0)
+            while (compare.HasValue && source.CompareTo(compare.Value) > 0)
             {
                 T? digit = null;
 
@@ -245,13 +275,13 @@ namespace AdventOfCode.Solutions
                         break;
 
                     case "UInt16":
-                        digit = (T)(object)((UInt64)(object)source % 10);
-                        source = (T)(object)((UInt64)(object)source / 10);
+                        digit = (T)(object)((UInt16)(object)source % 10);
+                        source = (T)(object)((UInt16)(object)source / 10);
                         break;
 
                     case "UInt32":
-                        digit = (T)(object)((UInt64)(object)source % 10);
-                        source = (T)(object)((UInt64)(object)source / 10);
+                        digit = (T)(object)((UInt32)(object)source % 10);
+                        source = (T)(object)((UInt32)(object)source / 10);
                         break;
 
                     case "UInt64":
