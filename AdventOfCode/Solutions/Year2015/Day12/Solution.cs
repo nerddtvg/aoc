@@ -27,9 +27,43 @@ namespace AdventOfCode.Solutions.Year2015
             return matches.Select(a => Int32.Parse(a.Value)).Sum().ToString();
         }
 
+        private int CountChildren(JsonElement root)
+        {
+            // For part 2, we need to count all integers included in this object
+            // UNLESS the object has the value "red" anywhere
+            int ret = 0;
+
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                foreach(var el in root.EnumerateArray())
+                {
+                    ret += CountChildren(el);
+                }
+            }
+            else if (root.ValueKind == JsonValueKind.Object)
+            {
+                // Look to see if we have "red" as a value anywhere, if so, skip it
+                foreach(var el in root.EnumerateObject())
+                {
+                    // For each element...
+                    if (el.Value.ValueKind == JsonValueKind.String && string.Equals("red", el.Value.GetString(), StringComparison.InvariantCultureIgnoreCase))
+                        return 0;
+
+                    // Otherwise, add to our return
+                    ret += CountChildren(el.Value);
+                }
+            }
+            else if (root.ValueKind == JsonValueKind.Number)
+            {
+                return root.GetInt32();
+            }
+
+            return ret;
+        }
+
         protected override string SolvePartTwo()
         {
-            return null;
+            return CountChildren((JsonElement) this._doc).ToString();
         }
     }
 }
