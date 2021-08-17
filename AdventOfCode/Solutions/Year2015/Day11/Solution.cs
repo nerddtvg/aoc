@@ -109,7 +109,7 @@ namespace AdventOfCode.Solutions.Year2015
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return Increment(Increment(Input));
         }
     }
 }
