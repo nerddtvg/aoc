@@ -157,7 +157,7 @@ namespace AdventOfCode.Solutions
             }
         }
 
-        public static string JoinAsStrings<T>(this IEnumerable<T> items)
+        public static string JoinAsString<T>(this IEnumerable<T> items)
         {
             return string.Join("", items);
         }

@@ -47,7 +47,7 @@ namespace AdventOfCode.Solutions.Year2015
                 }
 
                 // Do this only once
-                newPassword = chars.Select(a => (char)a).JoinAsStrings();
+                newPassword = chars.Select(a => (char)a).JoinAsString();
             } while (!this.IsValid1(newPassword));
 
             return newPassword;
