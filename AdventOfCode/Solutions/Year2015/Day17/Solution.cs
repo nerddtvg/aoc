@@ -10,6 +10,7 @@ namespace AdventOfCode.Solutions.Year2015
     class Day17 : ASolution
     {
         private List<int> _containers = new List<int>();
+        private List<List<int>> _combos = new List<List<int>>();
 
         public Day17() : base(17, 2015, "")
         {
@@ -24,6 +25,11 @@ namespace AdventOfCode.Solutions.Year2015
                     _containers.Add(a);
                 }
             }
+            
+            // Order our containers
+            this._containers = this._containers.OrderBy(a => a).ToList();
+
+            this._combos = this.GetOptions(150, this._containers.ToArray());
         }
 
         private List<List<int>> GetOptions(int required_size, int[] sizes)
@@ -66,16 +72,18 @@ namespace AdventOfCode.Solutions.Year2015
 
         protected override string SolvePartOne()
         {
-            // Order our containers
-            this._containers = this._containers.OrderBy(a => a).ToList();
 
             // For each container in the list, go through and figure out if we can make it work or not
-            return GetOptions(150, this._containers.ToArray()).Count.ToString();
+            return this._combos.Count.ToString();
         }
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Find the fewest container combos
+            var minCount = this._combos.Min(a => a.Count);
+
+            // How many combos have this number of containers?
+            return this._combos.Count(a => a.Count == minCount).ToString();
         }
     }
 }
