@@ -11,6 +11,7 @@ namespace AdventOfCode.Solutions.Year2015
     class Day15 : ASolution
     {
         private Dictionary<string, (int capacity, int durability, int flavor, int texture, int calories)> _ingredients = new Dictionary<string, (int capacity, int durability, int flavor, int texture, int calories)>();
+        private List<int[]> _amounts = new List<int[]>();
 
         public Day15() : base(15, 2015, "")
         {
@@ -23,9 +24,19 @@ namespace AdventOfCode.Solutions.Year2015
             {
                 this._ingredients[match.Groups[1].Value] = (Int32.Parse(match.Groups[2].Value), Int32.Parse(match.Groups[3].Value), Int32.Parse(match.Groups[4].Value), Int32.Parse(match.Groups[5].Value), Int32.Parse(match.Groups[6].Value));
             }
+
+            // We need to determine how much for each ingredient to use
+            for (int a = 100; a >= 0; a--)
+                for (int b = 100-a; b >= 0; b--)
+                    for (int c = 100-b; c >= 0; c--)
+                        for (int d = 100-c; d >= 0; d--)
+                        {
+                            if (a + b + c + d != 100) continue;
+                            _amounts.Add(new int[] { a, b, c, d });
+                        }
         }
 
-        private int GetScore(int[] amounts)
+        private int GetScore(int[] amounts, int part = 1)
         {
             // We have an array of amounts for each ingredient to try and score
             (int capacity, int durability, int flavor, int texture, int calories) score = (0, 0, 0, 0, 0);
@@ -40,7 +51,11 @@ namespace AdventOfCode.Solutions.Year2015
                 score.durability += tScore.durability;
                 score.flavor += tScore.flavor;
                 score.texture += tScore.texture;
+                score.calories += tScore.calories;
             }
+
+            if (part == 2 && score.calories != 500)
+                return 0;
 
             return (score.capacity <= 0 || score.durability <= 0 || score.flavor <= 0 || score.texture <= 0 ? 0 : score.capacity * score.durability * score.flavor * score.texture);
         }
@@ -48,26 +63,14 @@ namespace AdventOfCode.Solutions.Year2015
         private (int capacity, int durability, int flavor, int texture, int calories) GetIngredientScore(int amount, (int capacity, int durability, int flavor, int texture, int calories) ingredient)
         {
             // Figure out the score for this
-            return (amount * ingredient.capacity, amount * ingredient.durability, amount * ingredient.flavor, amount * ingredient.texture, ingredient.calories);
+            return (amount * ingredient.capacity, amount * ingredient.durability, amount * ingredient.flavor, amount * ingredient.texture, amount * ingredient.calories);
         }
 
         protected override string SolvePartOne()
         {
-            // We need to determine how much for each ingredient to use
-            var amounts = new List<int[]>();
-
-            for (int a = 100; a >= 0; a--)
-                for (int b = 100-a; b >= 0; b--)
-                    for (int c = 100-b; c >= 0; c--)
-                        for (int d = 100-c; d >= 0; d--)
-                        {
-                            if (a + b + c + d != 100) continue;
-                            amounts.Add(new int[] { a, b, c, d });
-                        }
-
             // Now that we have a list of possible amounts, figure out how highest score
             int maxScore = 0;
-            foreach(var amount in amounts)
+            foreach(var amount in _amounts)
             {
                 int tScore = GetScore(amount);
 
@@ -79,7 +82,17 @@ namespace AdventOfCode.Solutions.Year2015
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Now that we have a list of possible amounts, figure out how highest score
+            int maxScore = 0;
+            foreach(var amount in _amounts)
+            {
+                // Get the score with a limit on 500 calories per cookie
+                int tScore = GetScore(amount, 2);
+
+                maxScore = Math.Max(tScore, maxScore);
+            }
+
+            return maxScore.ToString();
         }
     }
 }
