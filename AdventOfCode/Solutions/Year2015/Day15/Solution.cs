@@ -57,9 +57,9 @@ namespace AdventOfCode.Solutions.Year2015
             var amounts = new List<int[]>();
 
             for (int a = 100; a >= 0; a--)
-                for (int b = 100; b >= 0; b--)
-                    for (int c = 100; c >= 0; c--)
-                        for (int d = 100; d >= 0; d--)
+                for (int b = 100-a; b >= 0; b--)
+                    for (int c = 100-b; c >= 0; c--)
+                        for (int d = 100-c; d >= 0; d--)
                         {
                             if (a + b + c + d != 100) continue;
                             amounts.Add(new int[] { a, b, c, d });
