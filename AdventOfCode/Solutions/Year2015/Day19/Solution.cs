@@ -117,11 +117,6 @@ namespace AdventOfCode.Solutions.Year2015
                     ret.Add(currentElement + r2);
                 }
             }
-            else
-            {
-                // No formula to process, this is the end!
-                ret.Add(currentElement);
-            }
 
             return ret;
         }
