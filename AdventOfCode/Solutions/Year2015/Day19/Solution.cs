@@ -75,21 +75,21 @@ namespace AdventOfCode.Solutions.Year2015
             {
                 var c = tempFormula.Substring(0, 1).ToCharArray()[0];
 
-                // Reduce our temp formula
-                if (tempFormula.Length == 1)
-                    tempFormula = string.Empty;
-                else
-                    tempFormula = tempFormula.Substring(1);
-
                 if (!(65 <= (int) c && (int) c <= 90))
                 {
                     // This is a non-uppercase character, append it to our element
                     currentElement += c.ToString();
+
+                    // Reduce our temp formula
+                    if (tempFormula.Length == 1)
+                        tempFormula = string.Empty;
+                    else
+                        tempFormula = tempFormula.Substring(1);
+
                     continue;
                 }
 
-                // Uppercase character, that's a new element, fix the tempFormula and break out
-                tempFormula = c.ToString() + tempFormula;
+                // Uppercase character, that's a new element, break out
                 break;
             }
 
