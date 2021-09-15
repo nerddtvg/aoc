@@ -134,7 +134,20 @@ namespace AdventOfCode.Solutions.Year2015
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Ensure we're at the start
+            this.position = 0;
+            int ret = 0;
+
+            // Part 2 means starting with reg 'a' as 1
+            ResetRegisters();
+            this.registers['a'] = 1;
+
+            do
+            {
+                ret = RunLine();
+            } while (ret == 0);
+
+            return this.registers['b'].ToString();
         }
     }
 }
