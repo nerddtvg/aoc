@@ -29,6 +29,9 @@ namespace AdventOfCode.Solutions.Year2015
         private Dictionary<string, UInt16> registers = new Dictionary<string, UInt16>();
         private List<Day7Operation> circuit = new List<Day7Operation>();
 
+        // For Part 2
+        private UInt16 saveValue = UInt16.MaxValue;
+
         public Day07() : base(07, 2015, "")
         {
             
@@ -244,11 +247,11 @@ namespace AdventOfCode.Solutions.Year2015
         /// <summary>
         /// Loop through and run the circuit
         /// </summary>
-        private void RunCircuit()
+        private void RunCircuit(uint start = 0, uint end = uint.MaxValue)
         {
             uint MaxOrder = this.circuit.Max(a => a.order);
 
-            for (uint i = 0; i <= MaxOrder; i++)
+            for (uint i = start; i <= Math.Min(MaxOrder, end); i++)
             {
                 // Get all of the steps in this order
                 var steps = this.circuit.Where(a => a.order == i).ToArray();
@@ -277,12 +280,37 @@ namespace AdventOfCode.Solutions.Year2015
                 return null;
             }
 
+            // Save for Part 2
+            this.saveValue = this.registers["a"];
+
             return this.registers["a"].ToString();
         }
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Part 2:
+            // 1. Reset all registers (clear the dictionary)
+            // 2. Run all of the set operations (order 0)
+            // 3. Replace 'b' with the saved value from Part 1
+            // 4. Run rest
+            // 5. ???
+            // 6. PROFIT!
+            if (this.saveValue == UInt16.MaxValue)
+                return null;
+
+            // Reset the registers
+            this.registers.Clear();
+
+            // Run order 0
+            RunCircuit(0, 0);
+
+            // Reset 'b' to the saved value
+            this.registers["b"] = this.saveValue;
+
+            // Run the rest
+            RunCircuit(1);
+
+            return this.registers["a"].ToString();
         }
     }
 }
