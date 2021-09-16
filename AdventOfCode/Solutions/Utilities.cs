@@ -44,36 +44,6 @@ namespace AdventOfCode.Solutions
             }
         }
 
-        public static string JoinAsString<T>(this IEnumerable<T> items)
-        {
-            return string.Join("", items);
-        }
-
-        public static string[][] SplitByBlankLine(this string input, bool shouldTrim = false)
-        {
-            return input
-                .Split(new[] { "\r\r", "\n\n", "\r\n\r\n" }, StringSplitOptions.None)
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .Select(s => s.SplitByNewline(shouldTrim, true))
-                .ToArray();
-        }
-
-        public static string[] SplitByNewline(this string input, bool shouldTrim = false, bool shouldExcludeEmpty = true)
-        {
-            return input
-                .Split(new[] { "\r", "\n", "\r\n" }, StringSplitOptions.None)
-                .Where(s => (!shouldExcludeEmpty || !string.IsNullOrWhiteSpace(s)))
-                .Select(s => shouldTrim ? s.Trim() : s)
-                .ToArray();
-        }
-
-        public static string Reverse(this string str)
-        {
-            char[] arr = str.ToCharArray();
-            Array.Reverse(arr);
-            return new string(arr);
-        }
-
         public static int ManhattanDistance((int x, int y) a, (int x, int y) b)
         {
             return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);

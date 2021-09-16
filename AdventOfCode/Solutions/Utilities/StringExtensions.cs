@@ -75,5 +75,52 @@ namespace AdventOfCode.Solutions
                     str.Split(delimiter)
                 );
         }
+
+        /// <summary>
+        /// A shortcut to use <see cref="System.String.Join(string?, object?[])"/> with no joining character or string
+        /// </summary>
+        /// <param name="items">The enumerable list of items</param>
+        /// <returns>A combined <see cref="System.String"/></returns>
+        public static string JoinAsString<T>(this IEnumerable<T> items) =>
+            string.Join("", items);
+
+        /// <summary>
+        /// Split a multi-line input string into groups based on empty lines.
+        /// </summary>
+        /// <param name="input">A multi-line string</param>
+        /// <param name="shouldTrim">Should each line be trimed? (Default: <c>false</c>)</param>
+        /// <returns>Groups of individual lines</returns>
+        public static string[][] SplitByBlankLine(this string input, bool shouldTrim = false) =>
+            input
+                .Split(new[] { "\r\r", "\n\n", "\r\n\r\n" }, StringSplitOptions.None)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s.SplitByNewline(shouldTrim, true))
+                .ToArray();
+
+        /// <summary>
+        /// Split a multi-line input string into individual lines.
+        /// </summary>
+        /// <param name="input">A multi-line string</param>
+        /// <param name="shouldTrim">Should each line be trimed? (Default: <c>false</c>)</param>
+        /// <param name="shouldExcludeEmpty">Should empty lines be skipped? (Default: <c>true</c>)</param>
+        /// <returns>Individual lines</returns>
+        public static string[] SplitByNewline(this string input, bool shouldTrim = false, bool shouldExcludeEmpty = true) =>
+            input
+                .Split(new[] { "\r", "\n", "\r\n" }, StringSplitOptions.None)
+                .Where(s => (!shouldExcludeEmpty || !string.IsNullOrWhiteSpace(s)))
+                .Select(s => shouldTrim ? s.Trim() : s)
+                .ToArray();
+
+        /// <summary>
+        /// Reverse a string quickly
+        /// </summary>
+        /// <param name="str">The input string</param>
+        /// <returns>A reversed string</returns>
+        public static string Reverse(this string str)
+        {
+            char[] arr = str.ToCharArray();
+            Array.Reverse(arr);
+            return new string(arr);
+        }
     }
 }
