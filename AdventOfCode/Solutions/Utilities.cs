@@ -12,8 +12,12 @@ namespace AdventOfCode.Solutions
 
     public static class Utilities
     {
-        // Based on: https://docs.python.org/3/library/itertools.html#itertools.combinations
-        // Get all possible combinations of the input list
+        /// <summary>
+        /// Based on: https://docs.python.org/3/library/itertools.html#itertools.combinations
+        /// Get all possible combinations of the input list
+        /// </summary>
+        /// <param name="list">The list to work with</param>
+        /// <param name="r">Set sizes</param>
         public static IEnumerable<List<T>> GetAllCombos<T>(List<T> list, int r = 2)
         {
             if (r <= 1) {
@@ -297,7 +301,10 @@ namespace AdventOfCode.Solutions
             return digits.ToArray();
         }
 
-        // https://github.com/tslater2006/AdventOfCode2019
+        /// <summary>
+        /// Based on: https://github.com/tslater2006/AdventOfCode2019
+        /// Provides all permutations of a given <see cref="System.Collections.Generic.IEnumerable{T}"/>
+        /// </summary>
         public static IEnumerable<IEnumerable<T>> Permutations<T>(this IEnumerable<T> values)
         {
             return (values.Count() == 1) ? new[] { values } : values.SelectMany(v => Permutations(values.Where(x => x.Equals(v) == false)), (v, p) => p.Prepend(v));
@@ -326,5 +333,38 @@ namespace AdventOfCode.Solutions
         }
 
         public static (int, int) Add(this (int x, int y) a, (int x, int y) b) => (a.x + b.x, a.y + b.y);
+
+        // Get all divisors of a number
+        public static uint[] GetDivisors(this uint input)
+        {
+            if (input == 0) return null;
+
+            var divisors = new SortedSet<uint>();
+
+            for (uint i = 1; i <= Math.Sqrt(input); i++)
+            {
+                if (input % i == 0)
+                {
+                    // Add this known divisor
+                    divisors.Add(i);
+
+                    // Make sure we're not adding a square
+                    var d2 = input / i;
+                    if (i != d2)
+                    {
+                        divisors.Add(d2);
+                    }
+                }
+            }
+
+            return divisors.ToArray();
+        }
+
+        public static int[] GetDivisors(this int input) =>
+            // We can use the uint function and down-cast to ints since we know the divisors can't be larger than input
+            ((uint)input)
+                .GetDivisors()
+                .Select(a => (int)a)
+                .ToArray();
     }
 }
