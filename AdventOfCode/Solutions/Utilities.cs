@@ -12,26 +12,6 @@ namespace AdventOfCode.Solutions
 
     public static class Utilities
     {
-        public static int MinOfMany(params int[] items)
-        {
-            var result = items[0];
-            for(int i = 1; i < items.Length; i++)
-            {
-                result = Math.Min(result, items[i]);
-            }
-            return result;
-        }
-
-        public static int MaxOfMany(params int[] items)
-        {
-            var result = items[0];
-            for(int i = 1; i < items.Length; i++)
-            {
-                result = Math.Max(result, items[i]);
-            }
-            return result;
-        }
-
         // https://stackoverflow.com/a/3150821/419956 by @RonWarholic
         public static IEnumerable<T> Flatten<T>(this T[,] map)
         {
