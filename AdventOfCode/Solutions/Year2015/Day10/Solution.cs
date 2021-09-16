@@ -56,7 +56,7 @@ namespace AdventOfCode.Solutions.Year2015
         protected override string SolvePartOne()
         {
             // Starting with the digits in your puzzle input, apply this process 40 times. What is the length of the result?
-            ulong[] result = Utilities.GetDigits(inVal);
+            ulong[] result = inVal.GetDigits();
             for (int i = 0; i < 40; i++)
                 result = GenerateNextNumber(result);
 
@@ -66,7 +66,7 @@ namespace AdventOfCode.Solutions.Year2015
         protected override string SolvePartTwo()
         {
             // Starting with the digits in your puzzle input, apply this process 40 times. What is the length of the result?
-            ulong[] result = Utilities.GetDigits(inVal);
+            ulong[] result = inVal.GetDigits();
             for (int i = 0; i < 50; i++)
                 result = GenerateNextNumber(result);
 
