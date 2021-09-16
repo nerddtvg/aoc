@@ -154,37 +154,6 @@ namespace AdventOfCode.Solutions
             return digits.ToArray();
         }
 
-        /// <summary>
-        /// Based on: https://github.com/tslater2006/AdventOfCode2019
-        /// Provides all permutations of a given <see cref="System.Collections.Generic.IEnumerable{T}"/>
-        /// </summary>
-        public static IEnumerable<IEnumerable<T>> Permutations<T>(this IEnumerable<T> values)
-        {
-            return (values.Count() == 1) ? new[] { values } : values.SelectMany(v => Permutations(values.Where(x => x.Equals(v) == false)), (v, p) => p.Prepend(v));
-        }
-
-        public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> array, int size)
-        {
-            for(var i = 0; i < (float)array.Count() / size; i++)
-            {
-                yield return array.Skip(i * size).Take(size);
-            }
-        }
-
-        // https://stackoverflow.com/questions/49190830/is-it-possible-for-string-split-to-return-tuple
-        public static void Deconstruct<T>(this IList<T> list, out T first, out IList<T> rest)
-        {
-            first = list.Count > 0 ? list[0] : default(T); // or throw
-            rest = list.Skip(1).ToList();
-        }
-
-        public static void Deconstruct<T>(this IList<T> list, out T first, out T second, out IList<T> rest)
-        {
-            first = list.Count > 0 ? list[0] : default(T); // or throw
-            second = list.Count > 1 ? list[1] : default(T); // or throw
-            rest = list.Skip(2).ToList();
-        }
-
         public static (int, int) Add(this (int x, int y) a, (int x, int y) b) => (a.x + b.x, a.y + b.y);
 
         // Get all divisors of a number

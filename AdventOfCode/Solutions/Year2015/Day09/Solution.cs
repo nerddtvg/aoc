@@ -41,7 +41,7 @@ namespace AdventOfCode.Solutions.Year2015
 
         protected override string SolvePartOne()
         {
-            var combinations = Utilities.Permutations<string>(GetAllLocations());
+            var combinations = GetAllLocations().Permutations();
 
             int min = Int32.MaxValue;
 
@@ -67,7 +67,7 @@ namespace AdventOfCode.Solutions.Year2015
 
         protected override string SolvePartTwo()
         {
-            var combinations = Utilities.Permutations<string>(GetAllLocations());
+            var combinations = GetAllLocations().Permutations();
 
             int max = Int32.MinValue;
 
