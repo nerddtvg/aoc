@@ -30,10 +30,10 @@ namespace AdventOfCode.Solutions.Year2015
         }
 
         // I realized we don't care about groups 2 and 3, we only need the smallest possible combination that makes 1/3rd the total weight
-        private BigInteger MinQES()
+        private BigInteger MinQES(int groupCount = 3)
         {
             // The weight has to be 1/3rd of the total for each group
-            var weight = (int) (this.packageWeights.Sum() / 3);
+            var weight = (int) (this.packageWeights.Sum() / groupCount);
 
             BigInteger minQES = BigInteger.Zero;
 
@@ -63,19 +63,31 @@ namespace AdventOfCode.Solutions.Year2015
             LoadPackages();
 
             var sd = DateTime.Now;
-            System.Console.WriteLine(DateTime.Now);
+            System.Console.WriteLine("Part 1:");
+            System.Console.WriteLine($"Start: {DateTime.Now}");
 
             var ret = MinQES();
 
-            System.Console.WriteLine(DateTime.Now);
-            System.Console.WriteLine(DateTime.Now-sd);
+            System.Console.WriteLine($"End: {DateTime.Now}");
+            System.Console.WriteLine($"Time Spent: {DateTime.Now-sd}");
 
             return ret.ToString();
         }
 
         protected override string SolvePartTwo()
         {
-            return null;
+            LoadPackages();
+
+            var sd = DateTime.Now;
+            System.Console.WriteLine("Part 2:");
+            System.Console.WriteLine($"Start: {DateTime.Now}");
+
+            var ret = MinQES(4);
+
+            System.Console.WriteLine($"End: {DateTime.Now}");
+            System.Console.WriteLine($"Time Spent: {DateTime.Now-sd}");
+
+            return ret.ToString();
         }
     }
 }
