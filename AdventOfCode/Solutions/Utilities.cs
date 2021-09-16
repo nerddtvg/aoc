@@ -155,38 +155,5 @@ namespace AdventOfCode.Solutions
         }
 
         public static (int, int) Add(this (int x, int y) a, (int x, int y) b) => (a.x + b.x, a.y + b.y);
-
-        // Get all divisors of a number
-        public static uint[] GetDivisors(this uint input)
-        {
-            if (input == 0) return null;
-
-            var divisors = new SortedSet<uint>();
-
-            for (uint i = 1; i <= Math.Sqrt(input); i++)
-            {
-                if (input % i == 0)
-                {
-                    // Add this known divisor
-                    divisors.Add(i);
-
-                    // Make sure we're not adding a square
-                    var d2 = input / i;
-                    if (i != d2)
-                    {
-                        divisors.Add(d2);
-                    }
-                }
-            }
-
-            return divisors.ToArray();
-        }
-
-        public static int[] GetDivisors(this int input) =>
-            // We can use the uint function and down-cast to ints since we know the divisors can't be larger than input
-            ((uint)input)
-                .GetDivisors()
-                .Select(a => (int)a)
-                .ToArray();
     }
 }
