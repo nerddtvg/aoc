@@ -39,7 +39,7 @@ namespace AdventOfCode.Solutions.Year2015
 
             for (int i = 2; i < this.packageWeights.Count; i++)
             {
-                foreach (var perm in Utilities.GetAllCombos(this.packageWeights, i).Where(a => a.Sum() == weight))
+                foreach (var perm in this.packageWeights.GetAllCombos(i).Where(a => a.Sum() == weight))
                 {
                     // Valid combo
                     var tempQES = perm.Select(i => new BigInteger(i)).Aggregate((x, y) => x * y);

@@ -20,8 +20,7 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartOne()
         {
             // Specifically, they need you to find the two entries that sum to 2020 and then multiply those two numbers together.
-            return Utilities
-                .GetAllCombos(input, 2)
+            return input.GetAllCombos(2)
                 .Where(a => a.Sum() == 2020)
                 .First()
                 .Aggregate(1, (x, y) => x * y)
@@ -31,8 +30,7 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartTwo()
         {
             // They offer you a second one if you can find three numbers in your expense report that meet the same criteria.
-            return Utilities
-                .GetAllCombos(input, 3)
+            return input.GetAllCombos(3)
                 .Where(a => a.Sum() == 2020)
                 .First()
                 .Aggregate(1, (x, y) => x * y)
