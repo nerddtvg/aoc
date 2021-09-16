@@ -70,6 +70,8 @@ namespace AdventOfCode.Solutions.Year2015
 
         private List<Day21Combo> combos = new List<Day21Combo>();
 
+        private List<Day21Combo> lostCombos = new List<Day21Combo>();
+
         public Day21() : base(21, 2015, "")
         {
 
@@ -78,6 +80,7 @@ namespace AdventOfCode.Solutions.Year2015
         private void LoadCombos()
         {
             this.combos = new List<Day21Combo>();
+            this.lostCombos = new List<Day21Combo>();
 
             // We select:
             // 1 weapon
@@ -120,11 +123,14 @@ namespace AdventOfCode.Solutions.Year2015
 
                         if (bossMoves > playerMoves)
                         {
-                            continue;
+                            // Used in Part 2
+                            this.lostCombos.Add(combo);
                         }
-
-                        // Add to our list
-                        this.combos.Add(combo);
+                        else
+                        {
+                            // Add to our list
+                            this.combos.Add(combo);
+                        }
                     }
                 }
             }
@@ -146,7 +152,7 @@ namespace AdventOfCode.Solutions.Year2015
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return this.lostCombos.OrderByDescending(a => a.cost).FirstOrDefault()?.cost.ToString() ?? string.Empty;
         }
     }
 }
