@@ -101,7 +101,7 @@ namespace AdventOfCode.Solutions.Year2015
         {
             // Part 2
             // Check if we're dead before anything happens
-            if (part == 2 && myTurn && hp == 1)
+            if (part == 2 && myTurn && hp <= 1)
                 return;
 
             // Check if we have breached a found depth already
