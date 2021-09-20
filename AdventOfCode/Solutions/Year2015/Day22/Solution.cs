@@ -86,6 +86,17 @@ namespace AdventOfCode.Solutions.Year2015
 
         }
 
+        /// <summary>
+        /// Play a turn in the game
+        /// </summary>
+        /// <param name="part">Puzzle part (1 or 2</param>
+        /// <param name="myTurn"><c>true</c> if this is the player's turn; otherwise, <c>false</c></param>
+        /// <param name="spent">How much mana the player has spent this far</param>
+        /// <param name="hp">How many hit points the player has</param>
+        /// <param name="mana">How much mana the player has</param>
+        /// <param name="spells">Currently active spells</param>
+        /// <param name="bossHp">How many hit points the boss has</param>
+        /// <param name="bossDamage">How much damage one hit from the boss takes</param>
         private void playTurn(int part, bool myTurn, int spent, int hp, int mana, Day22Spell[] spells, int bossHp, int bossDamage)
         {
             // Check if we have breached a found depth already
@@ -93,12 +104,12 @@ namespace AdventOfCode.Solutions.Year2015
                 return;
 
             // Applying effects
-            int localMana = spells.Sum(s => s.mana) + mana;
-            int localDamage = spells.Sum(s => s.damage);
-            int localArmor = spells.Sum(s => s.armor);
+            mana = spells.Sum(s => s.mana) + mana;
+            int damage = spells.Sum(s => s.damage);
+            int armor = spells.Sum(s => s.armor);
 
             // Did the boss die?
-            bossHp = bossHp - localDamage;
+            bossHp = bossHp - damage;
 
             if (bossHp <= 0)
             {
@@ -121,7 +132,7 @@ namespace AdventOfCode.Solutions.Year2015
                 int localHp = hp;
 
                 // Find all spells we can cast (not currently in use and we can afford)
-                var canCast = allSpells.Where(s => s.cost <= localMana && !spells.Select(b => b.name).Contains(s.name)).ToList();
+                var canCast = allSpells.Where(s => s.cost <= mana && !spells.Select(b => b.name).Contains(s.name)).ToList();
 
                 // If we can't cast, we're dead
                 if (canCast.Count == 0)
@@ -130,12 +141,12 @@ namespace AdventOfCode.Solutions.Year2015
                 foreach(var spell in canCast)
                 {
                     int castSpent = spent + spell.cost;
-                    int castMana = localMana - spell.cost;
+                    int castMana = mana - spell.cost;
 
                     // Figure out our next step based on this cast spell
                     int extraDamage = 0;
                     int castHeal = 0;
-                    Day22Spell[] castSpells = spellsList.Append(spell).ToArray();;
+                    Day22Spell[] castSpells = spellsList.Append(spell).ToArray();
                     if (spell.duration == 1)
                     {
                         // This is instantaneous so let's calculate it now
@@ -148,7 +159,7 @@ namespace AdventOfCode.Solutions.Year2015
                     if (castBossHp <= 0)
                     {
                         // Boss died on this hit
-                        MinDepth = Math.Min(MinDepth, spent);
+                        MinDepth = Math.Min(MinDepth, castSpent);
                         return;
                     }
                     else
@@ -161,7 +172,7 @@ namespace AdventOfCode.Solutions.Year2015
             else
             {
                 // Boss turn
-                int localBossDamage = Math.Max(bossDamage - localArmor, 1);
+                int localBossDamage = Math.Max(bossDamage - armor, 1);
                 int localHp = hp - localBossDamage;
 
                 // Did we die?
