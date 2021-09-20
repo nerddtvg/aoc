@@ -150,29 +150,9 @@ namespace AdventOfCode.Solutions.Year2015
                     int castMana = mana - spell.cost;
 
                     // Figure out our next step based on this cast spell
-                    int extraDamage = 0;
-                    int castHeal = 0;
                     Day22Spell[] castSpells = spellsList.Append(spell).ToArray();
-                    if (spell.duration == 1)
-                    {
-                        // This is instantaneous so let's calculate it now
-                        extraDamage = spell.damage;
-                        castHeal = spell.heal;
-                        castSpells = spellsList.ToArray();
-                    }
 
-                    var castBossHp = bossHp - extraDamage;
-                    if (castBossHp <= 0)
-                    {
-                        // Boss died on this hit
-                        MinDepth = Math.Min(MinDepth, castSpent);
-                        return;
-                    }
-                    else
-                    {
-                        // Move on to the next turn
-                        playTurn(part, false, castSpent, localHp + castHeal, castMana, castSpells, castBossHp, bossDamage);
-                    }
+                    playTurn(part, false, castSpent, localHp, castMana, castSpells, bossHp, bossDamage);
                 }
             }
             else
