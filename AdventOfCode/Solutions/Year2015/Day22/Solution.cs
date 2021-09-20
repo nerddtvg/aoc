@@ -88,6 +88,7 @@ namespace AdventOfCode.Solutions.Year2015
 
         /// <summary>
         /// Play a turn in the game
+        /// BUG: In this version, Part 2 returns the wrong number compared to other scripts. Not sure why.
         /// </summary>
         /// <param name="part">Puzzle part (1 or 2</param>
         /// <param name="myTurn"><c>true</c> if this is the player's turn; otherwise, <c>false</c></param>
