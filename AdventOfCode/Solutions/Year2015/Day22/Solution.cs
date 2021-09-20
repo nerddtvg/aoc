@@ -83,7 +83,11 @@ namespace AdventOfCode.Solutions.Year2015
 
         public Day22() : base(22, 2015, "")
         {
+            MinDepth = Int32.MaxValue;
 
+            playTurn(1, true, 0, 10, 250, new Day22Spell[]{}, 13, 8);
+
+            Console.WriteLine($"Sample: {MinDepth.ToString()}");
         }
 
         /// <summary>
