@@ -99,6 +99,11 @@ namespace AdventOfCode.Solutions.Year2015
         /// <param name="bossDamage">How much damage one hit from the boss takes</param>
         private void playTurn(int part, bool myTurn, int spent, int hp, int mana, Day22Spell[] spells, int bossHp, int bossDamage)
         {
+            // Part 2
+            // Check if we're dead before anything happens
+            if (part == 2 && myTurn && hp == 1)
+                return;
+
             // Check if we have breached a found depth already
             if (spent > MinDepth)
                 return;
@@ -129,7 +134,8 @@ namespace AdventOfCode.Solutions.Year2015
 
             if (myTurn)
             {
-                int localHp = hp;
+                // Part 2: We lose 1 HP on our turn
+                int localHp = (part == 2 ? hp - 1 : hp);
 
                 // Find all spells we can cast (not currently in use and we can afford)
                 var canCast = allSpells.Where(s => s.cost <= mana && !spells.Select(b => b.name).Contains(s.name)).ToList();
@@ -195,7 +201,11 @@ namespace AdventOfCode.Solutions.Year2015
 
         protected override string SolvePartTwo()
         {
-            return null;
+            MinDepth = Int32.MaxValue;
+
+            playTurn(2, true, 0, 50, 500, new Day22Spell[]{}, 51, 9);
+
+            return MinDepth.ToString();
         }
     }
 }
