@@ -146,13 +146,7 @@ namespace AdventOfCode.Solutions.Year2015
 
                 foreach(var spell in canCast)
                 {
-                    int castSpent = spent + spell.cost;
-                    int castMana = mana - spell.cost;
-
-                    // Figure out our next step based on this cast spell
-                    Day22Spell[] castSpells = spellsList.Append(spell).ToArray();
-
-                    playTurn(part, false, castSpent, localHp, castMana, castSpells, bossHp, bossDamage);
+                    playTurn(part, false, spent + spell.cost, localHp, mana - spell.cost, spellsList.Append(spell).ToArray(), bossHp, bossDamage);
                 }
             }
             else
