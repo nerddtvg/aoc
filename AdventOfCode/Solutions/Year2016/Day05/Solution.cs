@@ -11,19 +11,45 @@ namespace AdventOfCode.Solutions.Year2016
     class Day05 : ASolution
     {
         private string password { get; set; }
+        private string password2 { get; set; }
 
         public Day05() : base(05, 2016, "")
         {
             this.password = string.Empty;
+            this.password2 = "________";
 
             // Super brute force attack here
-            for (ulong i = 0; i < ulong.MaxValue && password.Length < 8; i++)
+            for (ulong i = 0; i < ulong.MaxValue && (password.Length < 8 || password2.Contains("_")); i++)
             {
                 var md5 = CreateMD5($"{Input}{i}");
 
                 if (md5.StartsWith("00000"))
                 {
-                    this.password += md5.Substring(5, 1);
+                    // Part 1
+                    if (this.password.Length < 8)
+                        this.password += md5.Substring(5, 1);
+
+                    // Part 2 work
+                    var posStr = md5.Substring(5, 1);
+                    int pos = 0;
+
+                    if (Int32.TryParse(posStr, out pos))
+                    {
+                        // Must be valid and unused
+                        if (pos <= 7 && this.password2.Substring(pos, 1) == "_")
+                        {
+                            // Combine the rest of the password
+                            this.password2 =
+                                // Before the given position
+                                (pos > 0 ? this.password2.Substring(0, pos) : "")
+                                +
+                                // The new character
+                                md5.Substring(6, 1)
+                                +
+                                // After the given position
+                                (pos < 7 ? this.password2.Substring(pos + 1) : "");
+                        }
+                    }
                 }
             }
         }
@@ -56,7 +82,7 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return this.password2.ToLower();
         }
     }
 }
