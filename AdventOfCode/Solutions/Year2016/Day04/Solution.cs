@@ -23,7 +23,7 @@ namespace AdventOfCode.Solutions.Year2016
             // Parse each room first
             var regex = new Regex(@"^([a-z0-9\-]+)-([0-9]+)\[([a-z]+)\]$");
 
-            foreach(var line in Input.SplitByNewline())
+            foreach (var line in Input.SplitByNewline())
             {
                 var match = regex.Match(line);
 
@@ -54,6 +54,33 @@ namespace AdventOfCode.Solutions.Year2016
             );
         }
 
+        // Shift cipher
+        private string DecryptRoom(Day04Room room)
+        {
+            var shift = room.sector % 26;
+
+            var roomName = string.Empty;
+
+            foreach(var c in room.name)
+            {
+                if (c == '-')
+                {
+                    roomName += " ";
+                }
+                else
+                {
+                    int c2 = (int)c + shift;
+
+                    while(c2 > (int) 'z')
+                        c2 -= 26;
+
+                    roomName += (char)c2;
+                }
+            }
+
+            return roomName;
+        }
+
         protected override string SolvePartOne()
         {
             return this.rooms.Where(r => IsValidRoom(r)).Sum(r => r.sector).ToString();
@@ -61,7 +88,7 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return string.Join("\n", this.rooms.Where(r => IsValidRoom(r) && DecryptRoom(r).Contains("north", StringComparison.InvariantCultureIgnoreCase)).Select(r => (r.sector, DecryptRoom(r))).OrderBy(r => r.Item2).ThenBy(r => r.sector).Select(r => $"Sector: {r.sector}: {r.Item2}"));
         }
     }
 }
