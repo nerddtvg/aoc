@@ -122,5 +122,33 @@ namespace AdventOfCode.Solutions
             Array.Reverse(arr);
             return new string(arr);
         }
+
+        /// <summary>
+        /// Caesar shift an entire string. This will only shift a-z or A-Z characters
+        /// </summary>
+        /// <param name="input">The string to shift</param>
+        /// <param name="shift">The number of character to shift it (positive or negative)</param>
+        /// <returns>A shifted string</returns>
+        public static string Shift(this string str, int shift)
+        {
+            // Output string
+            string o = string.Empty;
+
+            // Loop each character, if a valid character to shift, do it
+            foreach(var c in str)
+            {
+                // Make sure this is an easy ASCII alphabet character
+                if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z'))
+                {
+                    o += c.Shift(shift);
+                }
+                else
+                {
+                    o += c;
+                }
+            }
+
+            return o;
+        }
     }
 }
