@@ -111,9 +111,9 @@ namespace AdventOfCode.Solutions
             }
 
             // Generate the list
-            for (int x = a.x; fx(x); x = incx(x))
+            for (int y = a.y; fy(y); y = incy(y))
             {
-                for (int y = a.y; fy(y); y = incy(y))
+                for (int x = a.x; fx(x); x = incx(x))
                 {
                     ret.Add((x, y));
                 }
