@@ -35,6 +35,29 @@ namespace AdventOfCode.Solutions.Year2016
             { (1, -1), "9" },
         };
 
+        private Dictionary<(int x, int y), string> numpad2 = new Dictionary<(int x, int y), string>()
+        {
+            { (0, 2), "1" },
+            
+            { (-1, 1), "2" },
+            { (0, 1), "3" },
+            { (1, 1), "4" },
+
+            
+            { (-2, 0), "5" },
+            { (-1, 0), "6" },
+            { (0, 0), "7" },
+            { (1, 0), "8" },
+            { (2, 0), "9" },
+
+            
+            { (-1, -1), "A" },
+            { (0, -1), "B" },
+            { (1, -1), "C" },
+            
+            { (0, -2), "D" }
+        };
+
         public Day02() : base(02, 2016, "")
         {
 
@@ -46,7 +69,7 @@ namespace AdventOfCode.Solutions.Year2016
             this.code = string.Empty;
         }
 
-        private void ProcessLine(string line)
+        private void ProcessLine(string line, int part = 1)
         {
             // Go through each character on the line and determine what number we move to
             foreach(var c in line.ToCharArray())
@@ -55,12 +78,17 @@ namespace AdventOfCode.Solutions.Year2016
                 var tempPos = this.pos.Add(move);
 
                 // If we don't have a number in the new position, we continue to the next character
-                if (this.numpad.ContainsKey(tempPos))
+                if (part == 1 && this.numpad.ContainsKey(tempPos))
+                    this.pos = tempPos;
+                else if (part == 2 && this.numpad2.ContainsKey(tempPos))
                     this.pos = tempPos;
             }
 
             // At the end of the line, add the current number to the code
-            this.code += this.numpad[this.pos];
+            if (part == 1)
+                this.code += this.numpad[this.pos];
+            else
+                this.code += this.numpad2[this.pos];
         }
 
         protected override string SolvePartOne()
@@ -74,7 +102,11 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            ResetPos();
+            foreach(var line in Input.SplitByNewline())
+                ProcessLine(line, 2);
+
+            return this.code;
         }
     }
 }
