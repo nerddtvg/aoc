@@ -49,7 +49,10 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return this.characters.Keys.Select(k =>
+            {
+                return this.characters[k].GroupBy(c => c).OrderBy(c => c.Count()).First().Key;
+            }).JoinAsString();
         }
     }
 }
