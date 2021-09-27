@@ -5,6 +5,11 @@ using System.Text.RegularExpressions;
 
 using System.Linq;
 
+// This is a path determining task
+// I suck at path algorithms
+// This will be based on someone else's solution from the mega thread
+// https://old.reddit.com/r/adventofcode/comments/5hoia9/2016_day_11_solutions/
+
 namespace AdventOfCode.Solutions.Year2016
 {
 
