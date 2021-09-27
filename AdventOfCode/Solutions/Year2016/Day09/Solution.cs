@@ -15,14 +15,14 @@ namespace AdventOfCode.Solutions.Year2016
 
         }
 
-        private uint GetLength(string input, int part = 1)
+        private ulong GetLength(string input, int part = 1)
         {
             // Shortcut: if there are no parenthesis, we don't do anything
             if (!input.Contains('('))
-                return (uint)input.Length;
+                return (ulong)input.Length;
 
             // This is mostly math
-            uint ret = 0;
+            ulong ret = 0;
             char[] arr = input.ToCharArray();
 
             for (int i = 0; i < input.Length; i++)
@@ -36,12 +36,12 @@ namespace AdventOfCode.Solutions.Year2016
                     var nextParen = input.IndexOf(')', nextX);
 
                     int length = Int32.Parse(input.Substring(i + 1, nextX - (i + 1)));
-                    uint repeat = uint.Parse(input.Substring(nextX + 1, nextParen - (nextX + 1)));
+                    ulong repeat = ulong.Parse(input.Substring(nextX + 1, nextParen - (nextX + 1)));
 
                     // If this is part 1, just repeat this string the desired times
                     if (part == 1)
                     {
-                        ret += repeat * (uint) length;
+                        ret += repeat * (ulong) length;
                     }
                     else
                     {
