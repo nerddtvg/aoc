@@ -99,7 +99,7 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return (this.outputs[0].First() * this.outputs[1].First() * this.outputs[2].First()).ToString();
         }
     }
 }
