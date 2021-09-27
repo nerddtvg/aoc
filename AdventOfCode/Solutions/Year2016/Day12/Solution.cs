@@ -131,7 +131,12 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // This takes many minutes to complete. I'm sure I was supposed to optimize something but didn't
+            Reset();
+            this.registers['c'] = 1;
+            RunProgram();
+
+            return this.registers['a'].ToString();
         }
     }
 }
