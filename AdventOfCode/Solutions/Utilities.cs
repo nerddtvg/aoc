@@ -7,6 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+// Text Encoding
+using System.Text;
+
+// MD5
+using System.Security.Cryptography;
+
 namespace AdventOfCode.Solutions
 {
 
@@ -71,5 +77,22 @@ namespace AdventOfCode.Solutions
         {
             for(int i = 0; i < count; i++) action();
         }
+
+        #nullable enable
+        /// <summary>
+        /// Hashing a string with MD5
+        /// </summary>
+        /// <param name="input">The string to generate a MD5 hash for.</param>
+        /// <param name="encoding">A reference to a <see cref="System.Text.Encoding"/> class. Default: <see cref="System.Text.Encoding.ASCII"/></param>
+        /// <returns>A lowercase MD5 hash</returns>
+        public static string MD5HashString(string input, Encoding? encoding = null)
+        {
+            // Our default is ASCII
+            if (encoding == null)
+                encoding = Encoding.ASCII;
+
+            return string.Join("", MD5.HashData(encoding.GetBytes(input)).SelectMany(a => a.ToString("X2").ToLowerInvariant()));
+        }
+        #nullable restore
     }
 }
