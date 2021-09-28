@@ -11,12 +11,12 @@ namespace AdventOfCode.Solutions.Year2016
     class Day14 : ASolution
     {
         private uint lastSearched = 0;
-        private Dictionary<uint, (string hash, MatchCollection matches)> found = new Dictionary<uint, (string hash, MatchCollection matches)>();
+        private Dictionary<uint, (string hash, Match match)> found = new Dictionary<uint, (string hash, Match match)>();
         private List<string> keys = new List<string>();
 
         public Day14() : base(14, 2016, "")
         {
-            DebugInput = "abc";
+            
         }
 
         private void FindTriples(string prefix, uint start)
@@ -28,11 +28,13 @@ namespace AdventOfCode.Solutions.Year2016
             {
                 var hash = Utilities.MD5HashString($"{prefix}{i}");
 
-                var matches = r.Matches(hash);
+                // "Only consider the first such triplet in a hash."
+                // This line got me.
+                var match = r.Match(hash);
 
-                if (matches.Count > 0)
+                if (match.Success)
                 {
-                    this.found[i] = (hash, matches);
+                    this.found[i] = (hash, match);
                 }
             }
 
@@ -52,12 +54,8 @@ namespace AdventOfCode.Solutions.Year2016
                 if (!this.found.ContainsKey(i))
                     continue;
 
-                // We have a triple, or multiple triples, so we get regular expressions to match against
-                var matches = this.found[i].matches
-                    .Select(m => m.Groups[1].Value[0])
-                    .Distinct()
-                    .Select(m => new Regex(m + @"{5}"))
-                    .ToList();
+                // We have a triple, so we get a regular expression to match against
+                var match = new Regex(this.found[i].match.Groups[1].Value[0] + @"{5}");
 
                 // We need to see if there are ANY matches in the next 1000 of the group character * 5 (a => aaaaa)
                 // These are the keys that are in our range
@@ -66,7 +64,7 @@ namespace AdventOfCode.Solutions.Year2016
                 foreach(var key in keys)
                 {
                     // For each key, we need to check if the values match anything
-                    if (matches.Any(m => m.IsMatch(this.found[key].hash)))
+                    if (match.IsMatch(this.found[key].hash))
                     {
                         // Found one!
                         this.keys.Add(this.found[i].hash);
