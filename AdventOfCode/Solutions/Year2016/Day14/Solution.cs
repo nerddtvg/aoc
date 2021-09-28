@@ -19,7 +19,7 @@ namespace AdventOfCode.Solutions.Year2016
             
         }
 
-        private void FindTriples(string prefix, uint start)
+        private void FindTriples(string prefix, uint start, int part = 1)
         {
             var r = new Regex(@"([a-z0-9])\1\1");
 
@@ -27,6 +27,10 @@ namespace AdventOfCode.Solutions.Year2016
             for (uint i = Math.Max(start, this.lastSearched); i <= start + 1000; i++)
             {
                 var hash = Utilities.MD5HashString($"{prefix}{i}");
+
+                // Part 2: Get 2016 hashes of this hash
+                if (part == 2)
+                    Utilities.Repeat(delegate () { hash = Utilities.MD5HashString(hash); }, 2016);
 
                 // "Only consider the first such triplet in a hash."
                 // This line got me.
@@ -42,13 +46,18 @@ namespace AdventOfCode.Solutions.Year2016
             this.lastSearched = Math.Max(start + 1000, this.lastSearched);
         }
 
-        protected override string SolvePartOne()
+        private uint Find64Key(int part = 1)
         {
+            // Reset
+            this.found = new Dictionary<uint, (string hash, Match match)>();
+            this.keys = new List<string>();
+            this.lastSearched = 0;
+
             // We need to find keys
             for (uint i = 0; i <= uint.MaxValue && this.keys.Count < 64; i++)
             {
                 // First we need to find triples in this range to make it easier
-                FindTriples(Input, i);
+                FindTriples(Input, i, part);
 
                 // if we don't have a triple at this key, move on
                 if (!this.found.ContainsKey(i))
@@ -69,12 +78,12 @@ namespace AdventOfCode.Solutions.Year2016
                         // Found one!
                         this.keys.Add(this.found[i].hash);
 
-                        Console.WriteLine($"Found {this.keys.Count} [{i}]: {this.found[i].hash}");
+                        Console.WriteLine($"[Part {part}] Found {this.keys.Count} [{i}]: {this.found[i].hash}");
 
                         // Find #64
                         if (this.keys.Count == 64)
                         {
-                            return i.ToString();
+                            return i;
                         }
 
                         break;
@@ -82,12 +91,17 @@ namespace AdventOfCode.Solutions.Year2016
                 }
             }
 
-            return null;
+            return 0;
+        }
+
+        protected override string SolvePartOne()
+        {
+            return Find64Key().ToString();
         }
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return Find64Key(2).ToString();
         }
     }
 }
