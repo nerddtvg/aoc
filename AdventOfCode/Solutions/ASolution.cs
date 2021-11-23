@@ -40,31 +40,52 @@ namespace AdventOfCode.Solutions
                 output += $"!!! DebugInput used: {DebugInput}\n";
             }
 
-            if(part != 2)
+            try
             {
-                if(Part1 != "")
+                if (part != 2)
                 {
-                    output += $"Part 1: {Part1}\n";
-                    doOutput = true;
+                    if (Part1 != "")
+                    {
+                        output += $"Part 1: {Part1}\n";
+                        doOutput = true;
+                    }
+                    else
+                    {
+                        output += "Part 1: Unsolved\n";
+                        if (part == 1) doOutput = true;
+                    }
                 }
-                else
+                if (part != 1)
                 {
-                    output += "Part 1: Unsolved\n";
-                    if(part == 1) doOutput = true;
+                    if (Part2 != "")
+                    {
+                        output += $"Part 2: {Part2}\n";
+                        doOutput = true;
+                    }
+                    else
+                    {
+                        output += "Part 2: Unsolved\n";
+                        if (part == 2) doOutput = true;
+                    }
                 }
             }
-            if(part != 1)
+            catch (Exception ex)
             {
-                if(Part2 != "")
+                // Catching exceptions from the solution code
+                Console.WriteLine("Exception caught:");
+                Console.WriteLine(ex.Message);
+
+                if (ex.InnerException != null)
                 {
-                    output += $"Part 2: {Part2}\n";
-                    doOutput = true;
+                    Console.WriteLine("--- Inner Exception ---");
+                    Console.WriteLine(ex.InnerException.Message);
+                    if (!string.IsNullOrEmpty(ex.InnerException.StackTrace))
+                        Console.WriteLine(ex.InnerException.StackTrace);
+                    Console.WriteLine("--- End Inner Exception ---");
                 }
-                else
-                {
-                    output += "Part 2: Unsolved\n";
-                    if(part == 2) doOutput = true;
-                }
+
+                if (!string.IsNullOrEmpty(ex.StackTrace))
+                    Console.WriteLine(ex.StackTrace);
             }
 
             if(doOutput) Console.WriteLine(output);
