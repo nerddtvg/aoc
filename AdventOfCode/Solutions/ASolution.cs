@@ -117,10 +117,18 @@ namespace AdventOfCode.Solutions
                     DateTimeOffset CURRENT_EST = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, estZone);
                     if(CURRENT_EST < new DateTimeOffset(Year, 12, Day, 0, 0, 0, estZone.GetUtcOffset(DateTimeOffset.UtcNow))) throw new InvalidOperationException();
 
-                    using(var client = new WebClient())
+                    var cookieContainer = new CookieContainer();
+                    using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
+                    using(var client = new HttpClient(handler))
                     {
-                        client.Headers.Add(HttpRequestHeader.Cookie, Program.Config.Cookie);
-                        input = client.DownloadString(INPUT_URL).TrimEnd();
+                        // Get the base URI for this cookie
+                        var uri = new Uri(INPUT_URL);
+
+                        // Add the cookie
+                        var cookie = Program.Config.Cookie.Split('=', 2, StringSplitOptions.TrimEntries);
+                        cookieContainer.Add(uri, new Cookie(cookie[0], cookie.Length > 1 ? cookie[1] : string.Empty));
+
+                        input = client.GetStringAsync(INPUT_URL).Result.TrimEnd();
                         File.WriteAllText(INPUT_FILEPATH, input);
                     }
                 }
