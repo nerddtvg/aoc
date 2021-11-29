@@ -11,29 +11,29 @@ namespace AdventOfCode.Solutions
     abstract class ASolution
     {
 
-        Lazy<string> _input, _part1, _part2;
+        Lazy<string?> _input, _part1, _part2;
 
         public int Day { get; }
         public int Year { get; }
         public string Title { get; }
         public string DebugInput { get; set; } = string.Empty;
-        public string Input => DebugInput != null ? DebugInput : (string.IsNullOrEmpty(_input.Value) ? string.Empty : _input.Value);
-        public string Part1 => string.IsNullOrEmpty(_part1.Value) ? "" : _part1.Value;
-        public string Part2 => string.IsNullOrEmpty(_part2.Value) ? "" : _part2.Value;
+        public string Input => !string.IsNullOrEmpty(DebugInput) ? DebugInput : (string.IsNullOrEmpty(_input.Value) ? string.Empty : _input.Value);
+        public string Part1 => string.IsNullOrEmpty(_part1.Value) ? string.Empty : _part1.Value;
+        public string Part2 => string.IsNullOrEmpty(_part2.Value) ? string.Empty : _part2.Value;
 
         private protected ASolution(int day, int year, string title)
         {
             Day = day;
             Year = year;
             Title = title;
-            _input = new Lazy<string>(() => LoadInput());
-            _part1 = new Lazy<string>(() => SolvePartOne() ?? string.Empty);
-            _part2 = new Lazy<string>(() => SolvePartTwo() ?? string.Empty);
+            _input = new Lazy<string?>(() => LoadInput());
+            _part1 = new Lazy<string?>(() => SolvePartOne());
+            _part2 = new Lazy<string?>(() => SolvePartTwo());
         }
 
         public void Solve(int part = 0)
         {
-            if(Input == null) return;
+            if(string.IsNullOrEmpty(Input)) return;
 
             bool doOutput = false;
             string output = $"--- Day {Day}: {Title} --- \n";
@@ -46,7 +46,7 @@ namespace AdventOfCode.Solutions
             {
                 if (part != 2)
                 {
-                    if (Part1 != "")
+                    if (!string.IsNullOrEmpty(Part1))
                     {
                         output += $"Part 1: {Part1}\n";
                         doOutput = true;
@@ -59,7 +59,7 @@ namespace AdventOfCode.Solutions
                 }
                 if (part != 1)
                 {
-                    if (Part2 != "")
+                    if (!string.IsNullOrEmpty(Part2))
                     {
                         output += $"Part 2: {Part2}\n";
                         doOutput = true;
