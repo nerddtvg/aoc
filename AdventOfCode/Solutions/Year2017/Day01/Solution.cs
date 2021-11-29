@@ -37,7 +37,19 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            var split = Input.ToCharArray();
+            var total = 0;
+            for (int i = 0; i < split.Length; i++)
+            {
+                var next = (i + (split.Length / 2)) % split.Length;
+
+                if (split[i] == split[next])
+                {
+                    total += Int32.Parse(split[i].ToString());
+                }
+            }
+
+            return total.ToString();
         }
     }
 }
