@@ -25,7 +25,7 @@ namespace AdventOfCode.Solutions
         {
             Day = day;
             Year = year;
-            Title = title;
+            Title = !string.IsNullOrEmpty(title) ? title : "Unspecified";
             _input = new Lazy<string?>(() => LoadInput());
             _part1 = new Lazy<string?>(() => SolvePartOne());
             _part2 = new Lazy<string?>(() => SolvePartTwo());
@@ -35,7 +35,7 @@ namespace AdventOfCode.Solutions
         {
             if(string.IsNullOrEmpty(Input)) return;
 
-            string output = $"--- Day {Day}: {Title} --- \n";
+            string output = $"--- {Year} Day {Day}: {Title} --- \n";
             if(!string.IsNullOrEmpty(DebugInput))
             {
                 output += $"!!! DebugInput used: {DebugInput}\n";
