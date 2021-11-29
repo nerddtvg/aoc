@@ -3,6 +3,8 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 
+#nullable enable
+
 namespace AdventOfCode.Solutions
 {
 
@@ -14,8 +16,8 @@ namespace AdventOfCode.Solutions
         public int Day { get; }
         public int Year { get; }
         public string Title { get; }
-        public string DebugInput { get; set; }
-        public string Input => DebugInput != null ? DebugInput : (string.IsNullOrEmpty(_input.Value) ? null : _input.Value);
+        public string DebugInput { get; set; } = string.Empty;
+        public string Input => DebugInput != null ? DebugInput : (string.IsNullOrEmpty(_input.Value) ? string.Empty : _input.Value);
         public string Part1 => string.IsNullOrEmpty(_part1.Value) ? "" : _part1.Value;
         public string Part2 => string.IsNullOrEmpty(_part2.Value) ? "" : _part2.Value;
 
@@ -25,8 +27,8 @@ namespace AdventOfCode.Solutions
             Year = year;
             Title = title;
             _input = new Lazy<string>(() => LoadInput());
-            _part1 = new Lazy<string>(() => SolvePartOne());
-            _part2 = new Lazy<string>(() => SolvePartTwo());
+            _part1 = new Lazy<string>(() => SolvePartOne() ?? string.Empty);
+            _part2 = new Lazy<string>(() => SolvePartTwo() ?? string.Empty);
         }
 
         public void Solve(int part = 0)
@@ -134,18 +136,25 @@ namespace AdventOfCode.Solutions
                 }
                 catch(WebException e)
                 {
-                    var statusCode = ((HttpWebResponse)e.Response).StatusCode;
-                    if(statusCode == HttpStatusCode.BadRequest)
+                    if (e.Response == null)
                     {
-                        Console.WriteLine($"Day {Day}: Error code 400 when attempting to retrieve puzzle input through the web client. Your session cookie is probably not recognized.");
-                    }
-                    else if(statusCode == HttpStatusCode.NotFound)
-                    {
-                        Console.WriteLine($"Day {Day}: Error code 404 when attempting to retrieve puzzle input through the web client. The puzzle is probably not available yet.");
+                        Console.WriteLine($"Day {Day}: An invalid response was provided in the WebException.");
                     }
                     else
                     {
-                        Console.WriteLine(e.ToString());
+                        var statusCode = ((HttpWebResponse)e.Response).StatusCode;
+                        if (statusCode == HttpStatusCode.BadRequest)
+                        {
+                            Console.WriteLine($"Day {Day}: Error code 400 when attempting to retrieve puzzle input through the web client. Your session cookie is probably not recognized.");
+                        }
+                        else if (statusCode == HttpStatusCode.NotFound)
+                        {
+                            Console.WriteLine($"Day {Day}: Error code 404 when attempting to retrieve puzzle input through the web client. The puzzle is probably not available yet.");
+                        }
+                        else
+                        {
+                            Console.WriteLine(e.ToString());
+                        }
                     }
                 }
                 catch(InvalidOperationException)
@@ -160,7 +169,9 @@ namespace AdventOfCode.Solutions
             return input;
         }
 
-        protected abstract string SolvePartOne();
-        protected abstract string SolvePartTwo();
+        protected abstract string? SolvePartOne();
+        protected abstract string? SolvePartTwo();
     }
 }
+
+#nullable restore

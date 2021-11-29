@@ -13,6 +13,8 @@ using System.Text.RegularExpressions;
 
 using System.Linq;
 
+#nullable enable
+
 namespace AdventOfCode.Solutions.Year<YEAR>
 {
 
@@ -24,17 +26,19 @@ namespace AdventOfCode.Solutions.Year<YEAR>
 
         }
 
-        protected override string SolvePartOne()
+        protected override string? SolvePartOne()
         {
             return null;
         }
 
-        protected override string SolvePartTwo()
+        protected override string? SolvePartTwo()
         {
             return null;
         }
     }
 }
+
+#nullable restore
 
 "@
 
