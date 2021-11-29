@@ -185,7 +185,6 @@ namespace AdventOfCode.Solutions.Year2018
 
                 // Find any idle workers and MAKE THEM WORK
                 // Need to do this through a manual loop because Linq ForEach didn't update variables
-                int i = 0;
                 workers.Where(worker => worker.IsIdle()).ToList().ForEach(worker => {
                     // Get a current list of what's in progress (refresh each loop to account for anything new)
                     List<string> inProgress = workers.Where(worker => !string.IsNullOrEmpty(worker.id)).Select(a => a.id).ToList();

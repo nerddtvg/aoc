@@ -61,8 +61,6 @@ namespace AdventOfCode.Solutions.Year2019
                     }
                 }
             }
-
-            return null;
         }
 
         protected override string SolvePartTwo()

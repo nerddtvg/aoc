@@ -114,7 +114,7 @@ namespace AdventOfCode.Solutions.Year2018
             Console.WriteLine($"Minute: {minute}");
 
             // Let's draw this guard's shifts
-            if (false) {
+            /* if (false) {
                 int x;
                 
                 Console.Write("      ");
@@ -144,7 +144,7 @@ namespace AdventOfCode.Solutions.Year2018
                     
                     Console.WriteLine();
                 }
-            }
+            } */
 
             return (guard[0] * minute).ToString();
         }

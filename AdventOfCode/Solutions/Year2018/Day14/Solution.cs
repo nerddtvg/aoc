@@ -153,8 +153,6 @@ namespace AdventOfCode.Solutions.Year2018
                 // Got a list of "found" entries we don't care about anymore
                 remove.ForEach(a => this.found.Remove(a));
             }
-
-            return null;
         }
     }
 }

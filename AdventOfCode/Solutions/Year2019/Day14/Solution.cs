@@ -202,8 +202,6 @@ namespace AdventOfCode.Solutions.Year2019
                 Console.WriteLine($"New Max: {f_max}");
                 Console.WriteLine();
             }
-
-            return null;
         }
     }
 }

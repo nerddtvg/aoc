@@ -25,7 +25,7 @@ namespace AdventOfCode.Solutions.Year2018
             // Disable tests
             return;
 
-            Dictionary<string, ulong> tests = new Dictionary<string, ulong>() {
+            /* Dictionary<string, ulong> tests = new Dictionary<string, ulong>() {
                 {"9 players; last marble is worth 25 points", 32},
                 {"10 players; last marble is worth 1618 points", 8317},
                 {"13 players; last marble is worth 7999 points", 146373},
@@ -39,7 +39,7 @@ namespace AdventOfCode.Solutions.Year2018
                 Console.Write($"[TEST] {kvp.Key}: Expected {kvp.Value.ToString()}, Received: ");
                 RunGame(ParseGame(kvp.Key));
                 Console.WriteLine($"{players.OrderByDescending(a => a).Select(a => a.ToString()).First()}");
-            }
+            } */
         }
 
         private (int playerCount, int finalMarble) ParseGame(string input) {
