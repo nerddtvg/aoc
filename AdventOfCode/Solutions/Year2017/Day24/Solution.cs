@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 
 using System.Linq;
 
+#nullable enable
+
 namespace AdventOfCode.Solutions.Year2017
 {
 
@@ -16,14 +18,16 @@ namespace AdventOfCode.Solutions.Year2017
 
         }
 
-        protected override string SolvePartOne()
+        protected override string? SolvePartOne()
         {
             return null;
         }
 
-        protected override string SolvePartTwo()
+        protected override string? SolvePartTwo()
         {
             return null;
         }
     }
 }
+
+#nullable restore
