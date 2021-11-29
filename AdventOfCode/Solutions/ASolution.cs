@@ -35,9 +35,8 @@ namespace AdventOfCode.Solutions
         {
             if(string.IsNullOrEmpty(Input)) return;
 
-            bool doOutput = false;
             string output = $"--- Day {Day}: {Title} --- \n";
-            if(DebugInput != null)
+            if(!string.IsNullOrEmpty(DebugInput))
             {
                 output += $"!!! DebugInput used: {DebugInput}\n";
             }
@@ -49,12 +48,10 @@ namespace AdventOfCode.Solutions
                     if (!string.IsNullOrEmpty(Part1))
                     {
                         output += $"Part 1: {Part1}\n";
-                        doOutput = true;
                     }
                     else
                     {
                         output += "Part 1: Unsolved\n";
-                        if (part == 1) doOutput = true;
                     }
                 }
                 if (part != 1)
@@ -62,12 +59,10 @@ namespace AdventOfCode.Solutions
                     if (!string.IsNullOrEmpty(Part2))
                     {
                         output += $"Part 2: {Part2}\n";
-                        doOutput = true;
                     }
                     else
                     {
                         output += "Part 2: Unsolved\n";
-                        if (part == 2) doOutput = true;
                     }
                 }
             }
@@ -90,7 +85,7 @@ namespace AdventOfCode.Solutions
                     Console.WriteLine(ex.StackTrace);
             }
 
-            if(doOutput) Console.WriteLine(output);
+            Console.WriteLine(output);
         }
 
         string LoadInput()
