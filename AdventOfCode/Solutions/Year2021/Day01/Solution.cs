@@ -20,12 +20,30 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartOne()
         {
-            return null;
+            int count = 0;
+
+            var lines = Input.SplitByNewline().ToList();
+            for (int i = 1; i < lines.Count; i++)
+            {
+                if (Int32.Parse(lines[i]) > Int32.Parse(lines[i-1]))
+                    count++;
+            }
+
+            return count.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            int count = 0;
+
+            var lines = Input.SplitByNewline().ToList();
+            for (int i = 3; i < lines.Count; i++)
+            {
+                if (Int32.Parse(lines[i]) + Int32.Parse(lines[i-1]) + Int32.Parse(lines[i-2]) > Int32.Parse(lines[i-1]) + Int32.Parse(lines[i-2]) + Int32.Parse(lines[i-3]))
+                    count++;
+            }
+
+            return count.ToString();
         }
     }
 }
