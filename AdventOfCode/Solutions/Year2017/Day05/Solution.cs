@@ -17,15 +17,16 @@ namespace AdventOfCode.Solutions.Year2017
 
         public Day05() : base(05, 2017, "A Maze of Twisty Trampolines, All Alike")
         {
-            ResetList();
+            
         }
 
         private void ResetList()
         {
             this.instructions = Input.SplitByNewline(true).Select(i => Int32.Parse(i)).ToList();
+            this.pos = 0;
         }
 
-        private bool Run()
+        private bool Run(int part = 1)
         {
             // Order of operations:
             // Move to new position (if outside, exit with false)
@@ -46,13 +47,18 @@ namespace AdventOfCode.Solutions.Year2017
             this.pos = newPos;
 
             // New value at old position
-            instructions[oldPos]++;
+            if (part == 2 && instructions[oldPos] >= 3)
+                instructions[oldPos]--;
+            else
+                instructions[oldPos]++;
 
             return true;
         }
 
         protected override string? SolvePartOne()
         {
+            ResetList();
+            
             int count = 0;
             do
             {
@@ -64,7 +70,15 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            ResetList();
+            
+            int count = 0;
+            do
+            {
+                count++;
+            } while (Run(part: 2));
+
+            return count.ToString();
         }
     }
 }
