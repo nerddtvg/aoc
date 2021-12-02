@@ -13,7 +13,7 @@ namespace AdventOfCode.Solutions.Year2021
     class Day02 : ASolution
     {
 
-        public Day02() : base(02, 2021, "")
+        public Day02() : base(02, 2021, "Dive!")
         {
 
         }
