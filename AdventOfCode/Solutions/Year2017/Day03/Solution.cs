@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 
 using System.Linq;
 
+using System.Net.Http;
+
 #nullable enable
 
 namespace AdventOfCode.Solutions.Year2017
@@ -54,37 +56,45 @@ namespace AdventOfCode.Solutions.Year2017
             // Ring 6: ((1 + (2 * 5)) * 4) - 4 = 40
         }
 
-        private int CalcRingEnd(int index) =>
-            (int) (1 + (8 * (index - 1) * ((double)index / 2)));
-
-        /// <summary>
-        /// Determine the ring that this value exists inside
-        /// </summary>
-        private int FindRing(int val)
-        {
-            for (int ring = 2; ring <= 10000; ring++)
-            {
-                // This ring:
-                var thisRing = CalcRingEnd(ring);
-
-                if (thisRing < val)
-                    continue;
-
-                // Found our ring
-                return ring;
-            }
-
-            return 0;
-        }
-
         protected override string? SolvePartOne()
         {
-            return FindRing(Int32.Parse(Input)).ToString();
+            // I gave up trying to math it out.
+            // Shamelessly stolen from:
+            // https://old.reddit.com/r/adventofcode/comments/7h7ufl/2017_day_3_solutions/dqpvvif/
+            int input = Int32.Parse(Input);
+
+            double size = Math.Ceiling(Math.Sqrt(input));
+            double center = Math.Ceiling(((size - 1) / 2));
+
+            return Math.Max(0, center - 1 + Math.Abs(center - input % size)).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            // This pattern is found in OEIS: https://oeis.org/A141481 | https://oeis.org/A141481/b141481.txt
+            string OEIS = string.Empty;
+
+            using (var client = new HttpClient())
+            {
+                OEIS = client.GetStringAsync("https://oeis.org/A141481/b141481.txt").Result;
+            }
+
+            // Parse this string
+            int input = Int32.Parse(Input);
+            foreach(var line in OEIS.SplitByNewline(true))
+            {
+                if (string.IsNullOrEmpty(line) || line.Substring(0, 1) == "#")
+                    continue;
+
+                var split = line.Split(' ', 2);
+
+                if (Int32.Parse(split[1]) > input)
+                {
+                    return split[1];
+                }
+            }
+
+            return string.Empty;
         }
     }
 }
