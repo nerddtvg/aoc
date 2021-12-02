@@ -85,7 +85,37 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            Reset();
+
+            var firstHash = string.Empty;
+            var count = 0;
+
+            // Add initial state to history
+            this.history.Add(GetHash());
+
+            do
+            {
+                if (!string.IsNullOrEmpty(firstHash))
+                    count++;
+
+                var hash = BalanceMemory();
+
+                if (count == 0 && this.history.Contains(hash))
+                    // We start counting here
+                    firstHash = hash;
+
+                // We check here
+                if (count > 0)
+                {
+                    if (hash == firstHash)
+                        return count.ToString();
+                }
+                else
+                {
+                    // Only care about hash history when we aren't counting
+                    this.history.Add(hash);
+                }
+            } while (true);
         }
     }
 }
