@@ -21,6 +21,9 @@ namespace AdventOfCode.Solutions.Year2017
         public bool IsValidPassPhrase(string phase) =>
             !phase.Split(' ', StringSplitOptions.RemoveEmptyEntries).GroupBy(word => word).Any(grp => grp.Count() > 1);
 
+        public bool IsValidPassPhrase2(string phase) =>
+            !phase.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(word => word.ToCharArray().OrderBy(c => c).JoinAsString()).GroupBy(word => word).Any(grp => grp.Count() > 1);
+
         protected override string? SolvePartOne()
         {
             return Input.SplitByNewline(true).Count(line => IsValidPassPhrase(line)).ToString();
@@ -28,7 +31,7 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            return Input.SplitByNewline(true).Count(line => IsValidPassPhrase2(line)).ToString();
         }
     }
 }
