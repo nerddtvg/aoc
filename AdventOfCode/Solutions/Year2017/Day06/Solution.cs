@@ -39,7 +39,10 @@ namespace AdventOfCode.Solutions.Year2017
         private string BalanceMemory()
         {
             var max = memoryBanks.Max();
-            var node = memoryBanks.FirstNode(v => v == max);
+            var node = memoryBanks.Find(max);
+
+            if (node == null)
+                throw new InvalidOperationException();
 
             // Clear this node
             node.Value = 0;
