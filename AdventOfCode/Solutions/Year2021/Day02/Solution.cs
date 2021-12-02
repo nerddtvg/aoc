@@ -52,7 +52,37 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            int ypos = 0;
+            int xpos = 0;
+            int aim = 0;
+
+            foreach(var line in Input.SplitByNewline(true))
+            {
+                var str = line.Split(' ', 2);
+                int val = Int32.Parse(str[1]);
+
+                switch(str[0])
+                {
+                    case "forward":
+                        xpos += val;
+                        ypos += aim * val;
+                        break;
+                        
+                    case "up":
+                        aim -= val;
+                        break;
+                        
+                    case "down":
+                        aim += val;
+                        break;
+                }
+            }
+
+            Console.WriteLine($"X Pos: {xpos}");
+            Console.WriteLine($"Y Pos: {ypos}");
+            Console.WriteLine($"Aim:   {aim}");
+
+            return (xpos*ypos).ToString();
         }
     }
 }
