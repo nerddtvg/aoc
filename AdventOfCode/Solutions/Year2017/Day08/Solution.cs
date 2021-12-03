@@ -14,6 +14,7 @@ namespace AdventOfCode.Solutions.Year2017
     {
 
         private Dictionary<string, int> registers = new Dictionary<string, int>();
+        private int maxValue = Int32.MinValue;
 
         public Day08() : base(08, 2017, "I Heard You Like Registers")
         {
@@ -21,7 +22,12 @@ namespace AdventOfCode.Solutions.Year2017
         }
 
         // Just to keep things the same
-        private int SetRegister(string id, int val) => registers[id] = val;
+        private void SetRegister(string id, int val)
+        {
+            registers[id] = val;
+
+            this.maxValue = Math.Max(this.maxValue, val);
+        }
 
         // All registers start at 0
         private int GetRegister(string id)
@@ -99,7 +105,7 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            return this.maxValue.ToString();
         }
     }
 }
