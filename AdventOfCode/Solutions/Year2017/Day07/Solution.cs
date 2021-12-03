@@ -18,9 +18,12 @@ namespace AdventOfCode.Solutions.Year2017
             public int weight { get; set; } = 0;
             public Tower? parent { get; set; } = null;
             public List<Tower> children { get; set; } = new List<Tower>();
+            public int depth { get; set; } = 0;
         }
 
         private List<Tower> towers = new List<Tower>();
+
+        private Tower root = new Tower();
 
         public Day07() : base(07, 2017, "")
         {
@@ -69,21 +72,64 @@ namespace AdventOfCode.Solutions.Year2017
 
                         // Set the parent
                         child.parent = tower;
+
+                        // Set the child
+                        tower.children.Add(child);
                     }
                 }
             }
+
+            // Set our root for reference
+            var tRoot = this.towers.FirstOrDefault(tower => tower.parent == null);
+
+            if (tRoot == default)
+                throw new InvalidOperationException();
+
+            this.root = tRoot;
         }
+
+        // Get all of the weights of the above towers
+        private int GetWeight(Tower tower) => tower.weight + tower.children.Sum(t => GetWeight(t));
 
         protected override string? SolvePartOne()
         {
             ReadInput();
 
-            return this.towers.First(tower => tower.parent == null).id;
+            return this.root.id;
         }
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            // Find the weights of all children of Part1
+            // Find the one that is not the same
+            // Go up the tower until we find the one unbalanced level
+            var currentNode = this.root;
+
+            do
+            {
+                // Find the weights at this level
+                var weights = currentNode.children.Select(child => (child, GetWeight(child)));
+
+                // Find which one doesn't match
+                var max = weights.Max(child => child.Item2);
+                var maxNode = weights.Where(child => child.Item2 == max).FirstOrDefault();
+
+                if (maxNode == default)
+                    throw new InvalidOperationException();
+
+                // We have a maxNode, if it's children doen't have children, this is our answer
+                if (maxNode.child.children.Sum(c => c.children.Count) == 0)
+                {
+                    var min = weights.Min(child => child.Item2);
+
+                    return (maxNode.child.weight - (max - min)).ToString();
+                }
+
+                // Otherwise, move up this node
+                currentNode = maxNode.child;
+            } while (currentNode != null);
+
+            return string.Empty;
         }
     }
 }
