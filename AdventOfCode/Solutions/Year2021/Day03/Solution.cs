@@ -22,7 +22,7 @@ namespace AdventOfCode.Solutions.Year2021
         private List<int> zeros = new List<int>();
         private List<int> ones = new List<int>();
 
-        public Day03() : base(03, 2021, "")
+        public Day03() : base(03, 2021, "Binary Diagnostic")
         {
 
         }
