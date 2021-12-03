@@ -25,7 +25,7 @@ namespace AdventOfCode.Solutions.Year2017
 
         private Tower root = new Tower();
 
-        public Day07() : base(07, 2017, "")
+        public Day07() : base(07, 2017, "Recursive Circus")
         {
 
         }
