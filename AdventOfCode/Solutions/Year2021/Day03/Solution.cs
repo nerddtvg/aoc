@@ -18,10 +18,6 @@ namespace AdventOfCode.Solutions.Year2021
         int co2 = 0;
         int length = 0;
 
-        // This keeps track of the zeros and ones in each position
-        private List<int> zeros = new List<int>();
-        private List<int> ones = new List<int>();
-
         public Day03() : base(03, 2021, "Binary Diagnostic")
         {
 
