@@ -59,6 +59,8 @@ namespace AdventOfCode.Solutions
             else
             {
                 // Override some functions special for lines
+                // The reason we exclude when both endpoints are equal
+                // is because then the function will go into an infinite loop
                 if (a.x != b.x && a.y == b.y)
                 {
                     // Disable incrementing y
