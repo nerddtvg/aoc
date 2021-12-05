@@ -13,17 +13,20 @@ namespace AdventOfCode.Solutions.Year2021
     class Day05 : ASolution
     {
         public List<(int x, int y)[]> straightLines = new List<(int x, int y)[]>();
-        public List<(int x, int y)[]> allLines = new List<(int x, int y)[]>();
+        public List<(int x, int y)[]> diagonalLines = new List<(int x, int y)[]>();
 
         public Day05() : base(05, 2021, "")
         {
             foreach(var line in Input.SplitByNewline())
             {
                 var points = line
+                    // Get each endpoint
                     .Split(" -> ", StringSplitOptions.TrimEntries)
                     .Select(point => 
                     {
+                        // Split them out
                         var pts = point.Split(',', StringSplitOptions.TrimEntries);
+                        // Return them as (x, y)
                         return (Int32.Parse(pts[0]), Int32.Parse(pts[1]));
                     })
                     .ToArray();
@@ -31,11 +34,11 @@ namespace AdventOfCode.Solutions.Year2021
                 if (points.Length != 2)
                     throw new InvalidOperationException();
 
-                allLines.Add(points[0].GetPointsBetweenInclusive(points[1], true));
-
                 // No diagonal lines (yet?)
                 if (!(points[0].Item1 != points[1].Item1 && points[0].Item2 != points[1].Item2))
-                    this.straightLines.Add(allLines[allLines.Count - 1]);
+                    this.straightLines.Add(points[0].GetPointsBetweenInclusive(points[1], true));
+                else
+                    this.diagonalLines.Add(points[0].GetPointsBetweenInclusive(points[1], true));
             }
         }
 
@@ -54,7 +57,8 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            return this.allLines
+            // All the lines!
+            return this.diagonalLines.Union(this.straightLines)
                 // Select all of the points of these lines together
                 .SelectMany(line => line)
                 // Group by the number of points we have together
