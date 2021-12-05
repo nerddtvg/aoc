@@ -80,7 +80,15 @@ namespace AdventOfCode.Solutions.Year2021
                     new Board()
                     {
                         // Compact the multi-line string, split it out into values, then find the appropriate tiles that match in order
-                        tiles = string.Join(" ", string.Join(" ", board).Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)).ToIntArray(" ").Select(val => this.tiles.First(tile => tile.value == val)).ToList()
+                        tiles =
+                            // First, join all of the lines together with a space
+                            string.Join(" ", board)
+                            // Then split everything out by spaces, removing and trimming as needed (numbers can have multiple spaces between)
+                            .Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                            // Create a tile for this value
+                            .Select(val => this.tiles.First(tile => tile.value == Int32.Parse(val)))
+                            // Convert to the proper list
+                            .ToList()
                     }
                 ).ToList();
         }
