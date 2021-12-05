@@ -54,7 +54,15 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            return this.allLines
+                // Select all of the points of these lines together
+                .SelectMany(line => line)
+                // Group by the number of points we have together
+                .GroupBy(point => point)
+                // Only keep the points that overlap
+                .Where(grp => grp.Count() > 1)
+                // Count and return
+                .Count().ToString();
         }
     }
 }
