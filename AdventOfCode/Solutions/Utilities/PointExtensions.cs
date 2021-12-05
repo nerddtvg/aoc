@@ -68,7 +68,7 @@ namespace AdventOfCode.Solutions
                 }
                 else if (a.x == b.x && a.y != b.y)
                 {
-                    // Disable incrementing y
+                    // Disable incrementing x
                     incx = x => x;
                 }
 
