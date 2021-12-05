@@ -58,6 +58,18 @@ namespace AdventOfCode.Solutions
             }
             else
             {
+                // Override some functions special for lines
+                if (a.x != b.x && a.y == b.y)
+                {
+                    // Disable incrementing y
+                    incy = y => y;
+                }
+                else if (a.x == b.x && a.y != b.y)
+                {
+                    // Disable incrementing y
+                    incx = x => x;
+                }
+
                 // Generate the list for a Line
                 for (int y = a.y, x = a.x; fx(x) && fy(y); x = incx(x), y = incy(y))
                 {
