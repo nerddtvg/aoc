@@ -35,6 +35,7 @@ namespace AdventOfCode.Solutions.Year2021
                     // Reduced the code down to be a little more dynamic
                     Enumerable
                         .Range(0, 5)
+                        // This will return true if any of the conditions are true (a row or column is filled)
                         .Any(index =>
                         {
                             return
