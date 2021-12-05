@@ -118,9 +118,6 @@ namespace AdventOfCode.Solutions.Year2021
             this.tiles.ForEach(tile => tile.marked = false);
             this.boards.ForEach(board => board.Reset());
 
-            // Track the won boards
-            var wonBoards = new HashSet<int>();
-
             // Go through each called value, mark the tile, check for winners
             foreach(var called in this.calledTiles)
             {
@@ -129,26 +126,20 @@ namespace AdventOfCode.Solutions.Year2021
                 if (tile == default)
                     throw new InvalidOperationException();
 
+                // Start by predeterminig if this is the last board
+                // Now that we save the winning status when won, this shouldn't be _too_ inefficient
+                var unwon = this.boards.Where(board => !board.IsWinner()).ToList();
+
+                // Mark this tile
                 tile.marked = true;
 
-                for (int i = 0; i < this.boards.Count; i++)
+                // Now recheck!
+                if (unwon.Count == 1 && unwon[0].IsWinner())
                 {
-                    // Skip if already known
-                    if (wonBoards.Contains(i))
-                        continue;
+                    // Found the last winner!
+                    Console.WriteLine($"Last Winning Board: {this.boards.IndexOf(unwon[0])}");
 
-                    if (this.boards[i].IsWinner())
-                    {
-                        wonBoards.Add(i);
-
-                        if (wonBoards.Count == this.boards.Count)
-                        {
-                            // Found the last winner!
-                            Console.WriteLine($"Last Winning Board: {i}");
-
-                            return this.boards[i].GetScore(called).ToString();
-                        }
-                    }
+                    return unwon[0].GetScore(called).ToString();
                 }
             }
 
