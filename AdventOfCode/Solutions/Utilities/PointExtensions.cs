@@ -19,8 +19,9 @@ namespace AdventOfCode.Solutions
         /// </summary>
         /// <param name="a">A tuple of integer (x, y) values</param>
         /// <param name="b">A tuple of integer (x, y) values</param>
+        /// <param name="IsLine">If <c>true</c>, treat the points as a line instead of an area. Default: <c>false</c></param>
         /// <returns>An array of tuple of integer (x, y) values</returns>
-        public static (int, int)[] GetPointsBetweenInclusive(this (int x, int y) a, (int x, int y) b, bool IsArea = true)
+        public static (int, int)[] GetPointsBetweenInclusive(this (int x, int y) a, (int x, int y) b, bool IsLine = false)
         {
             // Return object
             List<(int x, int y)> ret = new List<(int x, int y)>();
@@ -44,7 +45,7 @@ namespace AdventOfCode.Solutions
                 incy = y => y - 1;
             }
 
-            if (IsArea)
+            if (!IsLine)
             {
                 // Generate the list for an Area
                 for (int y = a.y; fy(y); y = incy(y))
@@ -73,11 +74,12 @@ namespace AdventOfCode.Solutions
         /// </summary>
         /// <param name="a">A tuple of integer (x, y) values</param>
         /// <param name="b">A tuple of integer (x, y) values</param>
+        /// <param name="IsLine">If <c>true</c>, treat the points as a line instead of an area. Default: <c>false</c></param>
         /// <returns>An array of tuple of integer (x, y) values</returns>
-        public static (int, int)[] GetPointsBetween(this (int x, int y) a, (int x, int y) b, bool IsArea = true)
+        public static (int, int)[] GetPointsBetween(this (int x, int y) a, (int x, int y) b, bool IsLine = false)
         {
             // Start with our base array
-            var ret = a.GetPointsBetweenInclusive(b);
+            var ret = a.GetPointsBetweenInclusive(b, IsLine);
 
             // Return the array
             return ret.Skip(1).Take(ret.Length-2).ToArray();
