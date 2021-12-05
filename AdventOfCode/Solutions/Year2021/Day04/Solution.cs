@@ -60,7 +60,7 @@ namespace AdventOfCode.Solutions.Year2021
         // The order of being marked
         public List<int> calledTiles { get; set; } = new List<int>();
 
-        public Day04() : base(04, 2021, "")
+        public Day04() : base(04, 2021, "Giant Squid")
         {
             // Generate the list of tiles
             calledTiles = Input.SplitByNewline().First().ToIntArray(",").ToList();
@@ -112,6 +112,43 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
+            // Reset the called numbers
+            this.tiles.ForEach(tile => tile.marked = false);
+
+            // Track the won boards
+            var wonBoards = new HashSet<int>();
+
+            // Go through each called value, mark the tile, check for winners
+            foreach(var called in this.calledTiles)
+            {
+                var tile = this.tiles.FirstOrDefault(tile => tile.value == called);
+
+                if (tile == default)
+                    throw new InvalidOperationException();
+
+                tile.marked = true;
+
+                for (int i = 0; i < this.boards.Count; i++)
+                {
+                    // Skip if already known
+                    if (wonBoards.Contains(i))
+                        continue;
+
+                    if (this.boards[i].IsWinner())
+                    {
+                        wonBoards.Add(i);
+
+                        if (wonBoards.Count == this.boards.Count)
+                        {
+                            // Found the last winner!
+                            Console.WriteLine($"Last Winning Board: {i}");
+
+                            return this.boards[i].GetScore(called).ToString();
+                        }
+                    }
+                }
+            }
+
             return null;
         }
     }
