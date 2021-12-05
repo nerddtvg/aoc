@@ -23,30 +23,32 @@ namespace AdventOfCode.Solutions.Year2021
 
         public class Board
         {
+            // This tracks if this has been solved or not
+            private bool solved = false;
+
             public List<Tile> tiles { get; set; } = new List<Tile>();
 
-            public bool IsWinner() =>
-                // Any row
-                (tiles[0].marked && tiles[1].marked && tiles[2].marked && tiles[3].marked && tiles[4].marked)
-                ||
-                (tiles[5].marked && tiles[6].marked && tiles[7].marked && tiles[8].marked && tiles[9].marked)
-                ||
-                (tiles[10].marked && tiles[11].marked && tiles[12].marked && tiles[13].marked && tiles[14].marked)
-                ||
-                (tiles[15].marked && tiles[16].marked && tiles[17].marked && tiles[18].marked && tiles[19].marked)
-                ||
-                (tiles[20].marked && tiles[21].marked && tiles[22].marked && tiles[23].marked && tiles[24].marked)
-                ||
-                // Any column
-                (tiles[0].marked && tiles[5].marked && tiles[10].marked && tiles[15].marked && tiles[20].marked)
-                ||
-                (tiles[1].marked && tiles[6].marked && tiles[11].marked && tiles[16].marked && tiles[21].marked)
-                ||
-                (tiles[2].marked && tiles[7].marked && tiles[12].marked && tiles[17].marked && tiles[22].marked)
-                ||
-                (tiles[3].marked && tiles[8].marked && tiles[13].marked && tiles[18].marked && tiles[23].marked)
-                ||
-                (tiles[4].marked && tiles[9].marked && tiles[14].marked && tiles[19].marked && tiles[24].marked);
+            public bool IsWinner()
+            {
+                // This will only have to calculate up until the first time it was solved
+                solved = solved ||
+                    // Reduced the code down to be a little more dynamic
+                    Enumerable
+                        .Range(0, 5)
+                        .Any(index =>
+                        {
+                            return
+                            // Check rows with index starting at index*5
+                            (tiles[(index * 5)].marked && tiles[(index * 5) + 1].marked && tiles[(index * 5) + 2].marked && tiles[(index * 5) + 3].marked && tiles[(index * 5) + 4].marked)
+                            ||
+                            // Check columns
+                            (tiles[index].marked && tiles[index + 5].marked && tiles[index + 10].marked && tiles[index + 15].marked && tiles[index + 20].marked);
+                        });
+
+                return solved;
+            }
+
+            public void Reset() => this.solved = false;
 
             public int GetScore(int multipler) => multipler * this.tiles.Where(tile => !tile.marked).Sum(tile => tile.value);
         }
@@ -112,8 +114,9 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            // Reset the called numbers
+            // Reset the called numbers and boards
             this.tiles.ForEach(tile => tile.marked = false);
+            this.boards.ForEach(board => board.Reset());
 
             // Track the won boards
             var wonBoards = new HashSet<int>();
