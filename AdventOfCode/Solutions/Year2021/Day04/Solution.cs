@@ -24,6 +24,31 @@ namespace AdventOfCode.Solutions.Year2021
         public class Board
         {
             public List<Tile> tiles { get; set; } = new List<Tile>();
+
+            public bool IsWinner() =>
+                // Any row
+                (tiles[0].marked && tiles[1].marked && tiles[2].marked && tiles[3].marked && tiles[4].marked)
+                ||
+                (tiles[5].marked && tiles[6].marked && tiles[7].marked && tiles[8].marked && tiles[9].marked)
+                ||
+                (tiles[10].marked && tiles[11].marked && tiles[12].marked && tiles[13].marked && tiles[14].marked)
+                ||
+                (tiles[15].marked && tiles[16].marked && tiles[17].marked && tiles[18].marked && tiles[19].marked)
+                ||
+                (tiles[20].marked && tiles[21].marked && tiles[22].marked && tiles[23].marked && tiles[24].marked)
+                ||
+                // Any column
+                (tiles[0].marked && tiles[5].marked && tiles[10].marked && tiles[15].marked && tiles[20].marked)
+                ||
+                (tiles[1].marked && tiles[6].marked && tiles[11].marked && tiles[16].marked && tiles[21].marked)
+                ||
+                (tiles[2].marked && tiles[7].marked && tiles[12].marked && tiles[17].marked && tiles[22].marked)
+                ||
+                (tiles[3].marked && tiles[8].marked && tiles[13].marked && tiles[18].marked && tiles[23].marked)
+                ||
+                (tiles[4].marked && tiles[9].marked && tiles[14].marked && tiles[19].marked && tiles[24].marked);
+
+            public int GetScore(int multipler) => multipler * this.tiles.Where(tile => !tile.marked).Sum(tile => tile.value);
         }
 
         // All tiles
@@ -59,6 +84,29 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartOne()
         {
+            // Go through each called value, mark the tile, check for winners
+            foreach(var called in this.calledTiles)
+            {
+                var tile = this.tiles.FirstOrDefault(tile => tile.value == called);
+
+                if (tile == default)
+                    throw new InvalidOperationException();
+
+                tile.marked = true;
+
+                // Check for a winner
+                foreach(var board in this.boards)
+                {
+                    if (board.IsWinner())
+                    {
+                        // Found a winner!
+                        Console.WriteLine($"Winning Board: {this.boards.IndexOf(board)}");
+
+                        return board.GetScore(called).ToString();
+                    }
+                }
+            }
+
             return null;
         }
 
