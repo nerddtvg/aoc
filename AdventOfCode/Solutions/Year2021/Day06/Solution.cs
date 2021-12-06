@@ -12,7 +12,7 @@ namespace AdventOfCode.Solutions.Year2021
 
     class Day06 : ASolution
     {
-        public Dictionary<int, int> fish = new Dictionary<int, int>();
+        public Dictionary<int, UInt64> fish = new Dictionary<int, UInt64>();
 
         public Day06() : base(06, 2021, "")
         {
@@ -31,7 +31,7 @@ namespace AdventOfCode.Solutions.Year2021
         private void Reset()
         {
             this.fish.Clear();
-            this.fish = new Dictionary<int, int>()
+            this.fish = new Dictionary<int, UInt64>()
             {
                 // -1 will be a place holder
                 { -1, 0 },
@@ -76,12 +76,32 @@ namespace AdventOfCode.Solutions.Year2021
         {
             Utilities.Repeat(() => RunDay(), 80);
 
-            return this.fish.Sum(fish => fish.Value).ToString();
+            UInt64 total = (UInt64) 0;
+
+            // Linq Sum doesn't like ulong
+            for (int i = 0; i <= 8; i++)
+            {
+                total += this.fish[i];
+            }
+
+            return total.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            Reset();
+
+            Utilities.Repeat(() => RunDay(), 256);
+
+            UInt64 total = (UInt64) 0;
+
+            // Linq Sum doesn't like ulong
+            for (int i = 0; i <= 8; i++)
+            {
+                total += this.fish[i];
+            }
+
+            return total.ToString();
         }
     }
 }
