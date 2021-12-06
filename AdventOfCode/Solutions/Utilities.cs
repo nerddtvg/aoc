@@ -69,6 +69,32 @@ namespace AdventOfCode.Solutions
         public static double FindLCM(double a, double b) => a * b / FindGCD(a, b);
 
         /// <summary>
+        /// Finds the Lowest Common Multiple between two numbers
+        /// </summary>
+        /// <param name="a">The first number</param>
+        /// <param name="b">The second number</param>
+        /// <returns>The discovered LCM</returns>
+        public static double FindLCM(params double[] list)
+        {
+            if (list == null)
+                throw new ArgumentNullException(nameof(list));
+
+            if (list.Length < 2)
+                throw new ArgumentOutOfRangeException(nameof(list));
+
+            if (list.Length == 2)
+            {
+                return list[0] * list[1] / FindGCD(list[0], list[1]);
+            }
+
+            // Take two off the end, find the LCM and re-work a shorter list
+            var tempLCM = FindLCM(list[list.Length - 2], list[list.Length - 1]);
+            list = list.Take(list.Length - 2).Union(new double[] { tempLCM }).ToArray();
+
+            return FindLCM(list);
+        }
+
+        /// <summary>
         /// Repeats a given <paramref name="action"/> <paramref name="count"/> times
         /// </summary>
         /// <param name="action">The action to repeat</param>

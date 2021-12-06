@@ -45,7 +45,21 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            // This is a lowest common multiple problem (skip 0 because it will break us)
+            // After solving: I don't think LCM was really needed for this, the number is so large
+            var lcm = Utilities.FindLCM(this.layers.Keys.Skip(1).Select(key => (double) key).ToArray());
+
+            // Now go through each step and figure out if we were "caught"
+            for (int i = 1; i <= lcm; i++)
+            {
+                var caught = this.layers.Any(layer => (i + layer.Key) % (2 * (layer.Value - 1)) == 0);
+
+                // Return the first time we're not caught
+                if (!caught)
+                    return i.ToString();
+            }
+
+            return "Not Found";
         }
     }
 }
