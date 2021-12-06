@@ -12,15 +12,47 @@ namespace AdventOfCode.Solutions.Year2017
 
     class Day11 : ASolution
     {
+        private (int x, int y) pos = (0, 0);
 
-        public Day11() : base(11, 2017, "")
+        public Day11() : base(11, 2017, "Hex Ed")
         {
+            this.pos = (0, 0);
+        }
 
+        // From 2020 Day 24
+        private (int x, int y) getXY((int x, int y) pos, string dir) {
+            // Takes a direction and returns a new x,y
+            switch(dir) {
+                case "n":
+                    return (pos.x, pos.y+1);
+                    
+                case "nw":
+                    return (pos.x-1, pos.y);
+                    
+                case "sw":
+                    return (pos.x-1, pos.y-1);
+                    
+                case "s":
+                    return (pos.x, pos.y-1);
+                    
+                case "se":
+                    return (pos.x+1, pos.y);
+                    
+                case "ne":
+                    return (pos.x+1, pos.y+1);
+                
+                default: throw new Exception($"Invalid direction: {dir}");
+            }
         }
 
         protected override string? SolvePartOne()
         {
-            return null;
+            foreach(var dir in Input.Split(","))
+            {
+                this.pos = getXY(this.pos, dir);
+            }
+
+            return this.pos.ManhattanDistance((0, 0)).ToString();
         }
 
         protected override string? SolvePartTwo()
