@@ -15,7 +15,7 @@ namespace AdventOfCode.Solutions.Year2021
         public List<(int x, int y)[]> straightLines = new List<(int x, int y)[]>();
         public List<(int x, int y)[]> diagonalLines = new List<(int x, int y)[]>();
 
-        public Day05() : base(05, 2021, "")
+        public Day05() : base(05, 2021, "Hydrothermal Venture")
         {
             foreach(var line in Input.SplitByNewline())
             {

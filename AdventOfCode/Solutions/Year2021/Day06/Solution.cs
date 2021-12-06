@@ -14,7 +14,7 @@ namespace AdventOfCode.Solutions.Year2021
     {
         public Dictionary<int, UInt64> fish = new Dictionary<int, UInt64>();
 
-        public Day06() : base(06, 2021, "")
+        public Day06() : base(06, 2021, "Lanternfish")
         {
             // For these fish, we don't care about how many there are,
             // we only care about their timer states. Each fish with
