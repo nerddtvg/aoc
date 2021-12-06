@@ -20,6 +20,8 @@ namespace AdventOfCode.Solutions.Year2017
 
         private List<Program> programs = new List<Program>();
 
+        private HashSet<int> foundPrograms = new HashSet<int>();
+
         public Day12() : base(12, 2017, "")
         {
 
@@ -28,6 +30,7 @@ namespace AdventOfCode.Solutions.Year2017
         private void Reset()
         {
             this.programs.Clear();
+            this.foundPrograms.Clear();
 
             foreach(var line in Input.SplitByNewline())
             {
@@ -70,8 +73,13 @@ namespace AdventOfCode.Solutions.Year2017
         {
             Reset();
 
+            return FindGroup(0).ToString();
+        }
+
+        private int FindGroup(int baseId)
+        {
             var found = new HashSet<int>();
-            var thisRound = FindProgram(0).talksWith.ToList();
+            var thisRound = FindProgram(baseId).talksWith.ToList();
 
             do
             {
@@ -82,6 +90,9 @@ namespace AdventOfCode.Solutions.Year2017
                     // Add the current round list
                     found.Add(id);
 
+                    // Add to our global list
+                    this.foundPrograms.Add(id);
+
                     // Now we need to check for all of the children this one talks to
                     FindProgram(id).talksWith.ForEach(pid => tempRound.Add(pid));
                 }
@@ -90,12 +101,27 @@ namespace AdventOfCode.Solutions.Year2017
                 thisRound = tempRound.Where(pid => !found.Contains(pid)).ToList();
             } while (thisRound.Count > 0);
 
-            return found.Count.ToString();
+            return found.Count;
         }
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            // Go through every id not found until its done
+            var max = this.programs.Max(prog => prog.id);
+
+            // We've already found one
+            var foundCount = 1;
+
+            for (int i = 1; i <= max; i++)
+            {
+                if (this.foundPrograms.Contains(i))
+                    continue;
+
+                FindGroup(i);
+                foundCount++;
+            }
+
+            return foundCount.ToString();
         }
     }
 }
