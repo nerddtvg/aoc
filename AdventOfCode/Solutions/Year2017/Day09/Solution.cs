@@ -12,6 +12,7 @@ namespace AdventOfCode.Solutions.Year2017
 
     class Day09 : ASolution
     {
+        private int GarbageTotal = 0;
 
         public Day09() : base(09, 2017, "Stream Processing")
         {
@@ -23,6 +24,14 @@ namespace AdventOfCode.Solutions.Year2017
             // DebugInput = @"{{<ab>},{<ab>},{<ab>},{<ab>}}";
             // DebugInput = @"{{<!!>},{<!!>},{<!!>},{<!!>}}";
             // DebugInput = @"{{<a!>},{<a!>},{<a!>},{<ab>}}";
+
+            // DebugInput = "<>";
+            // DebugInput = "<random characters>";
+            // DebugInput = "<<<<>";
+            // DebugInput = "<{!>}>";
+            // DebugInput = "<!!>";
+            // DebugInput = "<!!!>>";
+            // DebugInput = "<{o\"i!a,<{i<a>";
         }
 
         private int ScoreGroup(int baseScore, string group)
@@ -46,11 +55,19 @@ namespace AdventOfCode.Solutions.Year2017
                     i += 1;
                     continue;
                 }
+                
+                // Count this character if we're in garbage but not inside a group
+                if (baseScore == 0 && inGarbage)
+                    this.GarbageTotal++;
 
                 if (group[i] == '>')
                 {
                     if (!inGarbage)
                         throw new Exception("Invalid '>' outside garbage");
+
+                    // Remove one from the count
+                    if (baseScore == 0)
+                        this.GarbageTotal--;
 
                     // Go on
                     inGarbage = false;
@@ -110,7 +127,7 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            return this.GarbageTotal.ToString();
         }
     }
 }
