@@ -52,7 +52,7 @@ namespace AdventOfCode.Solutions.Year2017
             {
                 this.pos = getXY(this.pos, dir);
 
-                this.MaxDistance = Math.Max(this.MaxDistance, (uint) this.pos.ManhattanDistance((0, 0)));
+                this.MaxDistance = Math.Max(this.MaxDistance, this.pos.ManhattanDistance((0, 0)));
             }
 
             return this.pos.ManhattanDistance((0, 0)).ToString();

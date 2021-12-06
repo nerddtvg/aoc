@@ -105,9 +105,9 @@ namespace AdventOfCode.Solutions
         /// <param name="a">A tuple of integer (x, y) values</param>
         /// <param name="b">A tuple of integer (x, y) values</param>
         /// <returns>An <see cref="System.Int32"/> distance</returns>
-        public static int ManhattanDistance(this (int x, int y) a, (int x, int y) b)
+        public static uint ManhattanDistance(this (int x, int y) a, (int x, int y) b)
         {
-            return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);
+            return (uint)Math.Abs(a.x - b.x) + (uint)Math.Abs(a.y - b.y);
         }
 
         /// <summary>
@@ -116,9 +116,9 @@ namespace AdventOfCode.Solutions
         /// <param name="a">A tuple of integer (x, y, z) values</param>
         /// <param name="b">A tuple of integer (x, y, z) values</param>
         /// <returns>An <see cref="System.Int32"/> distance</returns>
-        public static int ManhattanDistance(this (int x, int y, int z) a, (int x, int y, int z) b)
+        public static uint ManhattanDistance(this (int x, int y, int z) a, (int x, int y, int z) b)
         {
-            return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y) + Math.Abs(a.z - b.z);
+            return (uint)Math.Abs(a.x - b.x) + (uint)Math.Abs(a.y - b.y) + (uint)Math.Abs(a.z - b.z);
         }
     }
 }
