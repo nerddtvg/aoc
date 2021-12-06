@@ -13,6 +13,7 @@ namespace AdventOfCode.Solutions.Year2017
     class Day11 : ASolution
     {
         private (int x, int y) pos = (0, 0);
+        private uint MaxDistance = uint.MinValue;
 
         public Day11() : base(11, 2017, "Hex Ed")
         {
@@ -50,6 +51,8 @@ namespace AdventOfCode.Solutions.Year2017
             foreach(var dir in Input.Split(","))
             {
                 this.pos = getXY(this.pos, dir);
+
+                this.MaxDistance = Math.Max(this.MaxDistance, (uint) this.pos.ManhattanDistance((0, 0)));
             }
 
             return this.pos.ManhattanDistance((0, 0)).ToString();
@@ -57,7 +60,7 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            return this.MaxDistance.ToString();
         }
     }
 }
