@@ -22,7 +22,7 @@ namespace AdventOfCode.Solutions.Year2017
 
         private HashSet<int> foundPrograms = new HashSet<int>();
 
-        public Day12() : base(12, 2017, "")
+        public Day12() : base(12, 2017, "Digital Plumber")
         {
 
         }
