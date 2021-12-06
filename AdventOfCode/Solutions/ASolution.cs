@@ -3,6 +3,9 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 
+// StopWatch
+using System.Diagnostics;
+
 #nullable enable
 
 namespace AdventOfCode.Solutions
@@ -45,9 +48,16 @@ namespace AdventOfCode.Solutions
             {
                 if (part != 2)
                 {
+                    // Measure how long it takes
+                    var stopWatch = new Stopwatch();
+                    stopWatch.Start();
+
                     if (!string.IsNullOrEmpty(Part1))
                     {
+                        stopWatch.Stop();
+
                         output += $"Part 1: {Part1}\n";
+                        output += $"Time  : {stopWatch.Elapsed}\n";
                     }
                     else
                     {
@@ -56,9 +66,16 @@ namespace AdventOfCode.Solutions
                 }
                 if (part != 1)
                 {
+                    // Measure how long it takes
+                    var stopWatch = new Stopwatch();
+                    stopWatch.Start();
+
                     if (!string.IsNullOrEmpty(Part2))
                     {
+                        stopWatch.Stop();
+
                         output += $"Part 2: {Part2}\n";
+                        output += $"Time  : {stopWatch.Elapsed}\n";
                     }
                     else
                     {
