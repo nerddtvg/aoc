@@ -275,5 +275,52 @@ namespace AdventOfCode.Solutions
             second = list.Count > 1 ? list[1] : default(T); // or throw
             rest = list.Skip(2).ToList();
         }
+
+        /// <summary>
+        /// Computes the sum of the sequence of nullable <see cref="System.UInt64"/> values that are obtained by invoking a transform function on each element of the input sequence.
+        /// </summary>
+        /// <param name="source">A sequence of values that are used to calculate a sum.</param>
+        /// <param name="selector">A transform function to apply to each element.</param>
+        /// <typeparam name="TSource">he type of the elements of <paramref name="source"/>.</typeparam>
+        /// <returns>The sum of the projected values.</returns>
+        /// <exception cref="System.ArgumentNullException"><paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.</exception>
+        /// <exception cref="System.OverflowExeption">The sum is larger than <see cref="System.UInt64.MaxValue"/>.</exception>
+        public static UInt64? Sum<TSource>(this IEnumerable<TSource> source, Func<TSource, UInt64?> selector)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+                
+            if (selector == null)
+                throw new ArgumentNullException(nameof(source));
+
+            bool HasValue = false;
+            UInt64? returnValue = 0;
+
+            foreach(var item in source)
+            {
+                // Get our value
+                var val = selector(item);
+
+                // May not have a value here
+                if (!val.HasValue)
+                    continue;
+
+                // Check if there is an overflow
+                if (UInt64.MaxValue - returnValue < val)
+                    throw new OverflowException();
+
+                // Add it
+                returnValue += val;
+
+                // We've had a value
+                HasValue = true;
+            }
+
+            // No value on this one
+            if (!HasValue)
+                return null;
+
+            return returnValue;
+        }
     }
 }

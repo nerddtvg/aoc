@@ -76,15 +76,7 @@ namespace AdventOfCode.Solutions.Year2021
         {
             Utilities.Repeat(() => RunDay(), 80);
 
-            UInt64 total = (UInt64) 0;
-
-            // Linq Sum doesn't like ulong
-            for (int i = 0; i <= 8; i++)
-            {
-                total += this.fish[i];
-            }
-
-            return total.ToString();
+            return this.fish.Sum(fish => fish.Value).ToString();
         }
 
         protected override string? SolvePartTwo()
@@ -93,15 +85,7 @@ namespace AdventOfCode.Solutions.Year2021
 
             Utilities.Repeat(() => RunDay(), 256);
 
-            UInt64 total = (UInt64) 0;
-
-            // Linq Sum doesn't like ulong
-            for (int i = 0; i <= 8; i++)
-            {
-                total += this.fish[i];
-            }
-
-            return total.ToString();
+            return this.fish.Sum(fish => fish.Value).ToString();
         }
     }
 }
