@@ -79,7 +79,25 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            Reset();
+
+            // We need to run 64 rounds without resetting between them
+            // Also, our lengths are now different
+            this.lengths = Input.ToCharArray().Select(ch => (int)ch).ToList();
+            this.lengths.AddRange(new int[] { 17, 31, 73, 47, 23 });
+
+            // 64 rounds, no resets or changes
+            Utilities.Repeat(() => lengths.ForEach(len => RunRound(len)), 64);
+
+            var endHash = string.Empty;
+
+            for (int offset = 0; offset < 256; offset+=16)
+            {
+                // Grabs the 16 values and XOR's them, then converts that to Hexadecimal
+                endHash += this.values.GetRange(offset, 16).Aggregate((a, b) => a ^ b).ToString("X2").ToLowerInvariant();
+            }
+
+            return endHash;
         }
     }
 }
