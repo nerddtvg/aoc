@@ -88,8 +88,8 @@ namespace AdventOfCode.Solutions
             }
 
             // Take two off the end, find the LCM and re-work a shorter list
-            var tempLCM = FindLCM(list[list.Length - 2], list[list.Length - 1]);
-            list = list.Take(list.Length - 2).Union(new double[] { tempLCM }).ToArray();
+            var tempLCM = FindLCM(list[0], list[1]);
+            list = new double[] { tempLCM }.Union(list.Skip(2)).ToArray();
 
             return FindLCM(list);
         }
