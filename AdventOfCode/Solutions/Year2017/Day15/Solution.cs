@@ -21,8 +21,8 @@ namespace AdventOfCode.Solutions.Year2017
         private BigInteger genAStart = BigInteger.Zero;
         private BigInteger genBStart = BigInteger.Zero;
 
-        // Comparison area
-        private BigInteger comparison = new BigInteger(65536);
+        // Comparison area (lowest 16 bits)
+        private BigInteger comparison = new BigInteger(65535);
 
         public Day15() : base(15, 2017, "Dueling Generators")
         {
@@ -37,15 +37,9 @@ namespace AdventOfCode.Solutions.Year2017
             genBStart = new BigInteger(Int32.Parse(lines[1].Split(" ").Last()));
         }
 
-        private bool CompareLowerBits(BigInteger a, BigInteger b)
-        {
-            // Bytes (2 bytes == 16 bits to compare)
-            // Little endian puts the last 16 bits (2 bytes) first
-            var genABytes = a.ToByteArray(true, false).Take(2).ToArray();
-            var genBBytes = b.ToByteArray(true, false).Take(2).ToArray();
-
-            return genABytes.SequenceEqual(genBBytes);
-        }
+        // Fixing this bitwise comparison brought the time down considerably
+        private bool CompareLowerBits(BigInteger a, BigInteger b) =>
+            BigInteger.Equals((a & comparison), (b & comparison));
 
         private BigInteger GenerateValue(BigInteger start, BigInteger factor, BigInteger divisor, int part = 1, int multiples = 0)
         {
@@ -72,7 +66,7 @@ namespace AdventOfCode.Solutions.Year2017
 
             // I know this is going to be a "reduce the math" simplification problem
             // But I'm not good at those, so let's brute for this for no good reason
-            // This took about 13 seconds to complete
+            // This took about 8 seconds to complete
             for (uint i = 0; i < 40000000; i++)
             {
                 genAStart = GenerateValue(genAStart, genAFactor, divisor);
@@ -91,7 +85,7 @@ namespace AdventOfCode.Solutions.Year2017
             
             var count = 0;
 
-            // This took about 8 seconds to complete
+            // This took about 6 seconds to complete
             for (uint i = 0; i < 5000000; i++)
             {
                 genAStart = GenerateValue(genAStart, genAFactor, divisor, 2, 4);
