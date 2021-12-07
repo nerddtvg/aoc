@@ -70,10 +70,10 @@ namespace AdventOfCode.Solutions.Year2017
             // Remember the first one we recovered
             public long firstRcv = 0;
 
-            private long GetRegister(char c) =>
+            public long GetRegister(char c) =>
                 this.registers.ContainsKey(c) ? this.registers[c] : 0;
 
-            private void SetRegister(char c, long val) =>
+            public void SetRegister(char c, long val) =>
                 this.registers[c] = val;
 
             public Queue<long> queue = new Queue<long>();
