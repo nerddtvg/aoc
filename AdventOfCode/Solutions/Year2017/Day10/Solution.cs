@@ -77,6 +77,62 @@ namespace AdventOfCode.Solutions.Year2017
             return (this.values[0] * this.values[1]).ToString();
         }
 
+        /// <summary>
+        /// This provides easy reference to the KnotHash for other problems.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static string GetHash(string input)
+        {
+            // We need to run 64 rounds without resetting between them
+            // Also, our lengths are now different
+            var lengths = input.ToCharArray().Select(ch => (int)ch).ToList();
+            lengths.AddRange(new int[] { 17, 31, 73, 47, 23 });
+
+            // 64 rounds, no resets or changes
+            int pos = 0;
+            int skip = 0;
+            var values = Enumerable.Range(0, 256).ToList();
+
+            // Define our function to repeat
+            var RunRound = (int length) =>
+            {
+                // We swap from pos to length
+                int offset = length - 1;
+                for (int i = pos; offset >= 0; i++, offset-=2)
+                {
+                    // Swap these two values
+                    var a = i % values.Count;
+                    var b = (i + offset) % values.Count;
+
+                    // Same index
+                    if (a == b) continue;
+
+                    int temp = values[a];
+                    values[a] = values[b];
+                    values[b] = temp;
+                }
+
+                // Move the position forward
+                pos += (length + skip) % values.Count;
+
+                // Skip increases
+                skip++;
+            };
+
+            Utilities.Repeat(() => lengths.ForEach(len => RunRound(len)), 64);
+
+            var endHash = string.Empty;
+
+            for (int offset = 0; offset < 256; offset+=16)
+            {
+                // Grabs the 16 values and XOR's them, then converts that to Hexadecimal
+                endHash += values.GetRange(offset, 16).Aggregate((a, b) => a ^ b).ToString("X2").ToLowerInvariant();
+            }
+
+            return endHash;
+        }
+
         protected override string? SolvePartTwo()
         {
             Reset();
