@@ -81,6 +81,8 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartOne()
         {
+            // This takes about 8 seconds, not great
+
             // Run this ~100,000 times to see if we get a good answer
             Utilities.Repeat(() =>
             {
@@ -92,7 +94,32 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            Reset();
+
+            // This takes about 12 seconds, not great
+
+            // Run this ~100,000 times to see if we get a good answer
+            Utilities.Repeat(() =>
+            {
+                // Short-circuit sort of
+                if (this.particles.Count == 1) return;
+
+                this.particles.ForEach(p => p.Update());
+
+                var collided = this.particles
+                    // Find which have matching positions
+                    .GroupBy(p => (p.position[0], p.position[1], p.position[2]))
+                    .Where(grp => grp.Count() > 1)
+                    // Select all of those in those positions
+                    .SelectMany(grp => grp.ToArray())
+                    // Get the list
+                    .ToList();
+
+                // Remove them
+                collided.ForEach(deadP => this.particles.Remove(deadP));
+            }, 100000);
+
+            return this.particles.Count.ToString();
         }
     }
 }
