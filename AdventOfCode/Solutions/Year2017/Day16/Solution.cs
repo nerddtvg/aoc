@@ -88,7 +88,7 @@ namespace AdventOfCode.Solutions.Year2017
             foreach(var ch in Enumerable.Range(0, count))
             {
                 // Get the difference to the original position
-                changes.Add(ch, ch - this.programs[(char)('a' + ch)]);
+                changes.Add(ch, this.programs[(char)('a' + ch)] - ch);
             }
 
             // For each entry that is below zero, bring it back up
@@ -98,17 +98,23 @@ namespace AdventOfCode.Solutions.Year2017
                 changes[low] += count;
             }
 
+            // Find the LCM for this so we don't have to loop *that* many times
+            // Because we know the shift in changes of each digit, we know that for every LCM loops
+            // the digits return to their 'home' place, so we only need to loop a few times
+            var lcm = Utilities.FindLCM(changes.Where(ch => ch.Value > 0).Select(ch => (double) ch.Value).ToArray());
+
+            // Then we only need to complete a reminder of (1 billion / lcm) moves (minus one for what has been done)
+            var toComplete = (1000000000 % (int) lcm) - 1;
+
             // We can now loop things 1 billion times by skipping the dances
             // Minus one because we already did it
             Utilities.Repeat(() =>
             {
-                // Just go through and add the new positions on
-                foreach(var ch in Enumerable.Range(0, count))
+                foreach (var move in Input.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 {
-                    // Get the difference to the original position
-                    this.programs[(char)('a' + ch)] = (this.programs[(char)('a' + ch)] + changes[ch]) % count;
+                    Dance(move);
                 }
-            }, 1000000000 - 1);
+            }, toComplete);
 
             // Still this is incredibly slow
 
