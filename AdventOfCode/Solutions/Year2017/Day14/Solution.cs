@@ -15,6 +15,7 @@ namespace AdventOfCode.Solutions.Year2017
         // Hold our row strings
         private List<string> rows = new List<string>();
         private Dictionary<(int x, int y), bool> grid = new Dictionary<(int x, int y), bool>();
+        private HashSet<(int x, int y)> found = new HashSet<(int x, int y)>();
 
         public Day14() : base(14, 2017, "")
         {
@@ -58,9 +59,52 @@ namespace AdventOfCode.Solutions.Year2017
             return this.grid.Count(pt => pt.Value).ToString();
         }
 
+        private void FindAdjacent((int x, int y) pos)
+        {
+            // Only search vertical and horizontal
+            if (this.found.Contains(pos))
+                return;
+
+            // Doesn't exist
+            if (!this.grid.ContainsKey(pos))
+                return;
+
+            // Add this to our list
+            this.found.Add(pos);
+
+            // If this isn't in use, then we don't actually find adjacencies
+            // But we use the above state to make things faster
+            if (!this.grid[pos])
+                return;
+
+            // Look for adjacent items
+            FindAdjacent((pos.x - 1, pos.y));
+            FindAdjacent((pos.x + 1, pos.y));
+            FindAdjacent((pos.x, pos.y - 1));
+            FindAdjacent((pos.x, pos.y + 1));
+        }
+
         protected override string? SolvePartTwo()
         {
-            return null;
+            // Count adjacent grid points that are in use
+            this.found.Clear();
+
+            var groupCount = 0;
+
+            // Work through every cell that is "in use"
+            foreach(var key in this.grid.Where(pt => pt.Value).Select(pt => pt.Key))
+            {
+                if (!this.found.Contains(key))
+                {
+                    // Found a group!
+                    groupCount++;
+
+                    // Find everything attached
+                    FindAdjacent(key);
+                }
+            }
+
+            return groupCount.ToString();
         }
     }
 }
