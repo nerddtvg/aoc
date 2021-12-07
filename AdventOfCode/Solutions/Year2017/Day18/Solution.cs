@@ -14,7 +14,7 @@ namespace AdventOfCode.Solutions.Year2017
     {
         public List<SoundProgram> programs = new List<SoundProgram>();
 
-        public Day18() : base(18, 2017, "")
+        public Day18() : base(18, 2017, "Duet")
         {
 
         }
@@ -106,8 +106,8 @@ namespace AdventOfCode.Solutions.Year2017
                 if (this.pos < 0 || this.pos >= this.instructions.Count)
                     return false;
 
-                if (part == 1)
-                    Console.WriteLine($"Instruction [{this.pos}]: {this.instructions[this.pos]}");
+                // if (part == 1)
+                //     Console.WriteLine($"Instruction [{this.pos}]: {this.instructions[this.pos]}");
 
                 // Get register A in each instruction
                 var regA = this.instructions[this.pos][4];
@@ -135,8 +135,8 @@ namespace AdventOfCode.Solutions.Year2017
                 switch(this.instructions[this.pos].Substring(0, 3))
                 {
                     case "snd":
-                        if (part == 1)
-                            Console.WriteLine($"Play Sound: {regAVal}");
+                        // if (part == 1)
+                        //     Console.WriteLine($"Play Sound: {regAVal}");
                         this.lastSound = regAVal;
 
                         // For part 2:
