@@ -13,14 +13,22 @@ namespace AdventOfCode.Solutions.Year2017
     class Day23 : ASolution
     {
 
-        public Day23() : base(23, 2017, "")
+        public Day23() : base(23, 2017, "Coprocessor Conflagration")
         {
 
         }
 
         protected override string? SolvePartOne()
         {
-            return null;
+            var p = new Day18.SoundProgram(Input);
+
+            var ret = true;
+            while(ret)
+            {
+                ret = p.Run();
+            }
+
+            return p.mulCount.ToString();
         }
 
         protected override string? SolvePartTwo()

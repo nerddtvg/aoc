@@ -52,7 +52,7 @@ namespace AdventOfCode.Solutions.Year2017
                 ret1 = p1.Run();
 
                 // If deadlocked
-                deadlocked = (p0.GetInstruction() == "rcv" && p0.queue.Count == 0 && p1.GetInstruction() == "rcv" && p1.queue.Count == 0);
+                deadlocked = p0.IsDeadlocked() && p1.IsDeadlocked();
             } while (ret0 && ret1 && !deadlocked);
 
             return p1.sendCount.ToString();
@@ -82,6 +82,9 @@ namespace AdventOfCode.Solutions.Year2017
 
             private int part = 1;
 
+            // For Day 23
+            public int mulCount = 0;
+
             public SoundProgram(string Input, int pid = -1)
             {
                 this.registers.Clear();
@@ -98,6 +101,8 @@ namespace AdventOfCode.Solutions.Year2017
                     this.registers['p'] = pid;
                 }
             }
+
+            public bool IsDeadlocked() => this.GetInstruction() == "rcv" && this.queue.Count == 0;
 
             public string GetInstruction() => this.pos >= 0 && this.pos < this.instructions.Count ? this.instructions[this.pos].Substring(0, 3) : string.Empty;
 
@@ -152,7 +157,12 @@ namespace AdventOfCode.Solutions.Year2017
                         SetRegister(regA, regAVal + rest);
                         break;
                         
+                    case "sub":
+                        SetRegister(regA, regAVal - rest);
+                        break;
+                        
                     case "mul":
+                        this.mulCount++;
                         SetRegister(regA, regAVal * rest);
                         break;
 
@@ -181,6 +191,15 @@ namespace AdventOfCode.Solutions.Year2017
                                 // Return to this point
                                 this.pos--;
                             }
+                        }
+                        break;
+                        
+                    case "jnz":
+                        // Jumps can be defined by integers, not just registers
+                        if (regAVal != 0)
+                        {
+                            // Offset by the fact we increment later
+                            this.pos += (int) rest - 1;
                         }
                         break;
                         
