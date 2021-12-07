@@ -32,7 +32,7 @@ namespace AdventOfCode.Solutions.Year2021
             // Find out how much fuel is required for that
             for (int i = 0; i <= max; i++)
             {
-                var tFuel = this.crabs.Sum(crab => (int) Math.Abs(crab - i));
+                var tFuel = this.crabs.Sum(crab => CrabFuel(crab, i));
 
                 if (tFuel < minFuel)
                 {
@@ -43,6 +43,24 @@ namespace AdventOfCode.Solutions.Year2021
             }
 
             return minFuel.ToString();
+        }
+
+        /// <summary>
+        /// Determine the crab fuel required between positions
+        /// </summary>
+        /// <param name="crabPos">The crab's position</param>
+        /// <param name="desiredPos">The desired position</param>
+        /// <param name="part">Part 1 for simple Abs or Part 2 for series-based calculation</param>
+        /// <returns>The fuel required for the crab to change positions</returns>
+        public static int CrabFuel(int crabPos, int desiredPos, int part = 1)
+        {
+            var distance = (int)Math.Abs(crabPos - desiredPos);
+
+            if (part == 1)
+                return distance;
+
+            // This is a summation of a series of n entries A: Sn = (n*(A1 + An))/2
+            return (distance * (1 + distance)) / 2;
         }
 
         protected override string? SolvePartTwo()
@@ -60,7 +78,7 @@ namespace AdventOfCode.Solutions.Year2021
                 // 2 => 1 + 2
                 // 3 => 1 + 2 + 3
                 // This is a summation of a series of n entries A: Sn = (n*(A1 + An))/2
-                var tFuel = this.crabs.Sum(crab => (((int) Math.Abs(crab - i)) * (1 + ((int) Math.Abs(crab - i)))) / 2);
+                var tFuel = this.crabs.Sum(crab => CrabFuel(crab, i, 2));
 
                 if (tFuel < minFuel)
                 {
