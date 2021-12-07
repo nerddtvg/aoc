@@ -14,7 +14,7 @@ namespace AdventOfCode.Solutions.Year2021
     {
         private List<int> crabs = new List<int>();
 
-        public Day07() : base(07, 2021, "")
+        public Day07() : base(07, 2021, "The Treachery of Whales")
         {
             // DebugInput = "16,1,2,0,4,2,7,1,2,14";
 
