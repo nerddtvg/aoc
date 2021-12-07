@@ -20,6 +20,8 @@ namespace AdventOfCode.Solutions.Year2017
         private int y = 0;
         private char dir = 'D';   // Up, Down, Left, Right
 
+        private int steps = 0;
+
         public Day19() : base(19, 2017, "A Series of Tubes")
         {
 //             DebugInput = @"     |          
@@ -114,6 +116,7 @@ namespace AdventOfCode.Solutions.Year2017
 
             do
             {
+                steps++;
                 ret = Run();
             } while (ret);
 
@@ -122,7 +125,7 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            return this.steps.ToString();
         }
     }
 }
