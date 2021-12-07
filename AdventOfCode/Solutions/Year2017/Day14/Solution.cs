@@ -17,7 +17,7 @@ namespace AdventOfCode.Solutions.Year2017
         private Dictionary<(int x, int y), bool> grid = new Dictionary<(int x, int y), bool>();
         private HashSet<(int x, int y)> found = new HashSet<(int x, int y)>();
 
-        public Day14() : base(14, 2017, "")
+        public Day14() : base(14, 2017, "Disk Defragmentation")
         {
             // DebugInput = "flqrgnkx";
 
