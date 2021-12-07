@@ -60,7 +60,7 @@ namespace AdventOfCode.Solutions.Year2021
                 return distance;
 
             // This is a summation of a series of n entries A: Sn = (n*(A1 + An))/2
-            return (distance * (1 + distance)) / 2;
+            return Utilities.SeriesSum(1, distance, distance);
         }
 
         protected override string? SolvePartTwo()

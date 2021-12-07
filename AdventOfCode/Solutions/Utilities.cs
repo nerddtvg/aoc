@@ -119,6 +119,27 @@ namespace AdventOfCode.Solutions
 
             return string.Join("", MD5.HashData(encoding.GetBytes(input)).SelectMany(a => a.ToString("X2").ToLowerInvariant()));
         }
+
+        /// <summary>
+        /// A series sum of a series with values at <paramref name="a1"/> and <paramref name="a2"/> with <paramref name="count"/> steps between them inclusively.
+        /// </summary>
+        /// <param name="a1">The first series value</param>
+        /// <param name="a2">The second series value</param>
+        /// <param name="count">The count of steps from <paramref name="a1"/> to <paramref name="a2"/> in the series</param>
+        /// <returns>The sum of the series between <paramref name="a1"/> and <paramref name="a2"/> inclusively</returns>
+        public static int SeriesSum(int a1, int a2, int count) =>
+            (count * (a1 + a2)) / 2;
+
+        /// <summary>
+        /// A series sum of a series with values at <paramref name="a1"/> and <paramref name="a2"/> with <paramref name="count"/> steps between them inclusively.
+        /// </summary>
+        /// <param name="a1">The first series value</param>
+        /// <param name="a2">The second series value</param>
+        /// <param name="count">The count of steps from <paramref name="a1"/> to <paramref name="a2"/> in the series</param>
+        /// <returns>The sum of the series between <paramref name="a1"/> and <paramref name="a2"/> inclusively</returns>
+        public static double SeriesSum(double a1, double a2, int count) =>
+            // This is a summation of a series of n entries A: Sn = (n*(A1 + An))/2
+            (count * (a1 + a2)) / 2;
         #nullable restore
     }
 }
