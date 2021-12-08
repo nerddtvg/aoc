@@ -20,21 +20,24 @@ namespace AdventOfCode.Solutions.Year2017
         }
 
         public List<Bridge> allBridgePorts;
+        public (int length, int strength)[] allCalcs;
 
         public Day24() : base(24, 2017, "")
         {
             allBridgePorts = Input.SplitByNewline().Select(line => new Bridge(line)).ToList();
+
+            allCalcs = GetAllBridgeLengthStrengths(0, new List<Bridge>(), allBridgePorts).ToArray();
         }
 
         protected override string? SolvePartOne()
         {
-            return GetAllBridgeStrengths(0, new List<Bridge>(), allBridgePorts).Max().ToString();
+            return allCalcs.Max(br => br.strength).ToString();
         }
 
-        public IEnumerable<int> GetAllBridgeStrengths(int currentPort, List<Bridge> currentBridges, List<Bridge> ports)
+        public IEnumerable<(int length, int strength)> GetAllBridgeLengthStrengths(int currentPort, List<Bridge> currentBridges, List<Bridge> ports)
         {
             // First return the current score
-            yield return currentBridges.Sum(b => b.ports.Sum());
+            yield return (currentBridges.Count, currentBridges.Sum(b => b.ports.Sum()));
 
             // Find all possibles
             var possible = ports.Where(p => p.ports.Contains(currentPort)).ToList();
@@ -56,7 +59,7 @@ namespace AdventOfCode.Solutions.Year2017
                 var removeIndex = newPortList.IndexOf(temp);
                 newPortList.RemoveAt(removeIndex);
 
-                foreach(var val in GetAllBridgeStrengths(newPort, newBridge, newPortList))
+                foreach(var val in GetAllBridgeLengthStrengths(newPort, newBridge, newPortList))
                 {
                     yield return val;
                 }
@@ -65,7 +68,9 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            var longest = allCalcs.Max(br => br.length);
+
+            return allCalcs.Where(br => br.length == longest).Max(br => br.strength).ToString();
         }
     }
 }
