@@ -71,6 +71,39 @@ namespace AdventOfCode.Solutions.Year2017
                 H: (EXIT)
             */
 
+            /* Reduced into psuedo-C
+            b = 93
+            c = b
+            if (a != 0) {
+                b *= 100
+                b += 100000
+                c = b
+                c += 17000
+            }
+
+            while(true) {
+                f = 1
+                d = 2
+                do {
+                    e = 2
+                    do {
+                        if (d * e == b) f = 0
+                        e += 1
+                    } while(e != b)
+                    d += 1
+                } while (d != b)
+                
+                if (f == 0) h += 1
+                
+                if (b-c == 0) break
+                
+                b += 17
+            }
+
+            H:
+            (EXIT)
+            */
+
             // Set debug
             p.SetRegister('a', 1);
 
