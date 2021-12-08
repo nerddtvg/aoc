@@ -90,44 +90,35 @@ namespace AdventOfCode.Solutions.Year2017
                     } while(e != b)
                     d += 1
                 } while (d != b)
+                // For every number d = 2 to b (109300):
+                //   For every number e = 2 to b (109300):
+                //     Check if e*d is a factor of b, if so, f is zero
                 
                 if (f == 0) h += 1
+                // Count if we found a factor in any of the list
                 
                 if (b-c == 0) break
                 
                 b += 17
+                // Since c is 17,000 larger than b, this loop runs 1001 times
+                // NOT 1000 because the check is on the bottom
             }
 
             H:
             (EXIT)
             */
 
-            // Set debug
-            p.SetRegister('a', 1);
+            // Solution: Counting the number of NOT prime numbers between 109300 and 126317 (1001 * 17) numbers.
 
-            var ret = true;
-            var c = 0;
-            while(ret && c++ < 100)
+            var h = Enumerable.Range(0, 1001).Count(index =>
             {
-                ret = p.Run();
+                // We want to know what is or isn't a divisor here
+                var num = 109300 + (17 * index);
 
-                // This goes into a pretty crazy loop comparing the values of b and c over and over
-                // To try and short-circuit it, on step 2 we override those values
-                if (c == 2)
-                {
-                    p.SetRegister('b', 4);
-                    //p.SetRegister('c', 0);
-                }
+                return num.GetDivisors().Count() > 2;
+            });
 
-                for (char i = 'a'; i <= 'h'; i++)
-                {
-                    Console.WriteLine($"{i}: {p.GetRegister(i)}");
-                }
-
-                Console.WriteLine("");
-            }
-
-            return p.GetRegister('h').ToString();
+            return h.ToString();
         }
     }
 }
