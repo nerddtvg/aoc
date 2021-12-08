@@ -75,10 +75,8 @@ namespace AdventOfCode.Solutions.Year2017
             b = 93
             c = b
             if (a != 0) {
-                b *= 100
-                b += 100000
-                c = b
-                c += 17000
+                b = 109300
+                c = 126300
             }
 
             while(true) {
