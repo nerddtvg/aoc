@@ -22,7 +22,7 @@ namespace AdventOfCode.Solutions.Year2017
         public List<Bridge> allBridgePorts;
         public (int length, int strength)[] allCalcs;
 
-        public Day24() : base(24, 2017, "")
+        public Day24() : base(24, 2017, "Electromagnetic Moat")
         {
             allBridgePorts = Input.SplitByNewline().Select(line => new Bridge(line)).ToList();
 
