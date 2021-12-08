@@ -52,6 +52,19 @@ namespace AdventOfCode.Solutions.Year2021
                 ).ToString();
         }
 
+        /// <summary>
+        /// Removes the known characters from the replacement map
+        /// </summary>
+        private string RemoveKnown(Dictionary<char, char> map, string original)
+        {
+            foreach(var ch in map.Values)
+            {
+                original = original.Replace(ch.ToString(), "");
+            }
+
+            return original;
+        }
+
         public int DetermineDisplay(string line)
         {
             // Start with 1 to find c & f
@@ -62,13 +75,16 @@ namespace AdventOfCode.Solutions.Year2021
             // Then 3 to determine d
             // From that we can get b and then e
 
-            char a = '0';
-            char b = '0';
-            char c = '0';
-            char d = '0';
-            char e = '0';
-            char f = '0';
-            char g = '0';
+            Dictionary<char, char> map = new Dictionary<char, char>()
+            {
+                { 'a', '0' },
+                { 'b', '0' },
+                { 'c', '0' },
+                { 'd', '0' },
+                { 'e', '0' },
+                { 'f', '0' },
+                { 'g', '0' }
+            };
 
             var outputGroups = line
                 .Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[1]
@@ -96,75 +112,52 @@ namespace AdventOfCode.Solutions.Year2021
                 throw new Exception($"No A: {line}");
 
             // Find the difference
-            a = searchA.Where(ch => !cf.Contains(ch)).First();
+            map['a'] = searchA.Where(ch => !cf.Contains(ch)).First();
 
             // Use 4 to identify possible b and d
             var bd = groups
                 .Where(grp => grp.Length == 4)
                 .FirstOrDefault()?
-                .Replace(cf[0], ' ')
-                .Replace(cf[1], ' ')
-                .Replace(" ", "") ?? string.Empty;
+                .Replace(cf[0].ToString(), "")
+                .Replace(cf[1].ToString(), "") ?? string.Empty;
 
             if (string.IsNullOrEmpty(bd))
                 throw new Exception($"No BD: {line}");
 
             // Use the 5 to find 'f' from cf and bd (must have a and f, but no c)
-            var searchGF = groups
-                .Where(grp => grp.Length == 5 && grp.Contains(a) && grp.Contains(bd[0]) && grp.Contains(bd[1]) && (grp.Contains(cf[0]) ^ grp.Contains(cf[1])))
-                .FirstOrDefault()?
-                .Replace(a, ' ')
-                .Replace(bd[0], ' ')
-                .Replace(bd[1], ' ')
-                .Replace(" ", "") ?? string.Empty;
+            var searchGF = RemoveKnown(map, groups
+                .Where(grp => grp.Length == 5 && grp.Contains(map['a']) && grp.Contains(bd[0]) && grp.Contains(bd[1]) && (grp.Contains(cf[0]) ^ grp.Contains(cf[1])))
+                .FirstOrDefault()  ?? string.Empty)
+                .Replace(bd[0].ToString(), "")
+                .Replace(bd[1].ToString(), "");
 
             if (string.IsNullOrEmpty(searchGF))
                 throw new Exception($"No GF: {line}");
 
             // searchGF gives us... a 'g' and 'f'
-            f = searchGF.First(ch => cf.Contains(ch));
-            g = searchGF.Replace(f.ToString(), "")[0];
+            map['f'] = searchGF.First(ch => cf.Contains(ch));
+            map['g'] = RemoveKnown(map, searchGF)[0];
 
             // From that we now have 'c'
-            c = cf.First(ch => ch != f);
+            map['c'] = cf.First(ch => ch != map['f']);
 
             // Currently we have a, [bd], c, f, and g
-            // Use a 3 to find d
-            var searchD = groups
-                .Where(grp => grp.Length == 5 && grp.Contains(a) && grp.Contains(c) && grp.Contains(f) && grp.Contains(g))
-                .FirstOrDefault()?
-                .Replace(a, ' ')
-                .Replace(c, ' ')
-                .Replace(f, ' ')
-                .Replace(g, ' ')
-                .Replace(" ", "") ?? string.Empty;
+            // Use a 3 to find d then b
+            var searchD = RemoveKnown(map, groups
+                .Where(grp => grp.Length == 5 && grp.Contains(map['a']) && grp.Contains(map['c']) && grp.Contains(map['f']) && grp.Contains(map['g']))
+                .FirstOrDefault()  ?? string.Empty);
 
             if (string.IsNullOrEmpty(searchD))
                 throw new Exception($"No DE: {line}");
 
-            d = searchD[0];
-            b = bd.Replace(d.ToString(), "")[0];
+            map['d'] = searchD[0];
+            map['b'] = RemoveKnown(map, bd)[0];
 
             // Find e just be process of elimination
-            e = "abcdefg"
-                .Replace(a.ToString(), "")
-                .Replace(b.ToString(), "")
-                .Replace(c.ToString(), "")
-                .Replace(d.ToString(), "")
-                .Replace(f.ToString(), "")
-                .Replace(g.ToString(), "")[0];
+            map['e'] = RemoveKnown(map, "abcdefg")[0];
 
             // Quick convert to dictionary to make lookups easier
-            var replacements = new Dictionary<char, char>()
-            {
-                { a, 'a' },
-                { b, 'b' },
-                { c, 'c' },
-                { d, 'd' },
-                { e, 'e' },
-                { f, 'f' },
-                { g, 'g' }
-            };
+            var replacements = map.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
 
             // We have our letters! Huzzah!
             var outString = outputGroups
