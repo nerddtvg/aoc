@@ -56,9 +56,11 @@ namespace AdventOfCode.Solutions.Year2021
         {
             // Start with 1 to find c & f
             // Then use 7 to determine a with c & f
-            // Then 5 to determine f/a with b, d, & g
-            // Then 3 to determine f/a/c with d & g (plus b)
-            // Then 4 to determine f/a/c/d with b (plus g)
+            // Then 4 to determine b and d
+            // Then 5 to determine f and g
+            // From that we can get c
+            // Then 3 to determine d
+            // From that we can get b and then e
 
             char a = '0';
             char b = '0';
