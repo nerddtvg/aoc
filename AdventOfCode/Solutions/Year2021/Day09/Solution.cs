@@ -13,10 +13,16 @@ namespace AdventOfCode.Solutions.Year2021
     class Day09 : ASolution
     {
         private int[][] grid;
+        private List<(int x, int y)> lowestPoints = new List<(int x, int y)>();
 
         public Day09() : base(09, 2021, "")
         {
             grid = Input.SplitByNewline().Select(line => line.ToIntArray().ToArray()).ToArray();
+
+            this.lowestPoints = Enumerable.Range(0, this.grid.Length).SelectMany(y =>
+            {
+                return Enumerable.Range(0, this.grid[y].Length).Where(x => IsLowest(x, y)).Select(x => (x, y));
+            }).ToList();
         }
 
         private int GetValue(int x, int y)
@@ -38,12 +44,7 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartOne()
         {
-            int sum = Enumerable.Range(0, this.grid.Length).Sum(y =>
-            {
-                return Enumerable.Range(0, this.grid[y].Length).Where(x => IsLowest(x, y)).Sum(x => GetValue(x, y) + 1);
-            });
-
-            return sum.ToString();
+            return this.lowestPoints.Sum(pt => GetValue(pt.x, pt.y) + 1).ToString();
         }
 
         protected override string? SolvePartTwo()
