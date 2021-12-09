@@ -15,7 +15,7 @@ namespace AdventOfCode.Solutions.Year2021
         private int[][] grid;
         private List<(int x, int y)> lowestPoints = new List<(int x, int y)>();
 
-        public Day09() : base(09, 2021, "")
+        public Day09() : base(09, 2021, "Smoke Basin")
         {
             // DebugInput = "2199943210\n3987894921\n9856789892\n8767896789\n9899965678";
 
