@@ -13,6 +13,8 @@ namespace AdventOfCode.Solutions.Year2016
         int favNumber;
         List<(int x, int y)> path = new List<(int x, int y)>();
 
+        HashSet<(int x, int y)> fiftySteps = new HashSet<(int x, int y)>();
+
         public Day13() : base(13, 2016, "A Maze of Twisty Little Cubicles")
         {
             // DebugInput = "10";
@@ -51,6 +53,9 @@ namespace AdventOfCode.Solutions.Year2016
             // gScore is the known shortest path from start to Key, other values are assumed infinity
             var gScore = new Dictionary<(int x, int y), int>() { { start, 0 } };
 
+            // Part 2: Include the start
+            this.fiftySteps.Add(start);
+
             do
             {
                 // Get the next node to work on
@@ -60,23 +65,7 @@ namespace AdventOfCode.Solutions.Year2016
                 if (currentNode == default && currentNode != (0, 0))
                     throw new Exception("Unable to find next node.");
 
-                // Check if we found the goal
-                if (currentNode == goal)
-                {
-                    // Go backwards from here
-                    var ret = new List<(int x, int y)>() { goal };
-
-                    // Prevent an accidental infinite loop
-                    int max = 0;
-
-                    do
-                    {
-                        ret.Add(cameFrom[currentNode]);
-                        currentNode = cameFrom[currentNode];
-                    } while (currentNode != start && max++ < 1000);
-
-                    return ret;
-                }
+                // Removed the short-circuit code so that we could cound steps more
 
                 // Work on this node
                 openSet.Remove(currentNode);
@@ -89,6 +78,10 @@ namespace AdventOfCode.Solutions.Year2016
                 {
                     if (!gScore.ContainsKey(n) || tgScore < gScore[n])
                     {
+                        // Count <= 50 nodes
+                        if (tgScore <= 50)
+                            this.fiftySteps.Add(n);
+
                         // This is a shorter path to that node
                         cameFrom[n] = currentNode;
                         gScore[n] = tgScore;
@@ -98,6 +91,27 @@ namespace AdventOfCode.Solutions.Year2016
                     }
                 }
             } while (openSet.Count > 0);
+
+            // Moved here so we could accomodate part 2
+            if (cameFrom.ContainsKey(goal))
+            {
+            
+                // Go backwards from here
+                var ret = new List<(int x, int y)>();
+
+                var currentNode = goal;
+
+                // Prevent an accidental infinite loop
+                int max = 0;
+
+                do
+                {
+                    ret.Add(cameFrom[currentNode]);
+                    currentNode = cameFrom[currentNode];
+                } while (currentNode != start && max++ < 1000);
+
+                return ret;
+            }
 
             return new List<(int x, int y)>();
         }
@@ -124,7 +138,7 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return this.fiftySteps.Count.ToString();
         }
     }
 }
