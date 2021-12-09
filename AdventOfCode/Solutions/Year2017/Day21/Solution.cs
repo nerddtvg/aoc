@@ -20,11 +20,79 @@ namespace AdventOfCode.Solutions.Year2017
         {
             this.grid = Day21.StartingGrid;
 
-//             DebugInput = @"../.# => ##./#../...
-// .#./..#/### => #..#/..../..../#..#";
+            //             DebugInput = @"../.# => ##./#../...
+            // .#./..#/### => #..#/..../..../#..#";
 
-            this.inPatterns = Input.SplitByNewline()
-                .ToDictionary(line => line.Split("=>", StringSplitOptions.TrimEntries)[0], line => line.Split("=>", StringSplitOptions.TrimEntries)[1]);
+            var inputPatterns = Input.SplitByNewline()
+                .SelectMany(line =>
+                {
+                    var ret = new List<(string key, string val)>();
+
+                    var split = line.Split("=>", 2, StringSplitOptions.TrimEntries);
+
+                    ret.Add((split[0], split[1]));
+                    ret.Add((transpose(ret[ret.Count - 1].key), split[1]));
+                    ret.Add((flip(ret[ret.Count - 1].key), split[1]));
+                    ret.Add((transpose(ret[ret.Count - 1].key), split[1]));
+                    ret.Add((flip(ret[ret.Count - 1].key), split[1]));
+                    ret.Add((transpose(ret[ret.Count - 1].key), split[1]));
+                    ret.Add((flip(ret[ret.Count - 1].key), split[1]));
+                    ret.Add((transpose(ret[ret.Count - 1].key), split[1]));
+
+                    return ret;
+                })
+                .ToList();
+
+            foreach (var item in inputPatterns.OrderBy(item => item.key))
+            {
+                if (!this.inPatterns.ContainsKey(item.key))
+                    this.inPatterns.Add(item.key, item.val);
+            }
+
+            // Let's try flipping the keys here instead of the math later
+
+        }
+
+        // Based off /u/willkill07
+        // https://old.reddit.com/r/adventofcode/comments/7l78eb/2017_day_21_solutions/drk4ohr/
+        private string transpose(string input)
+        {
+            var lines = input.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var len = lines[0].Length;
+            var maxIndex = lines[0].Length - 1;
+
+            var outLines = new string[lines[0].Length];
+
+            for (int y = 0; y <= maxIndex; y++)
+            {
+
+                for (int x = 0; x <= maxIndex; x++)
+                {
+                    outLines[y] += lines[maxIndex - x][maxIndex - y];
+                }
+            }
+
+            return string.Join("/", outLines);
+        }
+
+        private string flip(string input)
+        {
+            var lines = input.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var len = lines[0].Length;
+            var maxIndex = lines[0].Length - 1;
+
+            var outLines = new string[lines[0].Length];
+
+            for (int y = 0; y <= maxIndex; y++)
+            {
+
+                for (int x = 0; x <= maxIndex; x++)
+                {
+                    outLines[y] += lines[maxIndex - y][x];
+                }
+            }
+
+            return string.Join("/", outLines);
         }
 
         private void Run()
@@ -50,47 +118,22 @@ namespace AdventOfCode.Solutions.Year2017
 
                 for (int x = 0; x < (side/size); x++)
                 {
-                    var t = new string[8];
+                    var t = string.Empty;
 
                     for (int dy = 0; dy < size; dy++)
                     {
                         for (int dx = 0; dx < size; dx++)
                         {
                             // No rotation
-                            t[0] += splitGrid[((y * size) + dy)][(x * size) + dx];
-                            //t[0] += this.grid[((y * size * side) + (dy * size)) + (x * size * side) + dx];
-
-                            // 90 rotation
-                            t[1] += splitGrid[((y * size) + dx)][(x * size) + (size - 1 - dy)];
-                            // t[1] += this.grid[((x * size * side) + (dx * size)) + (y * size * side) + (size - 1 - dy)];
-
-                            // 180 rotation
-                            t[2] += splitGrid[((y * size) + (size - 1 - dy))][(x * size) + (size - 1 - dx)];
-                            // t[2] += this.grid[((y * size * side) + ((size - 1 - dy) * size)) + (x * size * side) + (size - 1 - dx)];
-
-                            // 270 rotation
-                            t[3] += splitGrid[(y * size) + (size - 1 - dx)][((x * size) + dy)];
-                            // t[3] += this.grid[((x * size * side) + ((size - 1 - dx) * size)) + (y * size * side) + dy];
+                            t += splitGrid[((y * size) + dy)][(x * size) + dx];
                         }
 
-                        t[0] += ' ';
-                        t[1] += ' ';
-                        t[2] += ' ';
-                        t[3] += ' ';
+                        if (dy != size-1)
+                            t += '/';
                     }
-
-                    // Now we need to flip each pattern as well
-                    for (int i = 0; i < 4; i++)
-                    {
-                        t[i + 4] = string.Join("/", t[i].Trim().Split(' ').Select(line => line.Reverse()));
-                    }
-
-                    // Get the pattern
-                    t = t.Select(p => p.Trim().Replace(' ', '/')).ToArray();
 
                     // Find the match
-                    var match = t.First(p => this.inPatterns.ContainsKey(p));
-                    patterns[y][x] = this.inPatterns[match];
+                    patterns[y][x] = this.inPatterns.First(item => item.Key == t).Value;
                 }
             }
 
