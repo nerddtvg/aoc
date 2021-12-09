@@ -75,10 +75,10 @@ namespace AdventOfCode.Solutions.Year2021
             {
                 var lst = new List<(int x, int y)>();
                 FindBasin(pt, ref lst);
-                return lst;
+                return lst.Count;
             }).ToList();
 
-            return basins.Select(lst => lst.Count).OrderByDescending(lst => lst).Take(3).Aggregate((x, y) => x * y).ToString();
+            return basins.OrderByDescending(lst => lst).Take(3).Aggregate((x, y) => x * y).ToString();
         }
     }
 }
