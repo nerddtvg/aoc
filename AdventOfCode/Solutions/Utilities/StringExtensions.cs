@@ -77,6 +77,19 @@ namespace AdventOfCode.Solutions
         }
 
         /// <summary>
+        /// Splits an input string into chunks of <paramref name="length"/>. If it is uneven, the last chunk may not be the correct length.
+        /// </summary>
+        /// <param name="str">The input string</param>
+        /// <param name="length">The maximum chunk size.</param>
+        /// <returns>An <see cref="System.Collections.Generic.IEnumerable{T}"/> of <see cref="System.String"/> chunks</returns>
+        public static IEnumerable<string> SplitBySize(this string str, int length)
+        {
+            // Handles uneven strings in case they happen
+            return Enumerable.Range(0, str.Length / length)
+                .Select(i => str.Length < (i + 1 * length) ? str.Substring(i * length) : str.Substring(i * length, length));
+        }
+
+        /// <summary>
         /// A shortcut to use <see cref="System.String.Join(string?, object?[])"/> with no joining character or string
         /// </summary>
         /// <param name="items">The enumerable list of items</param>
