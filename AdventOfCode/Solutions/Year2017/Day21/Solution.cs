@@ -20,8 +20,7 @@ namespace AdventOfCode.Solutions.Year2017
         {
             this.grid = Day21.StartingGrid;
 
-            //             DebugInput = @"../.# => ##./#../...
-            // .#./..#/### => #..#/..../..../#..#";
+            // DebugInput = "../.# => ##./#../...\n.#./..#/### => #..#/..../..../#..#";
 
             var inputPatterns = Input.SplitByNewline()
                 .SelectMany(line =>
@@ -43,7 +42,7 @@ namespace AdventOfCode.Solutions.Year2017
                 })
                 .ToList();
 
-            foreach (var item in inputPatterns.OrderBy(item => item.key))
+            foreach (var item in inputPatterns)
             {
                 if (!this.inPatterns.ContainsKey(item.key))
                     this.inPatterns.Add(item.key, item.val);
@@ -134,7 +133,7 @@ namespace AdventOfCode.Solutions.Year2017
 
                 for (int x = 0; x < (side/size); x++)
                 {
-                    var tLines = patterns[y][0].Split('/').ToArray();
+                    var tLines = patterns[y][x].Split('/').ToArray();
 
                     for (int i = 0; i < tLines.Length; i++)
                     {
@@ -150,11 +149,14 @@ namespace AdventOfCode.Solutions.Year2017
             this.grid = newGrid;
         }
 
+        private void PrintGrid() => Console.WriteLine(string.Join("\r\n", this.grid.SplitBySize((int)Math.Sqrt(this.grid.Length))) + "\r\n");
+
         protected override string? SolvePartOne()
         {
-            Utilities.Repeat(() => Run(), 5);
-
-            Console.WriteLine(string.Join("\r\n", this.grid.SplitBySize((int)Math.Sqrt(this.grid.Length))));
+            Utilities.Repeat(() =>
+            {
+                Run();
+            }, 5);
 
             return this.grid.Count(ch => ch == '#').ToString();
         }
