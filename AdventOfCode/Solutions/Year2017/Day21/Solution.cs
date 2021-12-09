@@ -77,22 +77,9 @@ namespace AdventOfCode.Solutions.Year2017
 
         private string flip(string input)
         {
-            var lines = input.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            var len = lines[0].Length;
-            var maxIndex = lines[0].Length - 1;
-
-            var outLines = new string[lines[0].Length];
-
-            for (int y = 0; y <= maxIndex; y++)
-            {
-
-                for (int x = 0; x <= maxIndex; x++)
-                {
-                    outLines[y] += lines[maxIndex - y][x];
-                }
-            }
-
-            return string.Join("/", outLines);
+            return string.Join("/", input
+                .Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Reverse());
         }
 
         private void Run()
