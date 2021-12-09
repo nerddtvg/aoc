@@ -163,7 +163,15 @@ namespace AdventOfCode.Solutions.Year2017
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            // Run 18 times, already ran 5
+            // This takes about 8 seconds
+
+            Utilities.Repeat(() =>
+            {
+                Run();
+            }, 13);
+
+            return this.grid.Count(ch => ch == '#').ToString();
         }
     }
 }
