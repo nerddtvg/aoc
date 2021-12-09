@@ -60,7 +60,29 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // No debug here
+            if (!string.IsNullOrEmpty(DebugInput))
+                return null;
+
+            // Add a new disk
+            this.disks.Add(new Disk()
+            {
+                id = (uint) this.disks.Count +1,
+                position = 0,
+                modulo = 11
+            });
+
+            uint time = 0;
+
+            for (time = 0; time < uint.MaxValue; time++)
+            {
+                // Originally brute forced this because I did != instead of ==
+                // When it is ==, it's the Chinese Remainder Theorem
+                if (this.disks.All(disk => disk.GetPosition(time) == 0))
+                    break;
+            }
+
+            return time.ToString();
         }
     }
 }
