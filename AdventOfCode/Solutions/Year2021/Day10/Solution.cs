@@ -20,6 +20,15 @@ namespace AdventOfCode.Solutions.Year2021
             { '>', 25137 }
         };
 
+        private Dictionary<char, uint> valuesPt2 = new Dictionary<char, uint>()
+        {
+            // Matching the desired openings since that's what we track
+            { '(', 1 },
+            { '[', 2 },
+            { '{', 3 },
+            { '<', 4 }
+        };
+
         private Dictionary<char, char> matches = new Dictionary<char, char>()
         {
             { '(', ')' },
@@ -68,13 +77,26 @@ namespace AdventOfCode.Solutions.Year2021
                         if (this.matches[openings.Pop()] != ch)
                         {
                             // Mismatched
-                            score += this.values[ch];
-
-                            // Part 1 ends at the first one
                             if (part == 1)
+                                // Part 1 ends at the first one
                                 return this.values[ch];
+                            else
+                                // Ignore for Part 1
+                                return 0;
                         }
                         break;
+                }
+            }
+            
+            if (part == 1)
+                return 0;
+
+            // Part 2 needs to finish the incompleteness
+            if (part == 2)
+            {
+                while(openings.Count > 0)
+                {
+                    score = score * 5 + this.valuesPt2[openings.Pop()];
                 }
             }
 
@@ -88,7 +110,20 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            var scores = Input.SplitByNewline()
+                // Get the corrected scores
+                .Select(line => CorruptedScore(line, 2))
+                // Discount any that are 0 (part 1 answers)
+                .Where(score => score > 0)
+                // Sort
+                .OrderBy(score => score)
+                .ToList();
+
+            if (scores.Count % 2 == 0)
+                throw new Exception("Even number of responses");
+
+            // Find the middle (don't +1 here because we have a zero start array)
+            return scores[(scores.Count / 2)].ToString();
         }
     }
 }
