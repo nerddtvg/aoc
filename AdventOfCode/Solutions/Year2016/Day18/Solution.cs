@@ -68,7 +68,13 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // Brute force this, it doesn't take too long (~6 seconds)
+            while(this.tiles.Count < 400000)
+            {
+                AddRow();
+            }
+
+            return this.tiles.Sum(line => line.Count(ch => ch == '.')).ToString();
         }
     }
 }
