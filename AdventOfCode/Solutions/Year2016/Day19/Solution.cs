@@ -11,24 +11,28 @@ namespace AdventOfCode.Solutions.Year2016
     class Day19 : ASolution
     {
         private Dictionary<uint, uint> elves = new Dictionary<uint, uint>();
-        private LinkedList<(uint index, uint count)> elves2 = new LinkedList<(uint, uint)>();
-        private LinkedListNode<(uint index, uint count)>? node = null;
+        private List<uint> indices = new List<uint>();
         private uint pos = 0;
         private uint next = 0;
         private uint count = 0;
 
         public Day19() : base(19, 2016, "An Elephant Named Joseph")
         {
-            this.pos = 0;
-            this.next = 0;
+            Reset();
+        }
 
+        private void Reset()
+        {
             // Initiate our list
             this.count = UInt32.Parse(Input);
+            this.pos = 0;
+            this.next = 0;
+            this.elves.Clear();
+            this.indices.Clear();
             for (uint i = 0; i < count; i++)
             {
                 elves.Add(i, 1);
-
-                this.elves2.AddLast((i + 1, 1));
+                this.indices.Add(i);
             }
         }
 
@@ -70,33 +74,27 @@ namespace AdventOfCode.Solutions.Year2016
 
         private void RunRound2()
         {
-            if (this.node == null)
-                this.node = this.elves2.First;
-
-            // Done!
-            if (this.elves2.Count <= 1)
+            // If we're done...
+            if (this.elves.Count <= 1)
                 return;
 
-            // First we need to find who is across from us I guess
-            var moveCount = (int)Math.Ceiling(this.elves2.Count / 2.0);
+            var steal = (int) ((this.pos + (this.indices.Count / 2)) % this.indices.Count);
 
-            // Find that elf
-            var stolen = this.node.Next ?? this.elves2.First;
+            // Get the elf at that index
+            var stolenElf = this.indices.ElementAt(steal);
 
-            for (int i = 1; i < moveCount; i++)
-            {
-                // We skip 0 because we already did that
-                stolen = stolen.Next ?? this.elves2.First;
-            }
+            // Remove the elf from our dictionary and index list
+            this.elves.Remove(stolenElf);
 
-            // Steal!
-            this.node.ValueRef.count += stolen.Value.count;
+            // RemoveAt is slow, recommending we recreate the list
+            // https://stackoverflow.com/questions/6926554/how-to-quickly-remove-items-from-a-list
+            this.indices.RemoveAt(steal);
 
-            // Remove the node
-            this.elves2.Remove(stolen);
+            // Move forward
+            if (this.pos >= this.indices.Count)
+                this.pos = (uint) this.indices.Count - 1;
 
-            // Move one
-            this.node = this.node.Next ?? this.elves2.First;
+            this.pos = (this.pos + 1) % (uint) this.indices.Count;
         }
 
         protected override string SolvePartOne()
@@ -112,13 +110,50 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
+            // Let's try to find a pattern
+            // Brute forcing this is bad
+            // Nothing works on both a dictionary and index based system right?
+            /* for (int i = 5; i <= 100; i++)
+            {
+                DebugInput = i.ToString();
+                Reset();
+
+                do
+                {
+                    RunRound2();
+                } while (this.elves.Count > 1);
+
+                Console.WriteLine($"{i} Elves: {this.elves.First().Key + 1}");
+            } */
+
+            /* Reset();
+
             do
             {
                 RunRound2();
-            } while (this.elves2.Count > 1);
+            } while (this.elves.Count > 1);
 
             // We're off by one in the index
-            return this.elves2.First?.Value.index.ToString() ?? string.Empty;
+            return (this.elves.First().Key+1).ToString();
+            // return null; */
+
+            // I don't know the formulas for this part
+            // Looking at the mega thread, there are MANY different
+            // solutions for Part 2
+            // Here is just one: https://old.reddit.com/r/adventofcode/comments/5j4lp1/2016_day_19_solutions/dbdihvu/
+
+            return GetFormulaCrossPosition(Int32.Parse(Input)).ToString();
+        }
+
+        public static int GetFormulaCrossPosition(int n)
+        {
+            int pow = (int)Math.Floor(Math.Log(n) / Math.Log(3));
+            int b = (int)Math.Pow(3, pow);
+            if (n == b)
+                return n;
+            if (n - b <= b)
+                return n - b;
+            return 2 * n - 3 * b;
         }
     }
 }
