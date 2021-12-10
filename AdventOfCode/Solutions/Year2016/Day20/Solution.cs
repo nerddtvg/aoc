@@ -17,12 +17,14 @@ namespace AdventOfCode.Solutions.Year2016
 
             public IPRange(uint s, uint e)
             {
-                start = s;
-                end = e;
+                start = Math.Min(s, e);
+                end = Math.Max(s, e);
             }
         }
 
         public List<IPRange> blocked = new List<IPRange>();
+
+        public uint minimum = 0;
 
         public Day20() : base(20, 2016, "Firewall Rules")
         {
@@ -49,41 +51,46 @@ namespace AdventOfCode.Solutions.Year2016
                 removed = 0;
                 
                 // Go through each entry and remove it if it matched something further down the line
-                for (int start = 0; start < this.blocked.Count - 2; start++)
+                for (int start = 0; start < this.blocked.Count - 1; start++)
                 {
                     var rangeA = this.blocked[start];
 
-                    for (int end = start + 1; end < this.blocked.Count - 1; end++)
+                    for (int end = start + 1; end < this.blocked.Count; end++)
                     {
                         var rangeB = this.blocked[end];
 
                         // Check if we've gone out of range here
-                        if (rangeA.end+1 < rangeB.start)
+                        // Weird bug where if rangeA.end is MaxValue, we can't properly compare
+                        if (rangeA.end != uint.MaxValue && rangeA.end < rangeB.start-1)
                             break;
 
                         // If the end range is longer than the rangeStart, modify rangeStar
-                        if (rangeB.end > rangeA.end)
+                        if (rangeA.end != uint.MaxValue && rangeB.end >= rangeA.end)
                         {
                             rangeA.end = rangeB.end;
-
-                            // We will now remove this
-                            this.blocked.RemoveAt(end);
-                            end--;  // Readjust for the new count
-                            removed++;
                         }
+
+                        // We will now remove this
+                        this.blocked.Remove(rangeB);
+                        end--;  // Readjust for the new count
+                        removed++;
                     }
                 }
             } while (removed > 0);
 
             if (blocked.First().start > 0)
-                return "0";
+                minimum = 0;
+            else
+                minimum = blocked.First().end + 1;
 
-            return (blocked.First().end + 1).ToString();
+            return minimum.ToString();
         }
 
         protected override string SolvePartTwo()
         {
-            return null;
+            var c = ((ulong)uint.MaxValue + 1) - this.blocked.Sum(block => (block.end - block.start) + 1);
+
+            return c.ToString();
         }
     }
 }
