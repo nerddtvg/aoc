@@ -27,99 +27,77 @@ namespace AdventOfCode.Solutions.Year2016
             var open = "bcdef";
 
             // Up
-            if (pt.y >= 0 && open.Contains(md5[0]))
+            if (pt.y > 0 && open.Contains(md5[0]))
                 neighbors.Add(currentPath + 'U', (pt.x, pt.y - 1));
 
             // Down
-            if (pt.y <= 2 && open.Contains(md5[1]))
+            if (pt.y < 3 && open.Contains(md5[1]))
                 neighbors.Add(currentPath + 'D', (pt.x, pt.y + 1));
 
             // Left
-            if (pt.x >= 0 && open.Contains(md5[2]))
+            if (pt.x > 0 && open.Contains(md5[2]))
                 neighbors.Add(currentPath + 'L', (pt.x - 1, pt.y));
 
             // Right
-            if (pt.x <= 2 && open.Contains(md5[3]))
+            if (pt.x < 3 && open.Contains(md5[3]))
                 neighbors.Add(currentPath + 'R', (pt.x + 1, pt.y));
 
             return neighbors;
+        }
+
+        public class node
+        {
+            public (int x, int y) pos = (0, 0);
+            public string path = string.Empty;
+            public int gScore = Int32.MaxValue;
         }
 
         // Based on: https://en.wikipedia.org/wiki/A*_search_algorithm
         public string AStar((int x, int y) start, (int x, int y) goal, string startPath)
         {
             // This is the list of nodes we need to search
-            var openSet = new HashSet<(int x, int y)>() { start };
+            var openSet = new HashSet<node>() { new node { path = startPath, gScore = Int32.MaxValue - 1 } };
 
-            // A Dictionary of the node that we cameFrom Value to reach the node Key
-            var cameFrom = new Dictionary<(int x, int y), string>() { { start, startPath } };
-
-            // gScore is the known shortest path from start to Key, other values are assumed infinity
-            var gScore = new Dictionary<(int x, int y), int>() { { start, 0 } };
+            // Tracking complete paths (we need to enumerate everything with this code)
+            var completePaths = new List<string>();
 
             do
             {
                 // Get the next node to work on
-                var min = gScore.Where(kvp => openSet.Contains(kvp.Key)).Min(kvp => kvp.Value);
-                var currentNode = openSet.FirstOrDefault(pt => gScore[pt] == min);
+                var min = openSet.Min(node => node.gScore);
+                var currentNode = openSet.FirstOrDefault(node => node.gScore == min);
 
-                if (currentNode == default && currentNode != (0, 0))
+                if (currentNode == default)
                     throw new Exception("Unable to find next node.");
-
-                // Current path
-                var currentPath = cameFrom[currentNode];
-
-                // Removed the short-circuit code so that we could cound steps more
-                if (currentNode == goal)
-                {
-                    // Found the vault
-                    return currentPath;
-                }
 
                 // Work on this node
                 openSet.Remove(currentNode);
 
+                // Removed the short-circuit code so that we could cound steps more
+                if (currentNode.pos == goal)
+                {
+                    // Found the vault
+                    completePaths.Add(currentNode.path);
+                    continue;
+                }
+
                 // We know the gScore to get to a neighbor is gScore[currentNode] + 1
-                var tgScore = gScore[currentNode] + 1;
+                var tgScore = currentNode.gScore - 1;
 
                 // Get possible neighbors
-                foreach(var n in GetDirections(currentNode, currentPath))
+                var neighbors = GetDirections(currentNode.pos, currentNode.path);
+
+                foreach(var n in neighbors)
                 {
                     // We track all paths (may backtrack), no if statement here
-                    //if (!gScore.ContainsKey(n.Value) || tgScore < gScore[n])
-                    //{
-                        // This is a shorter path to that node
-                        cameFrom[n.Value] = n.Key;
-                        gScore[n.Value] = tgScore;
+                    var tempNode = new node() { pos = n.Value, path = n.Key, gScore = tgScore };
 
-                        // HashSet prevents duplicates
-                        openSet.Add(n.Value);
-                    //}
+                    // HashSet prevents duplicates
+                    openSet.Add(tempNode);
                 }
             } while (openSet.Count > 0);
 
-            // Moved here so we could accomodate part 2
-            /* if (cameFrom.ContainsKey(goal))
-            {
-            
-                // Go backwards from here
-                var ret = new List<(int x, int y)>();
-
-                var currentNode = goal;
-
-                // Prevent an accidental infinite loop
-                int max = 0;
-
-                do
-                {
-                    ret.Add(cameFrom[currentNode]);
-                    currentNode = cameFrom[currentNode];
-                } while (currentNode != start && max++ < 1000);
-
-                return ret;
-            } */
-
-            return string.Empty;
+            return completePaths.OrderBy(l => l.Length).FirstOrDefault()?.Replace(startPath, "");
         }
 
         protected override string SolvePartOne()
