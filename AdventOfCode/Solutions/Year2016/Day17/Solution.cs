@@ -16,6 +16,9 @@ namespace AdventOfCode.Solutions.Year2016
 
         }
 
+        // Tracking complete paths (we need to enumerate everything with this code)
+        public List<string> completePaths = new List<string>();
+
         public Dictionary<string, (int x, int y)> GetDirections((int x, int y) pt, string currentPath)
         {
             var neighbors = new Dictionary<string, (int x, int y)>();
@@ -58,9 +61,6 @@ namespace AdventOfCode.Solutions.Year2016
             // This is the list of nodes we need to search
             var openSet = new HashSet<node>() { new node { path = startPath, gScore = Int32.MaxValue - 1 } };
 
-            // Tracking complete paths (we need to enumerate everything with this code)
-            var completePaths = new List<string>();
-
             do
             {
                 // Get the next node to work on
@@ -77,7 +77,7 @@ namespace AdventOfCode.Solutions.Year2016
                 if (currentNode.pos == goal)
                 {
                     // Found the vault
-                    completePaths.Add(currentNode.path);
+                    this.completePaths.Add(currentNode.path.Replace(startPath, ""));
                     continue;
                 }
 
@@ -97,7 +97,7 @@ namespace AdventOfCode.Solutions.Year2016
                 }
             } while (openSet.Count > 0);
 
-            return completePaths.OrderBy(l => l.Length).FirstOrDefault()?.Replace(startPath, "");
+            return this.completePaths.OrderBy(l => l.Length).FirstOrDefault();
         }
 
         protected override string SolvePartOne()
@@ -107,7 +107,7 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return this.completePaths.OrderByDescending(l => l.Length).FirstOrDefault()?.Length.ToString();
         }
     }
 }
