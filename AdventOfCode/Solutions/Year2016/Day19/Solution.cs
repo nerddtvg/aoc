@@ -11,17 +11,24 @@ namespace AdventOfCode.Solutions.Year2016
     class Day19 : ASolution
     {
         private Dictionary<uint, uint> elves = new Dictionary<uint, uint>();
+        private LinkedList<(uint index, uint count)> elves2 = new LinkedList<(uint, uint)>();
+        private LinkedListNode<(uint index, uint count)>? node = null;
         private uint pos = 0;
         private uint next = 0;
         private uint count = 0;
 
         public Day19() : base(19, 2016, "An Elephant Named Joseph")
         {
+            this.pos = 0;
+            this.next = 0;
+
             // Initiate our list
             this.count = UInt32.Parse(Input);
             for (uint i = 0; i < count; i++)
             {
                 elves.Add(i, 1);
+
+                this.elves2.AddLast((i + 1, 1));
             }
         }
 
@@ -61,6 +68,37 @@ namespace AdventOfCode.Solutions.Year2016
             this.next += 2;
         }
 
+        private void RunRound2()
+        {
+            if (this.node == null)
+                this.node = this.elves2.First;
+
+            // Done!
+            if (this.elves2.Count <= 1)
+                return;
+
+            // First we need to find who is across from us I guess
+            var moveCount = (int)Math.Ceiling(this.elves2.Count / 2.0);
+
+            // Find that elf
+            var stolen = this.node.Next ?? this.elves2.First;
+
+            for (int i = 1; i < moveCount; i++)
+            {
+                // We skip 0 because we already did that
+                stolen = stolen.Next ?? this.elves2.First;
+            }
+
+            // Steal!
+            this.node.ValueRef.count += stolen.Value.count;
+
+            // Remove the node
+            this.elves2.Remove(stolen);
+
+            // Move one
+            this.node = this.node.Next ?? this.elves2.First;
+        }
+
         protected override string SolvePartOne()
         {
             do
@@ -74,7 +112,13 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            do
+            {
+                RunRound2();
+            } while (this.elves2.Count > 1);
+
+            // We're off by one in the index
+            return this.elves2.First?.Value.index.ToString() ?? string.Empty;
         }
     }
 }
