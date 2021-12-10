@@ -37,6 +37,8 @@ namespace AdventOfCode.Solutions.Year2021
             { '<', '>' }
         };
 
+        private List<uint> incompleteScores = new List<uint>();
+
         public Day10() : base(10, 2021, "")
         {
 //             DebugInput = @"[({(<(())[]>[[{[]{<()<>>
@@ -53,11 +55,9 @@ namespace AdventOfCode.Solutions.Year2021
             // DebugInput = "[[<[([]))<([[{}[[()]]]";
         }
 
-        private uint CorruptedScore(string line, int part = 1)
+        private uint CorruptedScore(string line)
         {
             var openings = new Stack<char>();
-
-            uint score = 0;
 
             foreach(var ch in line)
             {
@@ -76,31 +76,28 @@ namespace AdventOfCode.Solutions.Year2021
                     case '>':
                         if (this.matches[openings.Pop()] != ch)
                         {
-                            // Mismatched
-                            if (part == 1)
-                                // Part 1 ends at the first one
-                                return this.values[ch];
-                            else
-                                // Ignore for Part 1
-                                return 0;
+                            // Part 1 ends at the first one
+                            return this.values[ch];
                         }
                         break;
                 }
             }
-            
-            if (part == 1)
-                return 0;
 
             // Part 2 needs to finish the incompleteness
-            if (part == 2)
+            if (openings.Count > 0)
             {
+                uint score = 0;
+
                 while(openings.Count > 0)
                 {
                     score = score * 5 + this.valuesPt2[openings.Pop()];
                 }
+
+                if (score > 0)
+                    this.incompleteScores.Add(score);
             }
 
-            return score;
+            return 0;
         }
 
         protected override string? SolvePartOne()
@@ -110,20 +107,18 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            var scores = Input.SplitByNewline()
-                // Get the corrected scores
-                .Select(line => CorruptedScore(line, 2))
-                // Discount any that are 0 (part 1 answers)
+            this.incompleteScores = this.incompleteScores
+                // Discount any that are 0 just in case
                 .Where(score => score > 0)
                 // Sort
                 .OrderBy(score => score)
                 .ToList();
 
-            if (scores.Count % 2 == 0)
+            if (this.incompleteScores.Count % 2 == 0)
                 throw new Exception("Even number of responses");
 
             // Find the middle (don't +1 here because we have a zero start array)
-            return scores[(scores.Count / 2)].ToString();
+            return this.incompleteScores[(this.incompleteScores.Count / 2)].ToString();
         }
     }
 }
