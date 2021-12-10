@@ -12,7 +12,7 @@ namespace AdventOfCode.Solutions.Year2021
 
     class Day10 : ASolution
     {
-        private Dictionary<char, uint> values = new Dictionary<char, uint>()
+        private Dictionary<char, ulong> values = new Dictionary<char, ulong>()
         {
             { ')', 3 },
             { ']', 57 },
@@ -20,7 +20,7 @@ namespace AdventOfCode.Solutions.Year2021
             { '>', 25137 }
         };
 
-        private Dictionary<char, uint> valuesPt2 = new Dictionary<char, uint>()
+        private Dictionary<char, ulong> valuesPt2 = new Dictionary<char, ulong>()
         {
             // Matching the desired openings since that's what we track
             { '(', 1 },
@@ -37,7 +37,7 @@ namespace AdventOfCode.Solutions.Year2021
             { '<', '>' }
         };
 
-        private List<uint> incompleteScores = new List<uint>();
+        private List<ulong> incompleteScores = new List<ulong>();
 
         public Day10() : base(10, 2021, "")
         {
@@ -55,7 +55,7 @@ namespace AdventOfCode.Solutions.Year2021
             // DebugInput = "[[<[([]))<([[{}[[()]]]";
         }
 
-        private uint CorruptedScore(string line)
+        private ulong CorruptedScore(string line)
         {
             var openings = new Stack<char>();
 
@@ -86,11 +86,11 @@ namespace AdventOfCode.Solutions.Year2021
             // Part 2 needs to finish the incompleteness
             if (openings.Count > 0)
             {
-                uint score = 0;
+                ulong score = 0;
 
                 while(openings.Count > 0)
                 {
-                    score = score * 5 + this.valuesPt2[openings.Pop()];
+                    score = (score * 5) + this.valuesPt2[openings.Pop()];
                 }
 
                 if (score > 0)
@@ -108,8 +108,6 @@ namespace AdventOfCode.Solutions.Year2021
         protected override string? SolvePartTwo()
         {
             this.incompleteScores = this.incompleteScores
-                // Discount any that are 0 just in case
-                .Where(score => score > 0)
                 // Sort
                 .OrderBy(score => score)
                 .ToList();
