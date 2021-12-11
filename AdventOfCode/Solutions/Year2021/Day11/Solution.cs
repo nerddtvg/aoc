@@ -83,7 +83,17 @@ namespace AdventOfCode.Solutions.Year2021
                 thisLoop.ForEach(pt =>
                 {
                     octoFlashed.Add(pt);
-                    IncreaseNeighbors(pt, ref newOctos);
+                    
+                    // Go through each of the x,y points and increase the neighbors
+                    for (int dy = -1; dy <= 1; dy++)
+                        for (int dx = -1; dx <= 1; dx++)
+                        {
+                            var newPt = (pt.x + dx, pt.y + dy);
+                            if (dx == 0 && dy == 0 || !newOctos.ContainsKey(newPt))
+                                continue;
+
+                            newOctos[newPt]++;
+                        }
                 });
             } while (newFlashed > 0);
 
@@ -92,20 +102,6 @@ namespace AdventOfCode.Solutions.Year2021
 
             // Update the dictionary 
             this.octos = newOctos;
-        }
-
-        public void IncreaseNeighbors((int x, int y) pt, ref Dictionary<(int x, int y), uint> octos)
-        {
-            // Go through each of the x,y points and increase the neighbors
-            for (int dy = -1; dy <= 1; dy++)
-                for (int dx = -1; dx <= 1; dx++)
-                {
-                    var newPt = (pt.x + dx, pt.y + dy);
-                    if (dx == 0 && dy == 0 || !octos.ContainsKey(newPt))
-                        continue;
-
-                    octos[newPt]++;
-                }
         }
 
         private void WriteGrid()
