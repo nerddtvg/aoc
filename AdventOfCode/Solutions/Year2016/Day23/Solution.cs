@@ -60,10 +60,10 @@ namespace AdventOfCode.Solutions.Year2016
 
             private void ProcessLine(string line)
             {
-                var copy = (new Regex("cpy ([a-d]|[0-9]+) ([a-d])")).Match(line);
-                var inc = (new Regex("inc ([a-d])")).Match(line);
-                var dec = (new Regex("dec ([a-d])")).Match(line);
-                var jnz = (new Regex(@"jnz ([a-d]|[0-9]+) ([a-d]|[\-0-9]+)")).Match(line);
+                var copy = (new Regex(@"cpy ([a-d]|[\-0-9]+) ([a-d])")).Match(line);
+                var inc = (new Regex(@"inc ([a-d])")).Match(line);
+                var dec = (new Regex(@"dec ([a-d])")).Match(line);
+                var jnz = (new Regex(@"jnz ([a-d]|[\-0-9]+) ([a-d]|[\-0-9]+)")).Match(line);
                 
                 var tgl = (new Regex(@"tgl ([a-d]|[0-9]+)")).Match(line);
 
