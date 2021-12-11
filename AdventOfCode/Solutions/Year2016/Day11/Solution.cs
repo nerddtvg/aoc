@@ -58,26 +58,6 @@ namespace AdventOfCode.Solutions.Year2016
             return state.floors.Where((val, idx) => idx != maxIdx).Sum(val => val.Length) == 0;
         }
 
-        // Generate a hash of the floors so we can use this as a key
-        public string FloorHash(int[][] floors)
-        {
-            var hash = new List<string>();
-
-            for (int i = 0; i < floors.Length; i++)
-            {
-                if (floors[i].Length == 0)
-                {
-                    hash.Add("0");
-                }
-                else
-                {
-                    hash.Add(string.Join("-", floors[i].OrderBy(val => val).Select(val => val.ToString())));
-                }
-            }
-
-            return string.Join(":", hash);
-        }
-
         public class FloorState : IEquatable<FloorState>
         {
             public int elevator = 0;
@@ -147,6 +127,8 @@ namespace AdventOfCode.Solutions.Year2016
                     .Union(currentState.floors[currentState.elevator].Select(val => new List<int>() { val }))
                     .ToList();
 
+                var addToOpenState = new Stack<FloorState>();
+
                 foreach (var dir in dirs)
                 {
                     // Shortcut hints: https://old.reddit.com/r/adventofcode/comments/5hoia9/2016_day_11_solutions/db1v1ws/
@@ -162,9 +144,18 @@ namespace AdventOfCode.Solutions.Year2016
                     // If we have, we skip forward to reduce extra work
                     var movedOneDown = false;
 
+                    // Check if we have already moved a chip from a pair up
+                    var movedChipsUp = false;
+
                     foreach (var move in moves)
                     {
                         if (dir == -1 && move.Count > 1 && movedOneDown)
+                            continue;
+
+                        // If we have two pairs of chips+gen on this floor
+                        // And we have already chosen to only move a single chip up
+                        // And here we are looking at another pair, ignore it
+                        if (dir == 1 && move.Count == 1 && move[0] < 0 && movedChipsUp && currentState.floors[currentState.elevator].Contains(-1 * move[0]))
                             continue;
 
                         var newFloors = currentState.floors.Select(floor => (int[])floor.Clone()).ToArray();
@@ -188,12 +179,21 @@ namespace AdventOfCode.Solutions.Year2016
                             gScore[newState] = tgScore;
 
                             // Add to our search list
-                            openSet.Add(newState);
+                            addToOpenState.Push(newState);
 
                             // Track that we've moved one down
                             movedOneDown = movedOneDown || (move.Count == 1 && dir == -1);
+
+                            // Track that we had a pair and we are moving only that chip up
+                            movedChipsUp = movedChipsUp || (dir == 1 && move.Count == 1 && move[0] < 0 && newFloors[currentState.elevator].Contains(-1 * move[0]));
                         }
                     }
+                }
+                
+                // Add to open state in reverse order (stack) so we move up if possible first
+                while(addToOpenState.Count > 0)
+                {
+                    openSet.Add(addToOpenState.Pop());
                 }
             } while (openSet.Count > 0);
 
