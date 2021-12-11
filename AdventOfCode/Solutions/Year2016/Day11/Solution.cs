@@ -35,7 +35,7 @@ namespace AdventOfCode.Solutions.Year2016
 
         public Day11() : base(11, 2016, "Radioisotope Thermoelectric Generators")
         {
-
+            this.initial = this.initial.Select(floor => floor.OrderBy(val => val).ToArray()).ToArray();
         }
 
         public bool FloorIsCorrect(int[] floor)
@@ -86,31 +86,32 @@ namespace AdventOfCode.Solutions.Year2016
         public int AStar(int[][] initialFloors)
         {
             // This is the list of elevator positions (int) and floors (int[][]) we need to search
-            var openSet = new HashSet<(int elevator, int[][] floors, int dir)>() { (0, initialFloors, 0) };
+            var openSet = new HashSet<(int elevator, int[][] floors, int dir)>() { (0, initialFloors, 1) };
 
             // A Dictionary of the node that we cameFrom Value to reach the floor Key
-            var cameFrom = new Dictionary<(int elevator, int[][] floors, int dir), (int elevator, int[][] floors, int dir)>();
+            var cameFrom = new Dictionary<(int elevator, int[][] floors), (int elevator, int[][] floors)>();
 
             // gScore is the known shortest path from start to Key, other values are assumed infinity
-            var gScore = new Dictionary<(int elevator, int[][] floors, int dir), int>() { { (0, initialFloors, 0), 0 } };
+            var gScore = new Dictionary<(int elevator, int[][] floors), int>() { { (0, initialFloors), 1 } };
 
             do
             {
                 // Get the next node to work on
-                var min = gScore.Where(kvp => openSet.Contains(kvp.Key)).Min(kvp => kvp.Value);
-                var currentState = openSet.Where(state => gScore[state] == min).OrderByDescending(state => state.dir).FirstOrDefault();
-                
+                var min = gScore.Where(kvp => openSet.Contains((kvp.Key.elevator, kvp.Key.floors, 1)) || openSet.Contains((kvp.Key.elevator, kvp.Key.floors, -1))).Min(kvp => kvp.Value);
+                var currentState = openSet.Where(state => gScore[(state.elevator, state.floors)] == min).OrderByDescending(state => state.dir).FirstOrDefault();
+                var currentStateNoDir = (currentState.elevator, currentState.floors);
+
                 // Did we find the shortest path?
                 if (IsFinished(currentState))
                 {
-                    return gScore[currentState];
+                    return gScore[currentStateNoDir];
                 }
 
                 // Work on this node
                 openSet.Remove(currentState);
 
                 // We know the gScore to get to a neighbor is gScore[currentNode] + 1
-                var tgScore = gScore[currentState] + 1;
+                var tgScore = gScore[currentStateNoDir] + 1;
 
                 // Get all possible moves
                 // We can either move one or two items from the floor we're on
@@ -159,25 +160,25 @@ namespace AdventOfCode.Solutions.Year2016
                         var newFloors = currentState.floors.Select(floor => (int[])floor.Clone()).ToArray();
 
                         // Remove the item(s) we're moving
-                        newFloors[currentState.elevator] = newFloors[currentState.elevator].Where(val => !move.Contains(val)).ToArray();
+                        newFloors[currentState.elevator] = newFloors[currentState.elevator].Where(val => !move.Contains(val)).OrderBy(val => val).ToArray();
 
                         // Add the items we're moving
-                        newFloors[currentState.elevator + dir] = newFloors[currentState.elevator + dir].Union(move).ToArray();
+                        newFloors[currentState.elevator + dir] = newFloors[currentState.elevator + dir].Union(move).OrderBy(val => val).ToArray();
 
                         // Is this a valid combination?
                         if (!FloorIsCorrect(newFloors[currentState.elevator]) || !FloorIsCorrect(newFloors[currentState.elevator + dir]))
                             continue;
 
                         // Setup our new floor state
-                        (int elevator, int[][] floors, int dir) newState = (currentState.elevator + dir, newFloors, dir);
+                        (int elevator, int[][] floors) newState = (currentState.elevator + dir, newFloors);
 
                         if (!gScore.ContainsKey(newState) || tgScore < gScore[newState])
                         {
-                            cameFrom[newState] = currentState;
+                            cameFrom[newState] = currentStateNoDir;
                             gScore[newState] = tgScore;
 
                             // Add to our search list
-                            openSet.Add(newState);
+                            openSet.Add((currentState.elevator + dir, newFloors, dir));
 
                             // Track that we've moved one down
                             movedOneDown = movedOneDown || (move.Count == 1 && dir == -1);
