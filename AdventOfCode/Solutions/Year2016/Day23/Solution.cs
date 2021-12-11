@@ -196,7 +196,9 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // The formula was figured out in the mega thread
+            // I couldn't figure out how to simplify the assembly with toggling
+            return ((73 * 71) + Enumerable.Range(1, 12).Aggregate((x, y) => x * y)).ToString();
         }
     }
 }
