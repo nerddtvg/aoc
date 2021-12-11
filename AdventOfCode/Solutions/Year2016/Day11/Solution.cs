@@ -147,10 +147,26 @@ namespace AdventOfCode.Solutions.Year2016
                     .Union(currentState.floors[currentState.elevator].Select(val => new List<int>() { val }))
                     .ToList();
 
-                foreach(var move in moves)
+                foreach (var dir in dirs)
                 {
-                    foreach(var dir in dirs)
+                    // Shortcut hints: https://old.reddit.com/r/adventofcode/comments/5hoia9/2016_day_11_solutions/db1v1ws/
+
+                    // Don't move down if floors below are empty
+                    if (dir == -1)
                     {
+                        if (currentState.floors.Select((floor, idx) => idx < currentState.elevator ? floor.Length : 0).Sum() == 0)
+                            continue;
+                    }
+
+                    // Use this to track if we have moved one item downstairs
+                    // If we have, we skip forward to reduce extra work
+                    var movedOneDown = false;
+
+                    foreach (var move in moves)
+                    {
+                        if (dir == -1 && move.Count > 1 && movedOneDown)
+                            continue;
+
                         var newFloors = currentState.floors.Select(floor => (int[])floor.Clone()).ToArray();
 
                         // Remove the item(s) we're moving
@@ -173,6 +189,9 @@ namespace AdventOfCode.Solutions.Year2016
 
                             // Add to our search list
                             openSet.Add(newState);
+
+                            // Track that we've moved one down
+                            movedOneDown = movedOneDown || (move.Count == 1 && dir == -1);
                         }
                     }
                 }
