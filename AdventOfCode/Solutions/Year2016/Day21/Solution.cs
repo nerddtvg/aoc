@@ -10,8 +10,6 @@ namespace AdventOfCode.Solutions.Year2016
 
     class Day21 : ASolution
     {
-        private static string start = "abcdefgh";
-
         public string scrambled = string.Empty;
 
         public Day21() : base(21, 2016, "Scrambled Letters and Hash")
@@ -26,7 +24,7 @@ namespace AdventOfCode.Solutions.Year2016
 // rotate based on position of letter d";
         }
 
-        private void Run(string line)
+        private void Run(string line, int part = 1)
         {
             var matches = Regex.Match(line, "(?<action>swap position|swap letter|rotate left|rotate right|rotate based|reverse|move) ((?<swapA>[0-9]+) with position (?<swapB>[0-9]+)|(?<swapLetterA>[a-z]+) with letter (?<swapLetterB>[a-z]+)|(?<rotate>[0-9]+) step|on position of letter (?<rotateLetter>[a-z]+)|positions (?<reverseA>[0-9]+) through (?<reverseB>[0-9]+)|position (?<moveA>[0-9]+) to position (?<moveB>[0-9]+))");
 
@@ -57,6 +55,21 @@ namespace AdventOfCode.Solutions.Year2016
                 action = "rotate right";
                 var index = this.scrambled.IndexOf(rotateLetter);
                 rotate = 1 + index + (index >= 4 ? 1 : 0);
+            }
+
+            // Changes for Part 2
+            if (part == 2)
+            {
+                if (action == "rotate right")
+                    action = "rotate left";
+                else if (action == "rotate left")
+                    action = "rotate right";
+                else if (action == "move")
+                {
+                    var t = moveA;
+                    moveA = moveB;
+                    moveB = moveA;
+                }
             }
 
             switch(action)
@@ -121,7 +134,7 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartOne()
         {
-            this.scrambled = start;
+            this.scrambled = "abcdefgh";
 
             if (!string.IsNullOrEmpty(DebugInput))
                 this.scrambled = "abcde";
@@ -136,7 +149,17 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            this.scrambled = "fbgdceah";
+
+            if (!string.IsNullOrEmpty(DebugInput))
+                this.scrambled = "abcde";
+
+            foreach (var line in Input.SplitByNewline().Reverse())
+            {
+                Run(line, part: 2);
+            }
+
+            return this.scrambled;
         }
     }
 }
