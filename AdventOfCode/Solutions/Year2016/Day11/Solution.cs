@@ -52,10 +52,10 @@ namespace AdventOfCode.Solutions.Year2016
             return unMatched.Length == 0 || (chipsLeft == 0 ^ chipsLeft == unMatched.Length);
         }
 
-        public bool IsFinished(FloorState state)
+        public bool IsFinished((int elevator, int[][] floors, int dir) state)
         {
             var maxIdx = state.floors.Length - 1;
-            return state.floors.Where((val, idx) => idx != maxIdx).Sum(val => val.Length) == 0;
+            return !Enumerable.Range(0, maxIdx - 1).Any(idx => state.floors[idx].Length > 0);
         }
 
         public class FloorState : IEquatable<FloorState>
@@ -86,20 +86,20 @@ namespace AdventOfCode.Solutions.Year2016
         public int AStar(int[][] initialFloors)
         {
             // This is the list of elevator positions (int) and floors (int[][]) we need to search
-            var openSet = new HashSet<FloorState>() { new FloorState() { elevator = 0, floors = initialFloors } };
+            var openSet = new HashSet<(int elevator, int[][] floors, int dir)>() { (0, initialFloors, 0) };
 
             // A Dictionary of the node that we cameFrom Value to reach the floor Key
-            var cameFrom = new Dictionary<FloorState, FloorState>();
+            var cameFrom = new Dictionary<(int elevator, int[][] floors, int dir), (int elevator, int[][] floors, int dir)>();
 
             // gScore is the known shortest path from start to Key, other values are assumed infinity
-            var gScore = new Dictionary<FloorState, int>() { { new FloorState() { elevator = 0, floors = initialFloors }, 0 } };
+            var gScore = new Dictionary<(int elevator, int[][] floors, int dir), int>() { { (0, initialFloors, 0), 0 } };
 
             do
             {
                 // Get the next node to work on
                 var min = gScore.Where(kvp => openSet.Contains(kvp.Key)).Min(kvp => kvp.Value);
-                var currentState = openSet.FirstOrDefault(pt => gScore[pt] == min);
-                    
+                var currentState = openSet.Where(state => gScore[state] == min).OrderByDescending(state => state.dir).FirstOrDefault();
+                
                 // Did we find the shortest path?
                 if (IsFinished(currentState))
                 {
@@ -126,8 +126,6 @@ namespace AdventOfCode.Solutions.Year2016
                 var moves = (currentState.floors[currentState.elevator].Length > 2 ? currentState.floors[currentState.elevator].GetAllCombos(r: 2).Select(lst => lst.ToList()) : new List<List<int>>())
                     .Union(currentState.floors[currentState.elevator].Select(val => new List<int>() { val }))
                     .ToList();
-
-                var addToOpenState = new Stack<FloorState>();
 
                 foreach (var dir in dirs)
                 {
@@ -171,7 +169,7 @@ namespace AdventOfCode.Solutions.Year2016
                             continue;
 
                         // Setup our new floor state
-                        var newState = new FloorState() { elevator = currentState.elevator + dir, floors = newFloors };
+                        (int elevator, int[][] floors, int dir) newState = (currentState.elevator + dir, newFloors, dir);
 
                         if (!gScore.ContainsKey(newState) || tgScore < gScore[newState])
                         {
@@ -179,7 +177,7 @@ namespace AdventOfCode.Solutions.Year2016
                             gScore[newState] = tgScore;
 
                             // Add to our search list
-                            addToOpenState.Push(newState);
+                            openSet.Add(newState);
 
                             // Track that we've moved one down
                             movedOneDown = movedOneDown || (move.Count == 1 && dir == -1);
@@ -188,12 +186,6 @@ namespace AdventOfCode.Solutions.Year2016
                             movedChipsUp = movedChipsUp || (dir == 1 && move.Count == 1 && move[0] < 0 && newFloors[currentState.elevator].Contains(-1 * move[0]));
                         }
                     }
-                }
-                
-                // Add to open state in reverse order (stack) so we move up if possible first
-                while(addToOpenState.Count > 0)
-                {
-                    openSet.Add(addToOpenState.Pop());
                 }
             } while (openSet.Count > 0);
 
