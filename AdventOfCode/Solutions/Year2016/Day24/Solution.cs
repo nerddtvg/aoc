@@ -16,7 +16,6 @@ namespace AdventOfCode.Solutions.Year2016
         public Dictionary<char, (int x, int y)> positions = new Dictionary<char, (int x, int y)>();
 
         public char maxNode = '0';
-        public string shortestPath = string.Empty;
 
         // This tracks all possible paths
         public Dictionary<(char start, char end), List<(int x, int y)>> paths = new Dictionary<(char start, char end), List<(int x, int y)>>();
@@ -174,7 +173,6 @@ namespace AdventOfCode.Solutions.Year2016
                 if (thisLength < steps)
                 {
                     steps = thisLength;
-                    this.shortestPath = thisPerm.JoinAsString();
                 }
             }
 
@@ -183,7 +181,29 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // And now we find the minimum path forward
+            var str = Enumerable.Range(0, (int)(this.maxNode - '0')).Select(ch => (char)(ch + '1')).JoinAsString();
+
+            int steps = Int32.MaxValue;
+            foreach(var perm in str.Permutations())
+            {
+                // Must always start and end at zero
+                var thisPerm = new char[] { '0' }.Union(perm).Append('0').ToArray();
+
+                var thisLength = 0;
+                for (int i = 0; i < thisPerm.Length - 1; i++)
+                {
+                    thisLength += this.paths[((char)Math.Min((int)thisPerm[i], (int)thisPerm[i + 1]), (char)Math.Max((int)thisPerm[i], (int)thisPerm[i + 1]))].Count;
+                }
+
+                // Is this our current minimum?
+                if (thisLength < steps)
+                {
+                    steps = thisLength;
+                }
+            }
+
+            return steps.ToString();
         }
     }
 }
