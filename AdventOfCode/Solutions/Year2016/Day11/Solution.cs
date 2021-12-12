@@ -50,15 +50,15 @@ namespace AdventOfCode.Solutions.Year2016
         public bool FloorIsCorrect(int[] floor)
         {
             // Maybe the floor is empty or if it isn't, make sure everything cancels out or there is no extra generator
-            if (floor.Length == 0 || floor.Count(val => val < 0) == floor.Length)
+            if (floor.Length == 0)
                 return true;
 
             // Remove every match
             var unMatched = floor.Where(val => !floor.Contains(-1 * val)).ToArray();
 
-            // Nothing unmatched, or we have only chips OR only generators left
+            // Nothing unmatched, or no chips, or chips + no rtgs
             var chipsLeft = unMatched.Count(val => val < 0);
-            return unMatched.Length == 0 || (chipsLeft == 0 ^ chipsLeft == unMatched.Length);
+            return unMatched.Length == 0 || (chipsLeft == 0 ^ floor.Count(val => val > 0) == 0);
         }
 
         public bool IsFinished(FloorState state)
@@ -109,17 +109,19 @@ namespace AdventOfCode.Solutions.Year2016
         // Based on: https://en.wikipedia.org/wiki/A*_search_algorithm
         public int AStar(int[][] initialFloors)
         {
+            var initialState = new FloorState() { elevator = 0, floors = initialFloors };
+
             // This is the list of elevator positions (int) and floors (int[][]) we need to search
-            var openSet = new HashSet<FloorState>() { new FloorState() { elevator = 0, floors = initialFloors } };
+            var openSet = new HashSet<FloorState>() { initialState };
 
             // A Dictionary of the node that we cameFrom Value to reach the floor Key
             var cameFrom = new Dictionary<FloorState, FloorState>();
 
             // gScore is the known shortest path from start to Key, other values are assumed infinity
-            var gScore = new Dictionary<FloorState, int>() { { new FloorState() { elevator = 0, floors = initialFloors }, 0 } };
+            var gScore = new Dictionary<FloorState, int>() { { initialState, 0 } };
 
             // fScore is a priority queue
-            var fScore = new Dictionary<FloorState, int>() { { new FloorState() { elevator = 0, floors = initialFloors }, 0 } };
+            var fScore = new Dictionary<FloorState, int>() { { initialState, 0 } };
 
             do
             {
@@ -130,6 +132,40 @@ namespace AdventOfCode.Solutions.Year2016
                 // Did we find the shortest path?
                 if (IsFinished(currentState))
                 {
+                    var states = new List<FloorState>();
+
+                    states.Add(currentState);
+                    var s = cameFrom[currentState];
+                    while (!s.Equals(initialState))
+                    {
+                        states.Add(s);
+                        s = cameFrom[s];
+                    }
+
+                    // Initial State
+                    states.Add(s);
+
+                    // REverse it
+                    states.Reverse();
+
+                    foreach(var state in states)
+                    {
+                        for (int i = 3; i >= 0; i--)
+                        {
+                            Console.Write($"F{i + 1}: {(state.elevator == i ? 'E' : '.')}  ");
+
+                            for (var g = 1; g <= 5; g++)
+                            {
+                                Console.Write($"{(state.floors[i].Contains(g) ? g.ToString() : ".")}  ");
+                                Console.Write($"{(state.floors[i].Contains(-1*g) ? (-1*g).ToString() : ". ")}  ");
+                            }
+
+                            Console.WriteLine();
+                        }
+
+                        Console.WriteLine();
+                    }
+
                     return gScore[currentState];
                 }
 
