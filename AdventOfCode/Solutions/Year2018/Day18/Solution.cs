@@ -120,9 +120,54 @@ namespace AdventOfCode.Solutions.Year2018
             return (this.grid.Count(pt => pt.Value == LumberState.Lumber) * this.grid.Count(pt => pt.Value == LumberState.Tree)).ToString();
         }
 
+        private string GridToString()
+        {
+            // Grid size is 0,0 to 49,49
+            return Enumerable.Range(0, 50).Select(y => Enumerable.Range(0, 50).Select(x => this.grid[(x, y)] == LumberState.Open ? '.' : (this.grid[(x, y)] == LumberState.Tree ? '|' : '#')).JoinAsString()).JoinAsString();
+        }
+
         protected override string? SolvePartTwo()
         {
-            return null;
+            // 1000000000: Brute force is too slow
+            // There should be a repeating pattern, we just need to find it
+            Reset();
+
+            var states = new Dictionary<string, int>() { { GridToString(), 0 } };
+            int first = 0;
+            int count = 1;
+
+            // Console.WriteLine($"{count.ToString("D5")}: {this.grid.Count(pt => pt.Value == LumberState.Open).ToString("D5")} {this.grid.Count(pt => pt.Value == LumberState.Tree).ToString("D5")} {this.grid.Count(pt => pt.Value == LumberState.Lumber).ToString("D5")}");
+            for (count = 1; count < 100000; count++)
+            {
+                RunRound();
+                // Console.WriteLine($"{count.ToString("D5")}: {this.grid.Count(pt => pt.Value == LumberState.Open).ToString("D5")} {this.grid.Count(pt => pt.Value == LumberState.Tree).ToString("D5")} {this.grid.Count(pt => pt.Value == LumberState.Lumber).ToString("D5")}");
+
+                // Find if this existed before
+                var key = GridToString();
+                if (states.ContainsKey(key))
+                {
+                    first = states[key];
+                    Console.WriteLine("Found Old State:");
+                    Console.WriteLine($"First: {first}");
+                    Console.WriteLine($"Second: {count}");
+
+                    break;
+                }
+
+                states[key] = count;
+            }
+
+            // So now we have a first and second time something was found
+            int difference = count - first;
+
+            // Where do we land in this sequence?
+            var mod = (1000000000 - first) % difference;
+
+            // Then we "simply" need to find the state at that point
+            var knownState = states.First(kvp => kvp.Value == first + mod).Key;
+
+            // Count the '|' and '#'
+            return (knownState.Count(ch => ch == '|') * knownState.Count(ch => ch == '#')).ToString();
         }
     }
 }
