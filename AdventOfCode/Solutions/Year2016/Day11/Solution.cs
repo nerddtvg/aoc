@@ -124,7 +124,7 @@ namespace AdventOfCode.Solutions.Year2016
                     dirs.Add(1);
 
                 // Get a list of moving two possible items, combine it with a list of just one item
-                var moves = (currentState.floors[currentState.elevator].Length > 2 ? currentState.floors[currentState.elevator].GetAllCombos(r: 2).Select(lst => lst.ToList()) : new List<List<int>>())
+                var moves = (currentState.floors[currentState.elevator].Length >= 2 ? currentState.floors[currentState.elevator].GetAllCombos(r: 2).Select(lst => lst.ToList()) : new List<List<int>>())
                     .Union(currentState.floors[currentState.elevator].Select(val => new List<int>() { val }))
                     .ToList();
 
@@ -178,13 +178,42 @@ namespace AdventOfCode.Solutions.Year2016
                             gScore[newState] = tgScore;
 
                             // Add to our search list
-                            openSet.Add((currentState.elevator + dir, newFloors, dir));
+                            openSet.Add((newState.elevator, newState.floors, dir));
 
                             // Track that we've moved one down
-                            movedOneDown = movedOneDown || (move.Count == 1 && dir == -1);
+                            //movedOneDown = movedOneDown || (move.Count == 1 && dir == -1);
 
                             // Track that we had a pair and we are moving only that chip up
                             movedChipsUp = movedChipsUp || (dir == 1 && move.Count == 1 && move[0] < 0 && newFloors[currentState.elevator].Contains(-1 * move[0]));
+                        }
+                    }
+                }
+
+                // Let's do some sanity checks
+                if (openSet.Count > 1000)
+                {
+                    // Search openSet for matching states assuming the hashing is failing
+                    var keys = gScore.Keys;
+                    var found = false;
+
+                    for (int i = 0; i < keys.Count - 1 && !found; i++)
+                    {
+                        for (int q = i + 1; q < keys.Count && !found; q++)
+                        {
+                            var scoreA = keys.ElementAt(i);
+                            var scoreB = keys.ElementAt(q);
+
+                            if (scoreA.elevator == scoreB.elevator
+                            && scoreA.floors[0].SequenceEqual(scoreB.floors[0])
+                            && scoreA.floors[1].SequenceEqual(scoreB.floors[1])
+                            && scoreA.floors[2].SequenceEqual(scoreB.floors[2])
+                            && scoreA.floors[3].SequenceEqual(scoreB.floors[3]))
+                            {
+                                Console.WriteLine("Found match:");
+                                Console.WriteLine($"Index: {i} / {q}");;
+                                Console.WriteLine($"Score A: {scoreA.GetHashCode()}");
+                                Console.WriteLine($"Score B: {scoreB.GetHashCode()}");
+                            }
                         }
                     }
                 }
