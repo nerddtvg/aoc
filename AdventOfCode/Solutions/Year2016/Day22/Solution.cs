@@ -25,6 +25,18 @@ namespace AdventOfCode.Solutions.Year2016
 
         public Day22() : base(22, 2016, "Grid Computing")
         {
+//             DebugInput = @"TEST
+// Filesystem            Size  Used  Avail  Use%
+// /dev/grid/node-x0-y0   10T    8T     2T   80%
+// /dev/grid/node-x0-y1   11T    6T     5T   54%
+// /dev/grid/node-x0-y2   32T   28T     4T   87%
+// /dev/grid/node-x1-y0    9T    7T     2T   77%
+// /dev/grid/node-x1-y1    8T    0T     8T    0%
+// /dev/grid/node-x1-y2   11T    7T     4T   63%
+// /dev/grid/node-x2-y0   10T    6T     4T   60%
+// /dev/grid/node-x2-y1    9T    8T     1T   88%
+// /dev/grid/node-x2-y2    9T    6T     3T   66%";
+
             Reset();
         }
 
@@ -89,7 +101,72 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // This can be solved visually
+            // Move the hole to the top-right corner (x=34, y=0)
+            // Then move that data to the top-left corner
+            // Each move from top-right to top-left involves rotating the hole around which is 5 steps
+
+            // This output mimics what /u/Turbosack showed
+            // https://old.reddit.com/r/adventofcode/comments/5jor9q/2016_day_22_solutions/dbhvxkp/
+            for (int node1Y = 0; node1Y <= this.maxY; node1Y++)
+            {
+                for (int node1X = 0; node1X <= this.maxX; node1X++)
+                {
+                    if (this.storage[(node1X, node1Y)].used == 0)
+                    {
+                        Console.Write($"__/{this.storage[(node1X, node1Y)].size.ToString("00")}");
+                    }
+                    else if (this.storage[(node1X, node1Y)].size >= 100)
+                    {
+                        // Large nodes are walls to us
+                        Console.Write($"|/{this.storage[(node1X, node1Y)].size}");
+                    }
+                    else
+                    {
+                        Console.Write($"{this.storage[(node1X, node1Y)].used.ToString("00")}/{this.storage[(node1X, node1Y)].size.ToString("00")}");
+                    }
+
+                    Console.Write("  ");
+                }
+
+                Console.WriteLine();
+            }
+
+            // After visually seeing how this is laid out
+            // 21 moves from hole to top
+            // 13 moves to position next to top-right
+            // 33*5 moves to top-left plus 1 to fill the last box
+
+            var node = this.storage.FirstOrDefault(node => node.Value.used == 0);
+
+            var count = 0;
+
+            // First we move up to the top
+            int x = node.Key.x;
+            int y = node.Key.y;
+            for (; y > 0; y--)
+            {
+                // Did we hit a "wall"?
+                var newXY = (x, y - 1);
+                if (this.storage.First(node => node.Key == newXY).Value.size > 100)
+                {
+                    // Move left, come back to this y on the next loop
+                    x--;
+                    y++;
+                }
+
+                // Otherwise, move up and count it
+                count++;
+            }
+
+            // Now move to the top-right minus 1 x
+            count += this.maxX - 1 - x;
+            // 34 at this point
+
+            // Then determine ((this.maxX-1) * 5) + 1
+            count += ((this.maxX-1) * 5) + 1;
+
+            return count.ToString();
         }
     }
 }
