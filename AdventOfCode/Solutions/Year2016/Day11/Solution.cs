@@ -62,7 +62,6 @@ namespace AdventOfCode.Solutions.Year2016
         {
             public int elevator = 0;
             public int[][] floors = new int[][] { };
-            public int dir = 0;
 
             public override int GetHashCode()
             {
@@ -117,7 +116,7 @@ namespace AdventOfCode.Solutions.Year2016
             {
                 // Get the next node to work on
                 var min = fScore.Where(kvp => openSet.Contains(kvp.Key)).Min(kvp => kvp.Value);
-                var currentState = openSet.Where(state => fScore[state] == min).OrderByDescending(state => state.dir).FirstOrDefault();
+                var currentState = openSet.Where(state => fScore[state] == min).FirstOrDefault();
 
                 // Did we find the shortest path?
                 if (IsFinished(currentState))
@@ -188,7 +187,7 @@ namespace AdventOfCode.Solutions.Year2016
                             continue;
 
                         // Setup our new floor state
-                        FloorState newState = new FloorState() { elevator = currentState.elevator + dir, floors = newFloors, dir = dir };
+                        FloorState newState = new FloorState() { elevator = currentState.elevator + dir, floors = newFloors };
 
                         if (!gScore.ContainsKey(newState) || tgScore < gScore[newState])
                         {
