@@ -288,7 +288,7 @@ namespace AdventOfCode.Solutions.Year2016
                     // } while (true);
 
                     // Output
-                    ret += b.ToString();
+                    //ret += b.ToString();
 
                     foundRet = ret.Length >= check.Length || check.Substring(0, ret.Length) != ret;
                 } while (a != 0 && !foundRet);
@@ -307,12 +307,22 @@ namespace AdventOfCode.Solutions.Year2016
         protected override string SolvePartOne()
         {
             // Brute forcing this takes a long time, so we refactored the ocde into C#
-            int a = 0;
+            int a = -1;
             string ret = string.Empty;
             string check = "01010101010101010101010101";
+            var p = new AssemBunny(Input);
             do
             {
-                ret = ParsedCode(a++, check);
+                ret = ParsedCode(++a, check);
+
+                // p.Reset();
+                // p.registers['a'] = a;
+
+                // p.RunProgram();
+
+                // Console.WriteLine($"Input: {a}");
+                // Console.WriteLine($"Out 1: {ret}");
+                // Console.WriteLine($"Out 2: {p.output}");
             } while (ret.Length < check.Length || ret.Substring(0, check.Length) != check);
 
             return a.ToString();
