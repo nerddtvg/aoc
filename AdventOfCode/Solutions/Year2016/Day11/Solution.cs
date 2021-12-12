@@ -112,7 +112,8 @@ namespace AdventOfCode.Solutions.Year2016
             var initialState = new FloorState() { elevator = 0, floors = initialFloors };
 
             // This is the list of elevator positions (int) and floors (int[][]) we need to search
-            var openSet = new HashSet<FloorState>() { initialState };
+            var openSet = new PriorityQueue<FloorState, int>();
+            openSet.Enqueue(initialState, 0);
 
             // A Dictionary of the node that we cameFrom Value to reach the floor Key
             var cameFrom = new Dictionary<FloorState, FloorState>();
@@ -120,14 +121,10 @@ namespace AdventOfCode.Solutions.Year2016
             // gScore is the known shortest path from start to Key, other values are assumed infinity
             var gScore = new Dictionary<FloorState, int>() { { initialState, 0 } };
 
-            // fScore is a priority queue
-            var fScore = new Dictionary<FloorState, int>() { { initialState, 0 } };
-
             do
             {
                 // Get the next node to work on
-                var min = fScore.Where(kvp => openSet.Contains(kvp.Key)).Min(kvp => kvp.Value);
-                var currentState = openSet.Where(state => fScore[state] == min).FirstOrDefault();
+                var currentState = openSet.Dequeue();
 
                 // Did we find the shortest path?
                 if (IsFinished(currentState))
@@ -170,7 +167,7 @@ namespace AdventOfCode.Solutions.Year2016
                 }
 
                 // Work on this node
-                openSet.Remove(currentState);
+                //openSet.Remove(currentState);
 
                 // We know the gScore to get to a neighbor is gScore[currentNode] + 1
                 var tgScore = gScore[currentState] + 1;
@@ -216,7 +213,7 @@ namespace AdventOfCode.Solutions.Year2016
                         // If we have two pairs of chips+gen on this floor
                         // And we have already chosen to only move a single chip up
                         // And here we are looking at another pair, ignore it
-                        if (dir == 1 && move.Count == 1 && move[0] < 0 && movedChipsUp && currentState.floors[currentState.elevator].Contains(-1 * move[0]))
+                        if (dir == 1 && move.Count == 1 && movedChipsUp && currentState.floors[currentState.elevator].Contains(-1 * move[0]))
                             continue;
 
                         var newFloors = currentState.floors.Select(floor => (int[])floor.Clone()).ToArray();
@@ -239,17 +236,14 @@ namespace AdventOfCode.Solutions.Year2016
                             cameFrom[newState] = currentState;
                             gScore[newState] = tgScore;
 
-                            // Our priority score
-                            fScore[newState] = tgScore - (newFloors[3].Length * 10);
-
-                            // Add to our search list
-                            openSet.Add(newState);
+                            // Add to our search list with our priority score
+                            openSet.Enqueue(newState, tgScore - (newFloors[3].Length * 10) - dir);
 
                             // Track that we've moved one down
                             movedOneDown = movedOneDown || (move.Count == 1 && dir == -1);
 
                             // Track that we had a pair and we are moving only that chip up
-                            movedChipsUp = movedChipsUp || (dir == 1 && move.Count == 1 && move[0] < 0 && newFloors[currentState.elevator].Contains(-1 * move[0]));
+                            movedChipsUp = movedChipsUp || (dir == 1 && move.Count == 1 && newFloors[currentState.elevator].Contains(-1 * move[0]));
                         }
                     }
                 }
