@@ -20,6 +20,9 @@ namespace AdventOfCode.Solutions.Year2016
 
         private Dictionary<(int x, int y), GridStorage> storage = new Dictionary<(int x, int y), GridStorage>();
 
+        private int maxX = 0;
+        private int maxY = 0;
+
         public Day22() : base(22, 2016, "Grid Computing")
         {
             Reset();
@@ -36,7 +39,13 @@ namespace AdventOfCode.Solutions.Year2016
                 if (!matches.Success)
                     throw new Exception($"Invalid line: {line}");
 
-                this.storage.Add((Int32.Parse(matches.Groups[1].Value), Int32.Parse(matches.Groups[2].Value)), new GridStorage()
+                var x = Int32.Parse(matches.Groups[1].Value);
+                var y = Int32.Parse(matches.Groups[2].Value);
+
+                this.maxX = Math.Max(this.maxX, x);
+                this.maxY = Math.Max(this.maxY, y);
+
+                this.storage.Add((x, y), new GridStorage()
                 {
                     size = Int32.Parse(matches.Groups[3].Value),
                     used = Int32.Parse(matches.Groups[4].Value),
@@ -50,13 +59,13 @@ namespace AdventOfCode.Solutions.Year2016
         {
             var viable = 0;
 
-            for (int node1X = 0; node1X <= 34; node1X++)
+            for (int node1X = 0; node1X <= this.maxX; node1X++)
             {
-                for (int node1Y = 0; node1Y <= 24; node1Y++)
+                for (int node1Y = 0; node1Y <= this.maxY; node1Y++)
                 {
-                    for (int node2X = 0; node2X <= 34; node2X++)
+                    for (int node2X = 0; node2X <= this.maxX; node2X++)
                     {
-                        for (int node2Y = 0; node2Y <= 24; node2Y++)
+                        for (int node2Y = 0; node2Y <= this.maxY; node2Y++)
                         {
                             if (node1X == node2X && node1Y == node2Y)
                                 continue;
