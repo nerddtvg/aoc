@@ -52,7 +52,7 @@ namespace AdventOfCode.Solutions.Year2016
             return unMatched.Length == 0 || (chipsLeft == 0 ^ chipsLeft == unMatched.Length);
         }
 
-        public bool IsFinished((int elevator, int[][] floors, int dir) state)
+        public bool IsFinished(FloorState state)
         {
             var maxIdx = state.floors.Length - 1;
             return !Enumerable.Range(0, maxIdx - 1).Any(idx => state.floors[idx].Length > 0);
@@ -62,10 +62,26 @@ namespace AdventOfCode.Solutions.Year2016
         {
             public int elevator = 0;
             public int[][] floors = new int[][] { };
+            public int dir = 0;
 
             public override int GetHashCode()
             {
-                return elevator + floors.Select((floor, idx) => ((idx + 1) * 1000) + floor.Sum()).Sum();
+                var values = new Dictionary<int, int>()
+                {
+                    { promethium, 1 },
+                    { -promethium, 2 },
+                    { cobalt, 4 },
+                    { -cobalt, 8 },
+                    { curium, 16 },
+                    { -curium, 32 },
+                    { ruthenium, 64 },
+                    { -ruthenium, 128 },
+                    { plutonium, 256 },
+                    { -plutonium, 512 }
+                };
+
+                // We need to combine the elevator position and the items on each floor
+                return elevator + floors.Select((floor, idx) => (int) Math.Pow(10, idx+1) * floor.Sum(val => values[val])).Sum();
             }
 
             public override bool Equals(object obj)
@@ -78,7 +94,7 @@ namespace AdventOfCode.Solutions.Year2016
                 // Make sure we truly match
                 return elevator == obj.elevator
                     && floors.Length == obj.floors.Length
-                    && floors.Select((floor, idx) => floor.OrderBy(val => val).SequenceEqual(obj.floors[idx].OrderBy(val => val))).All(ret => ret == true);
+                    && floors.Select((floor, idx) => floor.SequenceEqual(obj.floors[idx])).All(ret => ret == true);
             }
         }
 
@@ -86,32 +102,34 @@ namespace AdventOfCode.Solutions.Year2016
         public int AStar(int[][] initialFloors)
         {
             // This is the list of elevator positions (int) and floors (int[][]) we need to search
-            var openSet = new HashSet<(int elevator, int[][] floors, int dir)>() { (0, initialFloors, 1) };
+            var openSet = new HashSet<FloorState>() { new FloorState() { elevator = 0, floors = initialFloors } };
 
             // A Dictionary of the node that we cameFrom Value to reach the floor Key
-            var cameFrom = new Dictionary<(int elevator, int[][] floors), (int elevator, int[][] floors)>();
+            var cameFrom = new Dictionary<FloorState, FloorState>();
 
             // gScore is the known shortest path from start to Key, other values are assumed infinity
-            var gScore = new Dictionary<(int elevator, int[][] floors), int>() { { (0, initialFloors), 1 } };
+            var gScore = new Dictionary<FloorState, int>() { { new FloorState() { elevator = 0, floors = initialFloors }, 0 } };
+
+            // fScore is a priority queue
+            var fScore = new Dictionary<FloorState, int>() { { new FloorState() { elevator = 0, floors = initialFloors }, 0 } };
 
             do
             {
                 // Get the next node to work on
-                var min = gScore.Where(kvp => openSet.Contains((kvp.Key.elevator, kvp.Key.floors, 1)) || openSet.Contains((kvp.Key.elevator, kvp.Key.floors, -1))).Min(kvp => kvp.Value);
-                var currentState = openSet.Where(state => gScore[(state.elevator, state.floors)] == min).OrderByDescending(state => state.dir).FirstOrDefault();
-                var currentStateNoDir = (currentState.elevator, currentState.floors);
+                var min = fScore.Where(kvp => openSet.Contains(kvp.Key)).Min(kvp => kvp.Value);
+                var currentState = openSet.Where(state => fScore[state] == min).OrderByDescending(state => state.dir).FirstOrDefault();
 
                 // Did we find the shortest path?
                 if (IsFinished(currentState))
                 {
-                    return gScore[currentStateNoDir];
+                    return gScore[currentState];
                 }
 
                 // Work on this node
                 openSet.Remove(currentState);
 
                 // We know the gScore to get to a neighbor is gScore[currentNode] + 1
-                var tgScore = gScore[currentStateNoDir] + 1;
+                var tgScore = gScore[currentState] + 1;
 
                 // Get all possible moves
                 // We can either move one or two items from the floor we're on
@@ -170,18 +188,21 @@ namespace AdventOfCode.Solutions.Year2016
                             continue;
 
                         // Setup our new floor state
-                        (int elevator, int[][] floors) newState = (currentState.elevator + dir, newFloors);
+                        FloorState newState = new FloorState() { elevator = currentState.elevator + dir, floors = newFloors, dir = dir };
 
                         if (!gScore.ContainsKey(newState) || tgScore < gScore[newState])
                         {
-                            cameFrom[newState] = currentStateNoDir;
+                            cameFrom[newState] = currentState;
                             gScore[newState] = tgScore;
 
+                            // Our priority score
+                            fScore[newState] = tgScore - (newFloors[3].Length * 10);
+
                             // Add to our search list
-                            openSet.Add((newState.elevator, newState.floors, dir));
+                            openSet.Add(newState);
 
                             // Track that we've moved one down
-                            //movedOneDown = movedOneDown || (move.Count == 1 && dir == -1);
+                            movedOneDown = movedOneDown || (move.Count == 1 && dir == -1);
 
                             // Track that we had a pair and we are moving only that chip up
                             movedChipsUp = movedChipsUp || (dir == 1 && move.Count == 1 && move[0] < 0 && newFloors[currentState.elevator].Contains(-1 * move[0]));
@@ -190,7 +211,7 @@ namespace AdventOfCode.Solutions.Year2016
                 }
 
                 // Let's do some sanity checks
-                if (openSet.Count > 1000)
+                /* if (openSet.Count > 1000)
                 {
                     // Search openSet for matching states assuming the hashing is failing
                     var keys = gScore.Keys;
@@ -216,7 +237,7 @@ namespace AdventOfCode.Solutions.Year2016
                             }
                         }
                     }
-                }
+                } */
             } while (openSet.Count > 0);
 
             return 0;
