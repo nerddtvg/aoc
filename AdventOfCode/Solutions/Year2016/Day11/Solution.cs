@@ -131,7 +131,7 @@ namespace AdventOfCode.Solutions.Year2016
                 // Did we find the shortest path?
                 if (IsFinished(currentState))
                 {
-                    /* var states = new List<FloorState>();
+                    var states = new List<FloorState>();
 
                     states.Add(currentState);
                     var s = cameFrom[currentState];
@@ -163,7 +163,7 @@ namespace AdventOfCode.Solutions.Year2016
                         }
 
                         Console.WriteLine();
-                    } */
+                    }
 
                     return gScore[currentState];
                 }
@@ -239,7 +239,8 @@ namespace AdventOfCode.Solutions.Year2016
                             gScore[newState] = tgScore;
 
                             // Add to our search list with our priority score
-                            openSet.Enqueue(newState, tgScore - (newFloors[3].Length * 10) - dir);
+                            // Had to tweak this down from *10 to *4 in order to not miss a valid option
+                            openSet.Enqueue(newState, tgScore - (newFloors[3].Length * 4));
 
                             // Track that we've moved one down
                             movedOneDown = movedOneDown || (move.Count == 1 && dir == -1);
