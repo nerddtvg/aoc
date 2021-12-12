@@ -208,7 +208,7 @@ namespace AdventOfCode.Solutions.Year2016
             }
         }
 
-        public string ParsedCode(int inVal, int stop = 6)
+        public string ParsedCode(int inVal, string check)
         {
             // Registers
             int a = inVal;
@@ -216,8 +216,9 @@ namespace AdventOfCode.Solutions.Year2016
             int c = 0;
             int d = 0;
             string ret = string.Empty;
+            var foundRet = false;
 
-            d = a;
+            // d = a;
             // c = 15;
             // do
             // {
@@ -231,45 +232,69 @@ namespace AdventOfCode.Solutions.Year2016
             // } while (c != 0);
 
             // d += 170*15
-            d += 2550;
+            // d += 2550;
 
             do
             {
-                a = d;
+                a = inVal + 2550;
                 do
                 {
+                    // b = a;
+                    // a = 0;
+
                     b = a;
-                    a = 0;
-                    var breakLoop = false;
-                    do
+                    a = b / 2;
+
+                    if (b % 2 == 0)
                     {
-                        c = 2;
-                        do
-                        {
-                            if (b == 0)
-                            {
-                                breakLoop = true;
-                                break;
-                            }
-                            b--;
-                            c--;
-                        } while (!breakLoop && c != 0);
-                        a++;
-                    } while (!breakLoop);
-                    b = 2;
-                    do
+                        ret += '0';
+                    }
+                    else
                     {
-                        if (c == 0) break;
-                        b--;
-                        c--;
-                    } while (true);
+                        ret += '1';
+                    }
+
+                    // Otherwise
+                    // c = 0;
+                    // b -= 2;
+                    // a++;
+
+                    // var breakLoop = false;
+                    // b = 1000 => 998, c = 0, a = 1;
+                    // b = 998 => 996, c = 0, a = 2;
+                    // b = 2 => 0, c = 0, a = 500;
+                    // do
+                    // {
+
+                        // c = 2;
+                        // do
+                        // {
+                        //     // if (b == 0)
+                        //     // {
+                        //     //     breakLoop = true;
+                        //     //     break;
+                        //     // }
+                        //     b--;
+                        //     c--;
+                        // } while (!breakLoop && c != 0);
+                        // a++;
+                    // } while (!breakLoop);
+                    // b = 2;
+                    // do
+                    // {
+                    //     if (c == 0) break;
+                    //     b--;
+                    //     c--;
+                    // } while (true);
 
                     // Output
                     ret += b.ToString();
-                } while (ret.Length < stop && a != 0);
+
+                    foundRet = ret.Length >= check.Length || check.Substring(0, ret.Length) != ret;
+                } while (a != 0 && !foundRet);
 
                 // Break out when we have a long enough string
-            } while (ret.Length < stop);
+            } while (!foundRet);
 
             return ret;
         }
@@ -287,8 +312,8 @@ namespace AdventOfCode.Solutions.Year2016
             string check = "01010101010101010101010101";
             do
             {
-                ret = ParsedCode(a++, check.Length);
-            } while (ret != check);
+                ret = ParsedCode(a++, check);
+            } while (ret.Length < check.Length || ret.Substring(0, check.Length) != check);
 
             return a.ToString();
         }
