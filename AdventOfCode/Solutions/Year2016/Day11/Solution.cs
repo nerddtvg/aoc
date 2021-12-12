@@ -54,8 +54,7 @@ namespace AdventOfCode.Solutions.Year2016
 
         public bool IsFinished(FloorState state)
         {
-            var maxIdx = state.floors.Length - 1;
-            return !Enumerable.Range(0, maxIdx - 1).Any(idx => state.floors[idx].Length > 0);
+            return state.elevator == 3 && !Enumerable.Range(0, state.floors.Length - 1).Any(idx => state.floors[idx].Length > 0);
         }
 
         public class FloorState : IEquatable<FloorState>
@@ -195,7 +194,7 @@ namespace AdventOfCode.Solutions.Year2016
                             gScore[newState] = tgScore;
 
                             // Our priority score
-                            fScore[newState] = tgScore - (newFloors[3].Length * 10);
+                            fScore[newState] = tgScore - (newFloors[3].Length * 5);
 
                             // Add to our search list
                             openSet.Add(newState);
