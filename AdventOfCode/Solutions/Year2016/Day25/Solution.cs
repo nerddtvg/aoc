@@ -218,17 +218,20 @@ namespace AdventOfCode.Solutions.Year2016
             string ret = string.Empty;
 
             d = a;
-            c = 15;
-            do
-            {
-                b = 170;
-                do
-                {
-                    d++;
-                    b--;
-                } while (b != 0);
-                c--;
-            } while (c != 0);
+            // c = 15;
+            // do
+            // {
+            //     b = 170;
+            //     do
+            //     {
+            //         d++;
+            //         b--;
+            //     } while (b != 0);
+            //     c--;
+            // } while (c != 0);
+
+            // d += 170*15
+            d += 2550;
 
             do
             {
