@@ -108,29 +108,29 @@ namespace AdventOfCode.Solutions.Year2016
 
             // This output mimics what /u/Turbosack showed
             // https://old.reddit.com/r/adventofcode/comments/5jor9q/2016_day_22_solutions/dbhvxkp/
-            for (int node1Y = 0; node1Y <= this.maxY; node1Y++)
-            {
-                for (int node1X = 0; node1X <= this.maxX; node1X++)
-                {
-                    if (this.storage[(node1X, node1Y)].used == 0)
-                    {
-                        Console.Write($"__/{this.storage[(node1X, node1Y)].size.ToString("00")}");
-                    }
-                    else if (this.storage[(node1X, node1Y)].size >= 100)
-                    {
-                        // Large nodes are walls to us
-                        Console.Write($"|/{this.storage[(node1X, node1Y)].size}");
-                    }
-                    else
-                    {
-                        Console.Write($"{this.storage[(node1X, node1Y)].used.ToString("00")}/{this.storage[(node1X, node1Y)].size.ToString("00")}");
-                    }
+            // for (int node1Y = 0; node1Y <= this.maxY; node1Y++)
+            // {
+            //     for (int node1X = 0; node1X <= this.maxX; node1X++)
+            //     {
+            //         if (this.storage[(node1X, node1Y)].used == 0)
+            //         {
+            //             Console.Write($"__/{this.storage[(node1X, node1Y)].size.ToString("00")}");
+            //         }
+            //         else if (this.storage[(node1X, node1Y)].size >= 100)
+            //         {
+            //             // Large nodes are walls to us
+            //             Console.Write($"|/{this.storage[(node1X, node1Y)].size}");
+            //         }
+            //         else
+            //         {
+            //             Console.Write($"{this.storage[(node1X, node1Y)].used.ToString("00")}/{this.storage[(node1X, node1Y)].size.ToString("00")}");
+            //         }
 
-                    Console.Write("  ");
-                }
+            //         Console.Write("  ");
+            //     }
 
-                Console.WriteLine();
-            }
+            //     Console.WriteLine();
+            // }
 
             // After visually seeing how this is laid out
             // 21 moves from hole to top
