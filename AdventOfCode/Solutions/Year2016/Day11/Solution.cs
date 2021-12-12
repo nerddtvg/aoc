@@ -35,6 +35,15 @@ namespace AdventOfCode.Solutions.Year2016
 
         public Day11() : base(11, 2016, "Radioisotope Thermoelectric Generators")
         {
+            // Debug
+            this.initial = new int[][]
+            {
+                new int[] { -promethium, -cobalt },
+                new int[] { promethium },
+                new int[] { cobalt },
+                new int[] { }
+            };
+
             this.initial = this.initial.Select(floor => floor.OrderBy(val => val).ToArray()).ToArray();
         }
 
