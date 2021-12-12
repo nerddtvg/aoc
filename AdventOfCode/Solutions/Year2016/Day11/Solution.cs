@@ -23,11 +23,22 @@ namespace AdventOfCode.Solutions.Year2016
         public const int curium = 3;
         public const int ruthenium = 4;
         public const int plutonium = 5;
+        public const int elerium = 6;
+        public const int dilithium = 7;
 
         // Hard coding the inputs because it will be easier than reading them
         public int[][] initial = new int[][]
         {
             new int[] { promethium, -promethium },
+            new int[] { cobalt, curium, ruthenium, plutonium },
+            new int[] { -cobalt, -curium, -ruthenium, -plutonium },
+            new int[] { }
+        };
+
+        // Hard coding the inputs because it will be easier than reading them
+        public int[][] initial2 = new int[][]
+        {
+            new int[] { promethium, -promethium, elerium, -elerium, dilithium, -dilithium },
             new int[] { cobalt, curium, ruthenium, plutonium },
             new int[] { -cobalt, -curium, -ruthenium, -plutonium },
             new int[] { }
@@ -45,6 +56,7 @@ namespace AdventOfCode.Solutions.Year2016
             // };
 
             this.initial = this.initial.Select(floor => floor.OrderBy(val => val).ToArray()).ToArray();
+            this.initial2 = this.initial2.Select(floor => floor.OrderBy(val => val).ToArray()).ToArray();
         }
 
         public bool FloorIsCorrect(int[] floor)
@@ -84,7 +96,11 @@ namespace AdventOfCode.Solutions.Year2016
                     { ruthenium, 64 },
                     { -ruthenium, 128 },
                     { plutonium, 256 },
-                    { -plutonium, 512 }
+                    { -plutonium, 512 },
+                    { elerium, 1024 },
+                    { -elerium, 2048 },
+                    { dilithium, 4096 },
+                    { -dilithium, 8192 }
                 };
 
                 // We need to combine the elevator position and the items on each floor
@@ -131,39 +147,39 @@ namespace AdventOfCode.Solutions.Year2016
                 // Did we find the shortest path?
                 if (IsFinished(currentState))
                 {
-                    var states = new List<FloorState>();
+                    // var states = new List<FloorState>();
 
-                    states.Add(currentState);
-                    var s = cameFrom[currentState];
-                    while (!s.Equals(initialState))
-                    {
-                        states.Add(s);
-                        s = cameFrom[s];
-                    }
+                    // states.Add(currentState);
+                    // var s = cameFrom[currentState];
+                    // while (!s.Equals(initialState))
+                    // {
+                    //     states.Add(s);
+                    //     s = cameFrom[s];
+                    // }
 
-                    // Initial State
-                    states.Add(s);
+                    // // Initial State
+                    // states.Add(s);
 
-                    // REverse it
-                    states.Reverse();
+                    // // REverse it
+                    // states.Reverse();
 
-                    foreach(var state in states)
-                    {
-                        for (int i = 3; i >= 0; i--)
-                        {
-                            Console.Write($"F{i + 1}: {(state.elevator == i ? 'E' : '.')}  ");
+                    // foreach(var state in states)
+                    // {
+                    //     for (int i = 3; i >= 0; i--)
+                    //     {
+                    //         Console.Write($"F{i + 1}: {(state.elevator == i ? 'E' : '.')}  ");
 
-                            for (var g = 1; g <= 5; g++)
-                            {
-                                Console.Write($"{(state.floors[i].Contains(g) ? g.ToString() : ".")}  ");
-                                Console.Write($"{(state.floors[i].Contains(-1*g) ? (-1*g).ToString() : ". ")}  ");
-                            }
+                    //         for (var g = 1; g <= 5; g++)
+                    //         {
+                    //             Console.Write($"{(state.floors[i].Contains(g) ? g.ToString() : ".")}  ");
+                    //             Console.Write($"{(state.floors[i].Contains(-1*g) ? (-1*g).ToString() : ". ")}  ");
+                    //         }
 
-                            Console.WriteLine();
-                        }
+                    //         Console.WriteLine();
+                    //     }
 
-                        Console.WriteLine();
-                    }
+                    //     Console.WriteLine();
+                    // }
 
                     return gScore[currentState];
                 }
@@ -239,8 +255,8 @@ namespace AdventOfCode.Solutions.Year2016
                             gScore[newState] = tgScore;
 
                             // Add to our search list with our priority score
-                            // Had to tweak this down from *10 to *4 in order to not miss a valid option
-                            openSet.Enqueue(newState, tgScore - (newFloors[3].Length * 4));
+                            // Had to tweak this down from *10 to *5 in order to not miss a valid option
+                            openSet.Enqueue(newState, tgScore - (newFloors[3].Length * 5));
 
                             // Track that we've moved one down
                             movedOneDown = movedOneDown || (move.Count == 1 && dir == -1);
@@ -286,12 +302,14 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartOne()
         {
+            // This takes under 1 second
             return AStar(this.initial).ToString();
         }
 
         protected override string SolvePartTwo()
         {
-            return null;
+            // This takes about 45 seconds
+            return AStar(this.initial2).ToString();
         }
     }
 }
