@@ -88,8 +88,10 @@ namespace AdventOfCode.Solutions.Year2016
                 };
 
                 // We need to combine the elevator position and the items on each floor
-                //return elevator + floors.Select((floor, idx) => (int) Math.Pow(10, idx+1) * floor.Sum(val => values[val])).Sum();
-                return floors.Select(x => x.GetHashCode()).Aggregate(elevator.GetHashCode(), (x, y) => x ^ y);
+                return elevator + floors.Select((floor, idx) => (int) Math.Pow(10, idx+1) * floor.Sum(val => values[val])).Sum();
+
+                // This really messed us up
+                //return floors.Select(x => x.GetHashCode()).Aggregate(elevator.GetHashCode(), (x, y) => x ^ y);
             }
 
             public override bool Equals(object obj)
