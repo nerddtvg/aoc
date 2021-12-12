@@ -36,13 +36,13 @@ namespace AdventOfCode.Solutions.Year2016
         public Day11() : base(11, 2016, "Radioisotope Thermoelectric Generators")
         {
             // Debug
-            this.initial = new int[][]
-            {
-                new int[] { -promethium, -cobalt },
-                new int[] { promethium },
-                new int[] { cobalt },
-                new int[] { }
-            };
+            // this.initial = new int[][]
+            // {
+            //     new int[] { -promethium, -cobalt },
+            //     new int[] { promethium },
+            //     new int[] { cobalt },
+            //     new int[] { }
+            // };
 
             this.initial = this.initial.Select(floor => floor.OrderBy(val => val).ToArray()).ToArray();
         }
@@ -132,7 +132,7 @@ namespace AdventOfCode.Solutions.Year2016
                 // Did we find the shortest path?
                 if (IsFinished(currentState))
                 {
-                    var states = new List<FloorState>();
+                    /* var states = new List<FloorState>();
 
                     states.Add(currentState);
                     var s = cameFrom[currentState];
@@ -164,7 +164,7 @@ namespace AdventOfCode.Solutions.Year2016
                         }
 
                         Console.WriteLine();
-                    }
+                    } */
 
                     return gScore[currentState];
                 }
@@ -240,7 +240,7 @@ namespace AdventOfCode.Solutions.Year2016
                             gScore[newState] = tgScore;
 
                             // Our priority score
-                            fScore[newState] = tgScore - (newFloors[3].Length * 5);
+                            fScore[newState] = tgScore - (newFloors[3].Length * 10);
 
                             // Add to our search list
                             openSet.Add(newState);
