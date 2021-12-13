@@ -6,34 +6,35 @@ using System.Linq;
 
 namespace AdventOfCode.Solutions.Year2018
 {
-    enum WristOpCode {
-        addr,
-        addi,
-        mulr,
-        muli,
-        banr,
-        bani,
-        borr,
-        bori,
-        setr,
-        seti,
-        gtir,
-        gtri,
-        gtrr,
-        eqir,
-        eqri,
-        eqrr
-    }
-
-    enum WristInstruction {
-        op,
-        A,
-        B,
-        C
-    }
 
     class Day16 : ASolution
     {
+        enum WristOpCode {
+            addr,
+            addi,
+            mulr,
+            muli,
+            banr,
+            bani,
+            borr,
+            bori,
+            setr,
+            seti,
+            gtir,
+            gtri,
+            gtrr,
+            eqir,
+            eqri,
+            eqrr
+        }
+
+        enum WristInstruction {
+            op,
+            A,
+            B,
+            C
+        }
+
         List<List<string>> samples = new List<List<string>>();
         List<List<WristOpCode>> sampleMatches = new List<List<WristOpCode>>();
 
