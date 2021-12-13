@@ -62,8 +62,6 @@ namespace AdventOfCode.Solutions.Year2021
             // 2. We will always fold in the middle of the sheet in either direction
             // 3. The fold line goes away
 
-            var minX = 0;
-            var miny = 0;
             var maxX = this.grid.Max(kvp => kvp.Key.x);
             var maxY = this.grid.Max(kvp => kvp.Key.y);
 
@@ -98,8 +96,6 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartOne()
         {
-            PrintGrid();
-            
             Run(this.instructions[0]);
 
             return this.grid.Count(kvp => kvp.Value).ToString();
@@ -132,14 +128,12 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            PrintGrid();
-
             foreach(var line in this.instructions.Skip(1))
             {
                 Run(line);
-
-                PrintGrid();
             }
+
+            PrintGrid();
 
             return "See Printed Grid";
         }
