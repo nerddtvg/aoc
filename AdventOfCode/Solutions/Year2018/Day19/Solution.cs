@@ -254,16 +254,80 @@ namespace AdventOfCode.Solutions.Year2018
             r4 = 0, r4++, goto C (top+1)
             */
 
-            p.registers[0] = 1;
+            /*
+            goto A, r4=16, r4++ (r4=17 in the end)
+            do {
+                // First entrance here
+                r0 = 0
+                r1 = 0
+                r2 = 0
+                r3 = 10550400
+                r4 = 1
+                r5 = 10551345
 
-            int c = 0;
+                C:
+                r1 = 1, r4++
+                E:
+                r2 = 1, r4++
+                
+                do {
+                    r3 = r1 * r2, r4++
+                    if (r3 != r5) r4 += r3, r4++
+                    r4 += 1, r4++
+                    r0 += r1, r4++
+                    r2 += 1, r4++
+                } while(r2 <= r5)
 
-            while(p.RunOperation(true) && c++<1000)
+                r1 += 1
+                if (r1 > r5) r3=1 else r3=0, r4++
+                r4 += r3, r4++ (jump over one if r1 > r5)
+                r4=1, r4++ (jump to 1+1, goto E)
+
+                r4 *= r4, r4++ [end?]
+
+                A: r5 += 2, r4++
+                r5 *= r5 (square), r4++
+                r5 *= r4, r4++
+                r5 *= 11, r4++
+                r3 += 4, r4++
+                r3 *= r4, r4++
+                r3 += 21, r4++
+                r5 += r3, r4++
+                r4 += r0, r4++, [r0=1 so goto B:]
+                r4 = 0, r4++ 
+                B: r3 = r1 + r4, r4++
+                r3 *= r4, r4++
+                r3 += r4, r4++
+                r3 *= r4, r4++
+                r3 *= 14, r4++
+                r3 *= r4, r4++
+                r5 += r3, r4++
+                r0 = 0, r4++
+
+                // At this point (beginning) generated here
+                r0 = 0
+                r1 = 0
+                r2 = 0
+                r3 = 10550400
+                r4 = 1
+                r5 = 10551345
+            } while(true)
+            */
+
+            // The top part seems to be counting how many factors/divisors
+            // there are from 1 to 10551345 in 10551345, then 2 to 10551345, then 3 to 10551345...
+            // Each step adds the number of factors there
+
+            var max = 10551345;
+            var divisors = max.GetDivisors();
+            var ret = 0;
+
+            for (int i = 1; i <= max; i++)
             {
-                // Run it
+                ret += divisors.Count(v => v >= i);
             }
 
-            return p.registers[0].ToString();
+            return ret.ToString();
         }
     }
 }
