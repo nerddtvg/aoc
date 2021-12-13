@@ -150,7 +150,7 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            return this.distance.Count(kvp => kvp.Value >= 1000).ToString();
         }
     }
 }
