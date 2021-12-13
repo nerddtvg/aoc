@@ -210,7 +210,60 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            // This is supposed to be a reduction problem where
+            // the assembly is broken down and determine what is being done
+            var p = new Day19.OpCodeComputer(Input);
+
+            /*
+            Initial breakdown:
+            goto A, r4=16, r4++ (r4=17 in the end)
+            C: r1 = 1, r4++
+            E: r2 = 1, r4++
+            D: r3 = r1 * r2
+            if (r3 == r5) r3=1 else r3=0, r4++
+            r4 += r3, r4++
+            r4 += 1, r4++
+            r0 += r1, r4++
+            r2 += 1, r4++
+            if (r2 > r5) r3=1 else r3=0, r4++
+            r4 += r3, r4++ (jump over one if r2 > r5)
+            r4 = 2, r4++ (jump to 2+1, goto D)
+            r1 += 1
+            if (r1 > r5) r3=1 else r3=0, r4++
+            r4 += r3, r4++ (jump over one if r1 > r5)
+            r4=1, r4++ (jump to 1+1, goto E)
+            r4 *= r4, r4++ [end?]
+            A: r5 += 2, r4++
+            r5 *= r5 (square), r4++
+            r5 *= r4, r4++
+            r5 *= 11, r4++
+            r3 += 4, r4++
+            r3 *= r4, r4++
+            r3 += 21, r4++
+            r5 += r3, r4++
+            r4 += r0, r4++, [r0=1 so goto B:]
+            seti 0 5 4
+            B: r3 = r1 + r4, r4++
+            r3 *= r4, r4++
+            r3 += r4, r4++
+            r3 *= r4, r4++
+            r3 *= 14, r4++
+            r3 *= r4, r4++
+            r5 += r3, r4++
+            r0 = 0, r4++
+            r4 = 0, r4++, goto C (top+1)
+            */
+
+            p.registers[0] = 1;
+
+            int c = 0;
+
+            while(p.RunOperation(true) && c++<1000)
+            {
+                // Run it
+            }
+
+            return p.registers[0].ToString();
         }
     }
 }
