@@ -70,6 +70,7 @@ namespace AdventOfCode.Solutions.Year2018
             public void Reset()
             {
                 this.ipRegister = this.startingIp;
+                this.ipVal = 0;
                 this.registers = new Dictionary<int, int>()
                 {
                     { 0, 0 },
