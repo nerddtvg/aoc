@@ -12,8 +12,7 @@ namespace AdventOfCode.Solutions.Year2021
 
     class Day14 : ASolution
     {
-        private string start;
-        private Dictionary<string, string> instructions = new Dictionary<string, string>();
+        private string start = string.Empty;
         private Dictionary<string, string[]> instructions2 = new Dictionary<string, string[]>();
         private Dictionary<string, UInt64> pairCount = new Dictionary<string, ulong>();
 
@@ -45,59 +44,18 @@ namespace AdventOfCode.Solutions.Year2021
 
             start = s[0][0];
 
-            instructions.Clear();
             instructions2.Clear();
             this.pairCount.Clear();
 
             foreach(var line in s[1])
             {
                 var s2 = line.Split(" -> ");
-                instructions.Add(s2[0], s2[0][0] + s2[1] + s2[0][1]);
                 instructions2.Add(s2[0], new string[] { s2[0][0] + s2[1], s2[1] + s2[0][1] });
             }
         }
 
-        private IEnumerable<string> GetPairs(string input)
-        {
-            for (int i = 0; i < input.Length - 1; i++)
-            {
-                yield return input[i].ToString() + input[i + 1];
-            }
-        }
-
-        private string ReplacePairs(string input)
-        {
-            var ret = string.Empty;
-
-            foreach(var pair in GetPairs(input))
-            {
-                var newPair = pair;
-
-                if (this.instructions.ContainsKey(pair))
-                {
-                    newPair = this.instructions[pair];
-                }
-
-                // If we already have some string, trim off the first char
-                newPair = (ret.Length == 0 ? newPair : newPair.Substring(1));
-                ret += newPair;
-            }
-
-            return ret;
-        }
-
         protected override string? SolvePartOne()
         {
-            // var poly = this.start;
-
-            // Utilities.Repeat(() => poly = ReplacePairs(poly), 10);
-
-            // return (poly.GroupBy(ch => ch).Max(grp => grp.Count()) - poly.GroupBy(ch => ch).Min(grp => grp.Count())).ToString();
-
-            // For part 2, we're refactoring
-            // Hints from the megathread (because I was just too tired to figure out the concept)
-            // point to simply counting the number of pairs
-            // for each translation. CH => CBH {CB, BH}
             Reset();
 
             Utilities.Repeat(() => CountPairs(), 10);
@@ -110,7 +68,7 @@ namespace AdventOfCode.Solutions.Year2021
             // If pairCount is empty, we need to calculate our first set
             if (this.pairCount.Count == 0)
             {
-                this.pairCount = GetPairs(this.start).GroupBy(pair => pair).ToDictionary(grp => grp.Key, grp => (ulong) grp.LongCount());
+                this.pairCount = this.start.GetPairs().GroupBy(pair => pair).ToDictionary(grp => grp.Key, grp => (ulong) grp.LongCount());
             }
 
             // Now we increase the amount
@@ -141,25 +99,18 @@ namespace AdventOfCode.Solutions.Year2021
         {
             // Add all of the pairs up if they have the min or max
             var elements = this.pairCount.Keys.Select(key => (key[0], this.pairCount[key]))
-            .GroupBy(kvp => kvp.Item1)
-            .ToDictionary(grp => grp.Key, grp => grp.Sum(g => g.Item2));
+                .GroupBy(kvp => kvp.Item1)
+                .ToDictionary(grp => grp.Key, grp => grp.Sum(g => g.Item2));
 
             // We know that in each pair, the second element is the first element of the next pair
             // so we skip the second elements EXCEPT we need to correct for the end element
             elements[start[start.Length - 1]]++;
-
-            // Now divide by two
-            //elements.Keys.ToList().ForEach(key => elements[key] /= 2);
 
             return (elements.Max(kvp => kvp.Value) - elements.Min(kvp => kvp.Value));
         }
 
         protected override string? SolvePartTwo()
         {
-            // For part 2, we're refactoring
-            // Hints from the megathread (because I was just too tired to figure out the concept)
-            // point to simply counting the number of pairs
-            // for each translation. CH => CBH {CB, BH}
             Reset();
             
             Utilities.Repeat(() => CountPairs(), 40);

@@ -163,5 +163,18 @@ namespace AdventOfCode.Solutions
 
             return o;
         }
+
+        /// <summary>
+        /// Returns neighboring pairs from the string <paramref name="str"/> such that ABCD becomes AB,BC,CD
+        /// </summary>
+        /// <param name="str">The string to return pairs from</param>
+        /// <returns>An <see cref="System.Collections.Generic.IEnumerable{T}"/> of paired strings</returns>
+        public static IEnumerable<string> GetPairs(this string str)
+        {
+            for (int i = 0; i < str.Length - 1; i++)
+            {
+                yield return str[i].ToString() + str[i + 1];
+            }
+        }
     }
 }
