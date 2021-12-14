@@ -60,7 +60,36 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            // I am not good with this assembly
+            // The ipVal and logical jumps are hard to follow
+            // Using someone else's code, I'm going to translate it to C# and see what happens
+            // https://www.reddit.com/r/adventofcode/comments/a86jgt/comment/ec8fsc5/?utm_source=reddit&utm_medium=web2x&context=3
+
+            var seen = new List<Int64>();
+            Func<int, int> tester = (a) =>
+            {
+                a |= 0x10000;
+                var b = 4843319;    // Comes from line 9: "seti 4843319 1 2"
+                b += a&0xff;       b &= 0xffffff;
+                b *= 65899;        b &= 0xffffff;
+                b += (a>>8)&0xff;  b &= 0xffffff;
+                b *= 65899;        b &= 0xffffff;
+                b += (a>>16)&0xff; b &= 0xffffff;
+                b *= 65899;        b &= 0xffffff;
+                return b;
+            };
+
+            var n = tester(0);
+            do
+            {
+                var n2 = tester(n);
+                if (seen.Contains(n2))
+                {
+                    return n.ToString();
+                }
+                seen.Add(n2);
+                n = n2;
+            } while (true);
         }
     }
 }
