@@ -61,7 +61,7 @@ namespace AdventOfCode.Solutions.Year2021
         {
             for (int i = 0; i < input.Length - 1; i++)
             {
-                yield return (input[i].ToString() + input[i + 1]);
+                yield return input[i].ToString() + input[i + 1];
             }
         }
 
@@ -108,42 +108,29 @@ namespace AdventOfCode.Solutions.Year2021
         private void CountPairs()
         {
             // If pairCount is empty, we need to calculate our first set
-            if (pairCount.Count == 0)
+            if (this.pairCount.Count == 0)
             {
-                foreach(var pair in GetPairs(this.start))
-                {
-                    this.pairCount[pair] = 1;
-                }
+                this.pairCount = GetPairs(this.start).GroupBy(pair => pair).ToDictionary(grp => grp.Key, grp => (ulong) grp.LongCount());
             }
 
             // Now we increase the amount
             var newPairCount = new Dictionary<string, UInt64>();
 
-            foreach(var key in this.pairCount.Keys)
+            foreach(var kvp in this.pairCount)
             {
-                if (!this.instructions2.ContainsKey(key))
-                {
-                    if (newPairCount.ContainsKey(key))
-                        newPairCount[key] += this.pairCount[key];
-                    else
-                        newPairCount[key] = this.pairCount[key];
-                }
+                // Find the output of this pair
+                var output = this.instructions2[kvp.Key];
+
+                // Then we increment the output pairs by the value of this pair
+                if (!newPairCount.ContainsKey(output[0]))
+                    newPairCount[output[0]] = kvp.Value;
                 else
-                {
-                    // Find the output of this pair
-                    var output = this.instructions2[key];
+                    newPairCount[output[0]] += kvp.Value;
 
-                    // Then we increment the output pairs by the value of this pair
-                    if (!newPairCount.ContainsKey(output[0]))
-                        newPairCount[output[0]] = this.pairCount[key];
-                    else
-                        newPairCount[output[0]] += this.pairCount[key];
-
-                    if (!newPairCount.ContainsKey(output[1]))
-                        newPairCount[output[1]] = this.pairCount[key];
-                    else
-                        newPairCount[output[1]] += this.pairCount[key];
-                }
+                if (!newPairCount.ContainsKey(output[1]))
+                    newPairCount[output[1]] = kvp.Value;
+                else
+                    newPairCount[output[1]] += kvp.Value;
             }
 
             // Set the new counts
@@ -153,20 +140,16 @@ namespace AdventOfCode.Solutions.Year2021
         private UInt64? SolvePuzzle()
         {
             // Add all of the pairs up if they have the min or max
-            var elements = this.pairCount.Keys.SelectMany(key =>
-            {
-                var characters = key.ToCharArray();
-                return characters.Select(ch => (ch, this.pairCount[key]));
-            })
-            .GroupBy(kvp => kvp.ch)
+            var elements = this.pairCount.Keys.Select(key => (key[0], this.pairCount[key]))
+            .GroupBy(kvp => kvp.Item1)
             .ToDictionary(grp => grp.Key, grp => grp.Sum(g => g.Item2));
 
-            // EVerything is counted twice because pairs overlap EXCEPT the first and last letter so we account for that by dividing by two
-            elements[start[0]]++;
+            // We know that in each pair, the second element is the first element of the next pair
+            // so we skip the second elements EXCEPT we need to correct for the end element
             elements[start[start.Length - 1]]++;
 
             // Now divide by two
-            elements.Keys.ToList().ForEach(key => elements[key] /= 2);
+            //elements.Keys.ToList().ForEach(key => elements[key] /= 2);
 
             return (elements.Max(kvp => kvp.Value) - elements.Min(kvp => kvp.Value));
         }
@@ -178,7 +161,7 @@ namespace AdventOfCode.Solutions.Year2021
             // point to simply counting the number of pairs
             // for each translation. CH => CBH {CB, BH}
             Reset();
-
+            
             Utilities.Repeat(() => CountPairs(), 40);
 
             return SolvePuzzle().ToString();
