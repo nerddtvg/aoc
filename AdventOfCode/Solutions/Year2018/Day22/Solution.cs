@@ -39,8 +39,8 @@ namespace AdventOfCode.Solutions.Year2018
 
         public Day22() : base(22, 2018, "Mode Maze")
         {
-            DebugInput = @"depth: 510
-target: 10,10";
+//             DebugInput = @"depth: 510
+// target: 10,10";
 
             // Just going to simplify this without regex
             var vals = Input.SplitByNewline().Select(line => line.Split(" ", 2)[1].Trim()).ToArray();
@@ -184,69 +184,49 @@ target: 10,10";
             var cameFrom = new Dictionary<(int x, int y), CaveState>();
 
             // gScore is the known shortest path from start to Key, other values are assumed infinity
-            var gScore = new Dictionary<(int x, int y), int>() { { start, 0 } };
+            var gScore = new Dictionary<((int x, int y), Equiped equiped), int>() { { (start, Equiped.Torch), 0 } };
+
+            // Shortest so far
+            var shortest = Int32.MaxValue;
 
             do
             {
                 // Get the next node to work on
-                // var min = gScore.Where(kvp => openSet.Contains(kvp.Key)).Min(kvp => kvp.Value);
-                // var currentNode = openSet.FirstOrDefault(pt => gScore[pt] == min);
                 var currentNode = openSet.Dequeue();
-
-                // If this is not the lowest cost for this location (we can search it many times)
-                // if (gScore.ContainsKey(currentNode.pos) && gScore[currentNode.pos] < currentNode.cost)
-                //     continue;
 
                 // Removed the short-circuit code so that we could cound steps more
                 if (currentNode.pos == goal)
                 {
-                    return currentNode.cost;
+                    // We may need to find more paths before the shortest is found
+                    // This is thanks to how the scoring is achieved
+                    shortest = Math.Min(shortest, currentNode.cost);
+                    Console.WriteLine($"Possible Answer: {currentNode.cost}");
+                    continue;
                 }
-
-                // Work on this node
-                // openSet.Remove(currentNode);
                 
                 // Get possible neighbors
                 // Then we get each of the possible moves because there could be multiple moves to each tile
                 // That function will also provide a cost of moving to that tile
                 foreach(var move in GetNeighbors(currentNode.pos).SelectMany(node => CalcCost(currentNode, node, goal)))
                 {
-                    // We compare equiped and position
-                    // var node = gScore
-                    //     .Where(node => node.Key.pos == move.pos && node.Key.equiped == move.equiped)
-                    //     .DefaultIfEmpty(new KeyValuePair<CaveState, int>(new CaveState() { pos = (Int32.MaxValue, Int32.MaxValue )}, Int32.MaxValue))
-                    //     .FirstOrDefault();
-
-                    var nodes = openSet.UnorderedItems
-                        .Where(node => node.Element.pos == move.pos)
-                        .ToList();
-
-                    if (nodes.Count == 0 || move.cost < nodes.Min(n => n.Element.cost))
+                    if (move.cost < shortest && (!gScore.ContainsKey((move.pos, move.equiped)) || move.cost < gScore[(move.pos, move.equiped)]))
                     {
-                        // Old gScore is a different key, we need to remove it
-                        // gScore.Remove(node.Key);
-                        // fScore.Remove(node.Key);
-
-                        // This is a shorter path to that node
+                        // This is a shorter path to that node and the same equipment
                         cameFrom[move.pos] = currentNode;
-                        gScore[move.pos] = move.cost;
+                        gScore[(move.pos, move.equiped)] = move.cost;
 
-                        // HashSet prevents duplicates
-                        // openSet.Add(newState);
                         openSet.Enqueue(move, move.cost);
                     }
                 }
-                // Console.WriteLine($"New OpenSet Count: {openSet.Count}");
             } while (openSet.Count > 0);
 
-            return 0;
+            return shortest;
         }
 
         public IEnumerable<CaveState> CalcCost(CaveState state, (int x, int y) newTile, (int x, int y) goal)
         {
             // The cost of moving from one tile (state.pos) to newTile starts with 1 minute to move
             var cost = state.cost + 1;
-            var equiped = Equiped.Neither;
 
             var type = GetTileType(newTile);
 
@@ -254,7 +234,7 @@ target: 10,10";
             if (newTile == goal)
             {
                 if (state.equiped == Equiped.Torch)
-                    yield return new CaveState(cost, equiped, newTile);
+                    yield return new CaveState(cost, state.equiped, newTile);
                 else
                     yield return new CaveState(cost + 7, Equiped.Torch, newTile);
             }
@@ -263,10 +243,10 @@ target: 10,10";
                 if ((state.equiped & (Equiped.Climbing | Equiped.Torch)) != Equiped.None)
                 {
                     // Valid as-is
-                    yield return new CaveState(cost, equiped, newTile);
+                    yield return new CaveState(cost, state.equiped, newTile);
 
                     // Or change it...
-                    yield return new CaveState(cost + 7, equiped == Equiped.Climbing ? Equiped.Torch : Equiped.Climbing, newTile);
+                    yield return new CaveState(cost + 7, state.equiped ^ (Equiped.Climbing | Equiped.Torch), newTile);
                 }
                 else
                 {
@@ -281,10 +261,10 @@ target: 10,10";
                 if ((state.equiped & (Equiped.Climbing | Equiped.Neither)) != Equiped.None)
                 {
                     // Valid as-is
-                    yield return new CaveState(cost, equiped, newTile);
+                    yield return new CaveState(cost, state.equiped, newTile);
 
                     // Or change it...
-                    yield return new CaveState(cost + 7, equiped == Equiped.Climbing ? Equiped.Neither : Equiped.Climbing, newTile);
+                    yield return new CaveState(cost + 7, state.equiped ^ (Equiped.Climbing | Equiped.Neither), newTile);
                 }
                 else
                 {
@@ -299,10 +279,10 @@ target: 10,10";
                 if ((state.equiped & (Equiped.Torch | Equiped.Neither)) != Equiped.None)
                 {
                     // Valid as-is
-                    yield return new CaveState(cost, equiped, newTile);
+                    yield return new CaveState(cost, state.equiped, newTile);
 
                     // Or change it...
-                    yield return new CaveState(cost + 7, equiped == Equiped.Torch ? Equiped.Neither : Equiped.Torch, newTile);
+                    yield return new CaveState(cost + 7, state.equiped ^ (Equiped.Torch | Equiped.Neither), newTile);
                 }
                 else
                 {
