@@ -120,5 +120,27 @@ namespace AdventOfCode.Solutions
         {
             return (uint)Math.Abs(a.x - b.x) + (uint)Math.Abs(a.y - b.y) + (uint)Math.Abs(a.z - b.z);
         }
+
+        /// <summary>
+        /// Get the Manhatten Distance between two (x, y) points
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y) values</param>
+        /// <param name="b">A tuple of integer (x, y) values</param>
+        /// <returns>An <see cref="System.Int32"/> distance</returns>
+        public static UInt64 ManhattanDistance(this (Int64 x, Int64 y) a, (Int64 x, Int64 y) b)
+        {
+            return (UInt64)Math.Abs(a.x - b.x) + (UInt64)Math.Abs(a.y - b.y);
+        }
+
+        /// <summary>
+        /// Get the Manhatten Distance between two (x, y, z) points
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y, z) values</param>
+        /// <param name="b">A tuple of integer (x, y, z) values</param>
+        /// <returns>An <see cref="System.Int32"/> distance</returns>
+        public static UInt64 ManhattanDistance(this (Int64 x, Int64 y, Int64 z) a, (Int64 x, Int64 y, Int64 z) b)
+        {
+            return (UInt64)Math.Abs(a.x - b.x) + (UInt64)Math.Abs(a.y - b.y) + (uint)Math.Abs(a.z - b.z);
+        }
     }
 }
