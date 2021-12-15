@@ -133,6 +133,9 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string? SolvePartTwo()
         {
+            // Despite the DebugInput working perfectly
+            // The final answer is wrong
+            // Actual answer: 999, given answers: 995 or 1000
             return AStar((0, 0), this.goal).ToString();
         }
 
@@ -200,6 +203,9 @@ namespace AdventOfCode.Solutions.Year2018
                     // We may need to find more paths before the shortest is found
                     // This is thanks to how the scoring is achieved
                     shortest = Math.Min(shortest, currentNode.cost);
+
+                    // Using this debug, I found two answers 995 and 1000
+                    // Neither was correct, the answer is 999 but that is never found
                     Console.WriteLine($"Possible Answer: {currentNode.cost}");
                     continue;
                 }
@@ -209,7 +215,8 @@ namespace AdventOfCode.Solutions.Year2018
                 // That function will also provide a cost of moving to that tile
                 foreach(var move in GetNeighbors(currentNode.pos).SelectMany(node => CalcCost(currentNode, node, goal)))
                 {
-                    if (move.cost < shortest && (!gScore.ContainsKey((move.pos, move.equiped)) || move.cost < gScore[(move.pos, move.equiped)]))
+                    // Added +10 to get some padding for debug
+                    if (move.cost < (shortest == Int32.MaxValue ? shortest : shortest + 10) && (!gScore.ContainsKey((move.pos, move.equiped)) || move.cost < gScore[(move.pos, move.equiped)]))
                     {
                         // This is a shorter path to that node and the same equipment
                         cameFrom[move.pos] = currentNode;
