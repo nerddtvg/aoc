@@ -12,7 +12,7 @@ namespace AdventOfCode.Solutions.Year2021
 
     class Day15 : ASolution
     {
-        private Dictionary<(int x, int y), int> risk = new Dictionary<(int x, int y), int>();
+        private Dictionary<(int x, int y), int> grid = new Dictionary<(int x, int y), int>();
 
         private int maxX = 0;
         private int maxY = 0;
@@ -24,7 +24,7 @@ namespace AdventOfCode.Solutions.Year2021
             {
                 var arr = line.line.ToIntArray();
                 for (int x = 0; x < arr.Length; x++)
-                    this.risk[(x, line.idx)] = arr[x];
+                    this.grid[(x, line.idx)] = arr[x];
 
                 this.maxX = Math.Max(arr.Length - 1, this.maxX);
                 this.maxY = Math.Max(line.idx, this.maxY);
@@ -38,7 +38,8 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            ExpandGrid();
+            return AStar((0, 0), (this.maxX, this.maxY)).ToString();
         }
 
         public List<(int x, int y)> GetNeighbors((int x, int y) pt)
@@ -91,7 +92,7 @@ namespace AdventOfCode.Solutions.Year2021
                 foreach(var move in GetNeighbors(currentNode))
                 {
                     // Each move costs us the risk score to get there
-                    var tgScore = gScore[currentNode] + this.risk[move];
+                    var tgScore = gScore[currentNode] + this.grid[move];
 
                     if (!gScore.ContainsKey(move) || tgScore < gScore[move])
                     {
@@ -105,6 +106,43 @@ namespace AdventOfCode.Solutions.Year2021
             } while (openSet.Count > 0);
 
             return 0;
+        }
+
+        private void ExpandGrid()
+        {
+            // From zero to maxX/maxY
+            var tileWidth = this.maxX + 1;
+            var tileHeight = this.maxY + 1;
+
+            var newGrid = this.grid;
+
+            // We're going to start by expanding to the right and then work down
+            for (int y = 0; y < tileHeight; y++)
+            {
+                for (int x = tileWidth; x < tileWidth * 5; x++)
+                {
+                    newGrid[(x, y)] = newGrid[(x - tileWidth, y)] + 1;
+
+                    if (newGrid[(x, y)] > 9)
+                        newGrid[(x, y)] = 1;
+                }
+            }
+
+            // Now let's go down...........
+            for (int y = tileHeight; y < tileHeight * 5; y++)
+            {
+                for (int x = 0; x < tileWidth * 5; x++)
+                {
+                    newGrid[(x, y)] = newGrid[(x, y - tileWidth)] + 1;
+
+                    if (newGrid[(x, y)] > 9)
+                        newGrid[(x, y)] = 1;
+                }
+            }
+
+            // Update our max values
+            this.maxX = (tileWidth * 5) - 1;
+            this.maxY = (tileHeight * 5) - 1;
         }
     }
 }
