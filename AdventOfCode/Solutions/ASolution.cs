@@ -41,7 +41,7 @@ namespace AdventOfCode.Solutions
             string output = $"--- {Year} Day {Day}: {Title} --- \n";
             if(!string.IsNullOrEmpty(DebugInput))
             {
-                output += $"!!! DebugInput used: {DebugInput}\n";
+                output += $"!!! DebugInput used:\n{DebugInput}\n";
             }
 
             try
