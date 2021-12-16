@@ -18,21 +18,21 @@ namespace AdventOfCode.Solutions.Year2021
 
         public enum PacketType
         {
-            Other0 = 0,
-            Other1 = 1,
-            Other2 = 2,
-            Other3 = 3,
+            Sum = 0,
+            Product = 1,
+            Minimum = 2,
+            Maximum = 3,
             Literal = 4,
-            Other5 = 5,
-            Other6 = 6,
-            Other7 = 7,
+            GreaterThan = 5,
+            LessThan = 6,
+            EqualTo = 7,
             Other8 = 8
         }
 
-        public class Packet
+        public struct Packet
         {
             public int version = -1;
-            public PacketType type = PacketType.Other0;
+            public PacketType type = PacketType.Other8;
             public Int64 literal = -1;
             public int lengthType = -1;
             public int length = -1;
@@ -41,6 +41,8 @@ namespace AdventOfCode.Solutions.Year2021
 
         public Day16() : base(16, 2021, "Packet Decoder")
         {
+            List<Packet> packets = new List<Packet>();
+
             // Literal: 2021
             // DebugInput = "D2FE28";
 
@@ -52,19 +54,55 @@ namespace AdventOfCode.Solutions.Year2021
 
             // Opeator: with operator (with operator with literal), sum == 16
             // DebugInput = "8A004A801A8002F478";
-            Debug.Assert(SumPacketVersions(ParsePackets(ToBinaryString("8A004A801A8002F478")).packets) == 16);
+            // packets = ParsePackets(ToBinaryString("8A004A801A8002F478")).packets;
+            // Debug.Assert(SumPacketVersions(packets) == 16);
 
-            // Opeator: sum = 23
-            // DebugInput = "620080001611562C8802118E34";
-            Debug.Assert(SumPacketVersions(ParsePackets(ToBinaryString("620080001611562C8802118E34")).packets) == 12);
+            // // Opeator: sum = 23
+            // // DebugInput = "620080001611562C8802118E34";
+            // packets = ParsePackets(ToBinaryString("620080001611562C8802118E34")).packets;
+            // Debug.Assert(SumPacketVersions(packets) == 12);
 
-            // Opeator: sum = 23
-            // DebugInput = "C0015000016115A2E0802F182340";
-            Debug.Assert(SumPacketVersions(ParsePackets(ToBinaryString("C0015000016115A2E0802F182340")).packets) == 23);
+            // // Opeator: sum = 23
+            // // DebugInput = "C0015000016115A2E0802F182340";
+            // packets = ParsePackets(ToBinaryString("C0015000016115A2E0802F182340")).packets;
+            // Debug.Assert(SumPacketVersions(packets) == 23);
 
-            // Opeator: sum = 31
-            // DebugInput = "A0016C880162017C3686B18A3D4780";
-            Debug.Assert(SumPacketVersions(ParsePackets(ToBinaryString("A0016C880162017C3686B18A3D4780")).packets) == 31);
+            // // Opeator: sum = 31
+            // // DebugInput = "A0016C880162017C3686B18A3D4780";
+            // packets = ParsePackets(ToBinaryString("A0016C880162017C3686B18A3D4780")).packets;
+            // Debug.Assert(SumPacketVersions(packets) == 31);
+
+            // Calc: 3
+            packets = ParsePackets(ToBinaryString("C200B40A82")).packets;
+            Debug.Assert(CalculatePacket(packets.First()) == 3);
+
+            // Calc: 54
+            packets = ParsePackets(ToBinaryString("04005AC33890")).packets;
+            Debug.Assert(CalculatePacket(packets.First()) == 54);
+
+            // Calc: 7
+            packets = ParsePackets(ToBinaryString("880086C3E88112")).packets;
+            Debug.Assert(CalculatePacket(packets.First()) == 7);
+
+            // Calc: 9
+            packets = ParsePackets(ToBinaryString("CE00C43D881120")).packets;
+            Debug.Assert(CalculatePacket(packets.First()) == 9);
+
+            // Calc: 1
+            packets = ParsePackets(ToBinaryString("D8005AC2A8F0")).packets;
+            Debug.Assert(CalculatePacket(packets.First()) == 1);
+
+            // Calc: 0
+            packets = ParsePackets(ToBinaryString("F600BC2D8F")).packets;
+            Debug.Assert(CalculatePacket(packets.First()) == 0);
+
+            // Calc: 0
+            packets = ParsePackets(ToBinaryString("9C005AC2F8F0")).packets;
+            Debug.Assert(CalculatePacket(packets.First()) == 0);
+
+            // Calc: 1
+            packets = ParsePackets(ToBinaryString("9C0141080250320F1802104A08")).packets;
+            Debug.Assert(CalculatePacket(packets.First()) == 1);
 
             this.packets = ParsePackets(ToBinaryString(Input)).packets;
         }
@@ -99,7 +137,7 @@ namespace AdventOfCode.Solutions.Year2021
 
             // Work through the string and parse some packets
             // Our minimum packet size is 11 and we could have unused zeros at the end
-            for (i = 0; i < inputPackets.Length - 11 && (maxCount == 0 || packetCount < maxCount); )
+            for (i = 0; i < inputPackets.Length - 10 && (maxCount == 0 || packetCount < maxCount); )
             {
                 // Get the first three digits as version, second three for type
                 var version = inputPackets.Substring(i, 3);
@@ -121,7 +159,7 @@ namespace AdventOfCode.Solutions.Year2021
                         throw new Exception("Invalid packet");
 
                     // Got the literal packet, add it to the list
-                    ret.Add(packet);
+                    ret.Add(packet.Value);
                     packetCount++;
                 }
                 else
@@ -134,7 +172,7 @@ namespace AdventOfCode.Solutions.Year2021
                         throw new Exception("Invalid packet");
 
                     // Got the literal packet, add it to the list
-                    ret.Add(packet);
+                    ret.Add(packet.Value);
                     packetCount++;
                 }
 
@@ -223,6 +261,47 @@ namespace AdventOfCode.Solutions.Year2021
             });
         }
 
+        private Int64 CalculatePacket(Packet packet)
+        {
+            switch(packet.type)
+            {
+                case PacketType.Sum:
+                    if (packet.children.Count == 1)
+                        return CalculatePacket(packet.children[0]);
+                    else
+                        return packet.children.Sum(p => CalculatePacket(p));
+                    
+                case PacketType.Product:
+                    if (packet.children.Count == 1)
+                        return CalculatePacket(packet.children[0]);
+                    else
+                        return packet.children.Aggregate((Int64) 1, (current, p) => current * CalculatePacket(p));
+                    
+                case PacketType.Minimum:
+                    return packet.children.Min(p => CalculatePacket(p));
+                    
+                case PacketType.Maximum:
+                    return packet.children.Max(p => CalculatePacket(p));
+                    
+                case PacketType.Literal:
+                    return packet.literal;
+                    
+                case PacketType.GreaterThan:
+                    return (CalculatePacket(packet.children[0]) > CalculatePacket(packet.children[1]) ? 1 : 0);
+                    
+                case PacketType.LessThan:
+                    return (CalculatePacket(packet.children[0]) < CalculatePacket(packet.children[1]) ? 1 : 0);
+                    
+                case PacketType.EqualTo:
+                    return (CalculatePacket(packet.children[0]) == CalculatePacket(packet.children[1]) ? 1 : 0);
+                    
+                case PacketType.Other8:
+                    throw new Exception("Invalid packet type");
+            }
+
+            return 0;
+        }
+
         protected override string? SolvePartOne()
         {
             return SumPacketVersions(this.packets).ToString();
@@ -230,7 +309,7 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            return CalculatePacket(this.packets.First()).ToString();
         }
     }
 }
