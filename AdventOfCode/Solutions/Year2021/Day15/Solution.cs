@@ -19,6 +19,11 @@ namespace AdventOfCode.Solutions.Year2021
 
         public Day15() : base(15, 2021, "Chiton")
         {
+//             DebugInput = @"199111
+// 199191
+// 111191
+// 999991";
+
             // Read in the grid
             foreach(var line in Input.SplitByNewline().Select((line, idx) => (line, idx)))
             {
@@ -133,7 +138,7 @@ namespace AdventOfCode.Solutions.Year2021
             {
                 for (int x = 0; x < tileWidth * 5; x++)
                 {
-                    newGrid[(x, y)] = newGrid[(x, y - tileWidth)] + 1;
+                    newGrid[(x, y)] = newGrid[(x, y - tileHeight)] + 1;
 
                     if (newGrid[(x, y)] > 9)
                         newGrid[(x, y)] = 1;
