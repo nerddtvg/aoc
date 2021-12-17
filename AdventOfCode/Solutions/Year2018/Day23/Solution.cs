@@ -30,21 +30,21 @@ namespace AdventOfCode.Solutions.Year2018
 
         public Day23() : base(23, 2018, "Experimental Emergency Teleportation")
         {
-//             DebugInput = @"pos=<0,0,0>, r=4
-// pos=<1,0,0>, r=1
-// pos=<4,0,0>, r=3
-// pos=<0,2,0>, r=1
-// pos=<0,5,0>, r=3
-// pos=<0,0,3>, r=1
-// pos=<1,1,1>, r=1
-// pos=<1,1,2>, r=1
-// pos=<1,3,1>, r=1";
+            //             DebugInput = @"pos=<0,0,0>, r=4
+            // pos=<1,0,0>, r=1
+            // pos=<4,0,0>, r=3
+            // pos=<0,2,0>, r=1
+            // pos=<0,5,0>, r=3
+            // pos=<0,0,3>, r=1
+            // pos=<1,1,1>, r=1
+            // pos=<1,1,2>, r=1
+            // pos=<1,3,1>, r=1";
 
             this.bots.Clear();
 
             var input = Input.Replace("pos=", "").Replace(" r=", "").Replace("<", "").Replace(">", "").Trim();
 
-            foreach(var line in input.SplitByNewline())
+            foreach (var line in input.SplitByNewline())
             {
                 var s = line.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
@@ -72,7 +72,160 @@ namespace AdventOfCode.Solutions.Year2018
             // Simply brute forcing this is not going to work
             // We need some algoritm that gets us a small range to check
             // This is not an algoritm or method I know, so I looked at the thread again
+            // https://old.reddit.com/r/adventofcode/comments/a8s17l/2018_day_23_solutions/ecfmpy0/
+
+            Func<(Int64 x1, Int64 y1, Int64 z1, Int64 x2, Int64 y2, Int64 z2), NanoBot, bool> doesIntersect = (box, bot) =>
+            {
+                // Does the bot intersect?
+                Int64 d = 0;
+                Int64 boxhigh, boxlow;
+
+                boxlow = box.x1;
+                boxhigh = box.x2 - 1;
+                d += Math.Abs(bot.x - boxlow) + Math.Abs(bot.x - boxhigh);
+                d -= boxhigh - boxlow;
+
+                boxlow = box.y1;
+                boxhigh = box.y2 - 1;
+                d += Math.Abs(bot.y - boxlow) + Math.Abs(bot.y - boxhigh);
+                d -= boxhigh - boxlow;
+
+                boxlow = box.z1;
+                boxhigh = box.z2 - 1;
+                d += Math.Abs(bot.z - boxlow) + Math.Abs(bot.z - boxhigh);
+                d -= boxhigh - boxlow;
+
+                d /= 2;
+                return ((ulong)d) <= bot.r;
+            };
+
+            Func<(Int64 x1, Int64 y1, Int64 z1, Int64 x2, Int64 y2, Int64 z2), uint> sumIntersect = (box) =>
+            {
+                return (uint)this.bots.Count(bot => doesIntersect(box, bot));
+            };
+
+            var maxX = this.bots.Select(b => (long)Math.Abs(b.x) + (long)b.r).Max();
+            var maxY = this.bots.Select(b => (long)Math.Abs(b.y) + (long)b.r).Max();
+            var maxZ = this.bots.Select(b => (long)Math.Abs(b.z) + (long)b.r).Max();
+            var maxAbsCord = Math.Max(maxX, Math.Max(maxY, maxZ));
+
+            var boxSize = 1;
+            while (boxSize <= maxAbsCord)
+            {
+                boxSize *= 2;
+            }
+
+            var initalBox = (-boxSize, -boxSize, -boxSize, boxSize, boxSize, boxSize);
+
+            var comparer = new PqComparer();
+
+            var pq = new PriorityQueue<(Int64 x1, Int64 y1, Int64 z1, Int64 x2, Int64 y2, Int64 z2), (Int64 negReach, Int64 negSz, Int64 distToOrig)>(comparer);
+            pq.Enqueue(initalBox, (-1 * this.bots.LongCount(), -2 * boxSize, 3 * boxSize));
+
+            do
+            {
+                if (!pq.TryDequeue(out var box, out var priority))
+                {
+                    throw new Exception();
+                }
+
+                if (priority.negSz == -1)
+                {
+                    return (-1 * priority.negReach).ToString();
+                }
+
+                var newSz = priority.negSz / 2;
+
+                // Move one box in each direction: x, y, z
+                var newBox = (
+                    x1: box.x1,
+                    y1: box.y1,
+                    z1: box.z1,
+                    x2: box.x1 + newSz,
+                    y2: box.y1 + newSz,
+                    z2: box.z1 + newSz
+                );
+
+                var newReach = sumIntersect(newBox);
+                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
+
+                newBox = (
+                    x1: box.x1,
+                    y1: box.y1,
+                    z1: box.z1 + newSz,
+                    x2: box.x1 + newSz,
+                    y2: box.y1 + newSz,
+                    z2: box.z1 + (2 * newSz)
+                );
+
+                newReach = sumIntersect(newBox);
+                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
+
+                newBox = (
+                    x1: box.x1,
+                    y1: box.y1 + newSz,
+                    z1: box.z1,
+                    x2: box.x1 + newSz,
+                    y2: box.y1 + (2 * newSz),
+                    z2: box.z1 + newSz
+                );
+
+                newReach = sumIntersect(newBox);
+                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
+
+                newBox = (
+                    x1: box.x1,
+                    y1: box.y1 + newSz,
+                    z1: box.z1 + newSz,
+                    x2: box.x1 + newSz,
+                    y2: box.y1 + (2 * newSz),
+                    z2: box.z1 + (2 * newSz)
+                );
+
+                newReach = sumIntersect(newBox);
+                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
+
+                newBox = (
+                    x1: box.x1 + newSz,
+                    y1: box.y1,
+                    z1: box.z1,
+                    x2: box.x1 + (2 * newSz),
+                    y2: box.y1 + newSz,
+                    z2: box.z1 + newSz
+                );
+
+                newReach = sumIntersect(newBox);
+                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
+
+                newBox = (
+                    x1: box.x1 + newSz,
+                    y1: box.y1,
+                    z1: box.z1 + newSz,
+                    x2: box.x1 + (2 * newSz),
+                    y2: box.y1 + newSz,
+                    z2: box.z1 + (2 * newSz)
+                );
+
+                newReach = sumIntersect(newBox);
+                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
+
+                newBox = (
+                    x1: box.x1 + newSz,
+                    y1: box.y1 + newSz,
+                    z1: box.z1 + newSz,
+                    x2: box.x1 + (2 * newSz),
+                    y2: box.y1 + (2 * newSz),
+                    z2: box.z1 + (2 * newSz)
+                );
+
+                newReach = sumIntersect(newBox);
+                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
+            } while (pq.Count > 0);
+
+            return null;
+
             // https://old.reddit.com/r/adventofcode/comments/a8s17l/comment/ecddus1/
+            /*
             var xs = this.bots.Select(b => b.x).Append(0).ToList();
             var ys = this.bots.Select(b => b.y).Append(0).ToList();
             var zs = this.bots.Select(b => b.z).Append(0).ToList();
@@ -138,6 +291,7 @@ namespace AdventOfCode.Solutions.Year2018
             }
 
             return best_val.ToString();
+            */
 
             // This gave 33000593 which was not correct
             // https://old.reddit.com/r/adventofcode/comments/a8s17l/comment/ecdqzdg/
@@ -172,6 +326,7 @@ namespace AdventOfCode.Solutions.Year2018
             return result.ToString(); */
         }
 
+        /*
         private (UInt64 val, int count) Find(Int64[] xs, Int64[] ys, Int64[] zs, int dist, Int64 ox, Int64 oy, Int64 oz, int forced_count)
         {
             var at_target = new List<(Int64 x, Int64 y, Int64 z, int count, UInt64 dist)>();
@@ -254,6 +409,27 @@ namespace AdventOfCode.Solutions.Year2018
             }
 
             return (0, 0);
+        }
+        */
+    }
+
+    public class PqComparer : IComparer<(long, long, long)>
+    {
+        public int Compare((long, long, long) a, (long, long, long) b)
+        {
+            var comparer = Comparer<long>.Default;
+
+            var ca = comparer.Compare(a.Item1, b.Item1);
+
+            if (ca != 0)
+                return ca;
+
+            ca = comparer.Compare(a.Item2, b.Item2);
+
+            if (ca != 0)
+                return ca;
+
+            return comparer.Compare(a.Item3, b.Item3);
         }
     }
 }
