@@ -18,6 +18,8 @@ namespace AdventOfCode.Solutions.Year2021
         private int x2;
         private int y2;
 
+        private uint count = 0;
+
         public Day17() : base(17, 2021, "Trick Shot")
         {
             // DebugInput = @"target area: x=20..30, y=-10..-5";
@@ -40,9 +42,9 @@ namespace AdventOfCode.Solutions.Year2021
             int maxHeight = 0;
             (int vx, int vy) maxVel = (0, 0);
 
-            for (int vy = 1; vy <= 1000; vy++)
+            for (int vy = -200; vy <= 160; vy++)
             {
-                for (int vx = 1; vx <= 1000; vx++)
+                for (int vx = -200; vx <= 160; vx++)
                 {
                     // Our initial velocities are (vx, vy)
                     // Now let's get some points...
@@ -95,7 +97,7 @@ namespace AdventOfCode.Solutions.Year2021
                         }
 
                         // If we are below (y) or past (x), we're done with this attempt
-                        if (point.x > this.x2 || point.y < this.y2)
+                        if (point.x > this.x2 || point.y < this.y1)
                             break;
                     }
 
@@ -107,6 +109,9 @@ namespace AdventOfCode.Solutions.Year2021
                             maxHeight = thisHeight;
                             maxVel = thisVel;
                         }
+                        
+                        // For part 2: Count these
+                        this.count++;
                     }
                 }
             }
@@ -117,7 +122,7 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            return this.count.ToString();
         }
     }
 }
