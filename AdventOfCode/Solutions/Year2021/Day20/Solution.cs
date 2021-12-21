@@ -136,7 +136,8 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            Utilities.Repeat((i) => RunAlgorithm(i), 48);
+            return this.grid.Count(kvp => kvp.Value).ToString();
         }
     }
 }
