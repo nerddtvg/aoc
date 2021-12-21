@@ -80,7 +80,50 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            // For Part 2, I needed a hint and went to the megathread
+            // There's no reason to track all of the games. We just need to track
+            // every possible state (pos of player1, pos of player2, player1 score, player 2 score)
+            // And with that, just count how many games are in each state
+            // Each round, we go through and "play" the games, and whoever wins, add that
+            // to their total counts.
+            // Source hint: https://old.reddit.com/r/adventofcode/comments/rl6p8y/2021_day_21_solutions/hpfagnp/
+
+            // I also relearned that multi-dimensional arrays and jagged arrays aren't the same thing
+            Reset();
+
+            // Track the number of games in each state (using 11 so we can go 1..10 for positions, ignoring zero)
+            ulong[,,,] states = new ulong[11, 11, 21, 21];
+
+            // Set the initial game
+            states[this.player1Pos, this.player2Pos, 0, 0] = 1;
+
+            // Helpful hint from that code, we can simplify our roll calculations
+            // Since the die can produce any combination of (1, 2, 3), we know that
+            // the only possible values are: 3, 4, 5, 6, 7, 8, 9
+            // And the quantities are: 1, 3, 6, 7, 6, 3, 1
+            var rolls = new List<(int role, int count)>()
+            {
+                (3, 1),
+                (4, 3),
+                (5, 6),
+                (6, 7),
+                (7, 6),
+                (8, 3),
+                (9, 1)
+            };
+
+            // Counters to keep us going
+            var gameCount = 0;
+            ulong player1Wins = 0;
+            ulong player2Wins = 0;
+
+            do
+            {
+                // We need to check every state possible
+                // See how many games are in that state
+            } while (gameCount > 0);
+
+            return Math.Max(player1Wins, player2Wins).ToString();
         }
     }
 }
