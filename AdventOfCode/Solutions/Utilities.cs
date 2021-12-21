@@ -104,6 +104,16 @@ namespace AdventOfCode.Solutions
             for(int i = 0; i < count; i++) action();
         }
 
+        /// <summary>
+        /// Repeats a given <paramref name="action"/> <paramref name="count"/> times, providing the zero-based index of each iteration
+        /// </summary>
+        /// <param name="action">The action to repeat</param>
+        /// <param name="count">The number of times to repeat the given <paramref name="action"/></param>
+        public static void Repeat(this Action<int> action, int count)
+        {
+            for(int i = 0; i < count; i++) action(i);
+        }
+
         #nullable enable
         /// <summary>
         /// Hashing a string with MD5
