@@ -92,7 +92,7 @@ namespace AdventOfCode.Solutions.Year2021
             Reset();
 
             // Track the number of games in each state (using 11 so we can go 1..10 for positions, ignoring zero)
-            ulong[,,,] states = new ulong[11, 11, 21, 21];
+            var states = new ulong[11, 11, 21, 21];
 
             // Set the initial game
             states[this.player1Pos, this.player2Pos, 0, 0] = 1;
@@ -113,14 +113,85 @@ namespace AdventOfCode.Solutions.Year2021
             };
 
             // Counters to keep us going
-            var gameCount = 0;
+            ulong gameCount = 0;
+            var currentPlayer = 1;
             ulong player1Wins = 0;
             ulong player2Wins = 0;
 
+            // Cache our game states
+            var allSates = Enumerable.Range(0, 11).SelectMany(currentPos =>
+                Enumerable.Range(0, 11).SelectMany(otherPos =>
+                    Enumerable.Range(0, 21).SelectMany(currentScore =>
+                        Enumerable.Range(0, 21).Select(otherScore =>
+                            (currentPos, otherPos, currentScore, otherScore)
+                        )
+                    )
+                )
+            ).ToArray();
+
             do
             {
+                gameCount = 0;
+
+                // We will track our new states here
+                var newStates = new ulong[11, 11, 21, 21];
+
                 // We need to check every state possible
                 // See how many games are in that state
+                foreach(var state in allSates)
+                {
+                    var stateCount = currentPlayer == 1 ?
+                        states[state.currentPos, state.otherPos, state.currentScore, state.otherScore]
+                        :
+                        states[state.otherPos, state.currentPos, state.otherScore, state.currentScore];
+
+                    // Do nothing if we have nothing
+                    if (stateCount == 0)
+                        continue;
+
+                    // So now we can roll through each possible outcome
+                    foreach(var role in rolls)
+                    {
+                        // Get the new position here
+                        var newPos = (state.currentPos + role.role) % 10;
+
+                        if (newPos == 0)
+                            newPos = 10;
+
+                        // And now figure out how many games this is
+                        // Role Count * stateCount
+                        var thisCount = (ulong) role.count * stateCount;
+
+                        // Did we get winners? If so, add them to the total and don't move into nextState
+                        if (state.currentScore + newPos >= 21)
+                        {
+                            if (currentPlayer == 1)
+                                player1Wins += thisCount;
+                            else
+                                player2Wins += thisCount;
+
+                            continue;
+                        }
+
+                        if (currentPlayer == 1)
+                        {
+                            newStates[newPos, state.otherPos, state.currentScore + newPos, state.otherScore] += thisCount;
+                        }
+                        else
+                        {
+                            newStates[state.otherPos, newPos, state.otherScore, state.currentScore + newPos] += thisCount;
+                        }
+
+                        // Keep the loop going
+                        gameCount += thisCount;
+                    }
+                }
+
+                // Update our states
+                states = newStates;
+
+                // Swap players
+                currentPlayer = currentPlayer == 1 ? 2 : 1;
             } while (gameCount > 0);
 
             return Math.Max(player1Wins, player2Wins).ToString();
