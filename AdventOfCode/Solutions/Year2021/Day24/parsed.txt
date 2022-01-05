@@ -1,0 +1,247 @@
+w, x, y, z = 0
+
+inp digit
+x = z [0]
+x %= 26 [0]
+x += 14 [14]
+if (x == digit) x = 1, else x = 0  [x=0]
+y = 0
+y += 25 [25]
+y *= x [0]
+y += 1 [1]
+z *= y [0]
+y = digit
+y += 12
+y *= x [0]
+z += y [0]
+
+here:
+x = 0
+y = digit + 12
+z = 0
+
+inp digit
+x = z [0]
+x %= 26 [0]
+x += 10 [10]
+if (x == digit) x = 1, else x = 0 [0]
+y = 0 [0]
+y += 25 [25]
+y *= x [0]
+y += 1 [1]
+z *= y [0]
+y = digit
+y += 9
+y *= x [0]
+z += y [0]
+
+here:
+x = 0
+y = digit + 9
+z = 0
+
+inp digit
+x = z [0]
+x %= 26 [0]
+x += 13 [13]
+if (x == digit) x = 1, else x = 0 [0]
+y = 0
+y += 25 [25]
+y *= x [0]
+y += 1 [1]
+z *= y [0]
+y = digit
+y += 8
+y *= x [0]
+z += y [0]
+
+here:
+x = 0
+y = digit + 8
+z = 0
+
+inp digit
+x = z [0]
+x %= 26 [0]
+z /= 26 [0]
+x -= 8 [-8]
+if (x == digit) x = 1, else x = 0 [0]
+y = 0
+y += 25 [25]
+y *= x [0]
+y += 1 [1]
+z *= y [0]
+y = digit
+y += 3
+y *= x [0]
+z += y [0]
+
+here:
+x = 0
+y = digit + 3
+z = 0
+
+inp digit
+x = z [0]
+x %= 26 [0]
+x += 11 [11]
+if (x == digit) x = 1, else x = 0 [0]
+y = 0
+y += 25 [25]
+y *= x [0]
+y += 1 [1]
+z *= y [0]
+y = digit
+y *= x [0]
+z += y [0]
+
+here:
+x = 0
+y = 0
+z = 0
+
+inp digit
+x = z [0]
+x %= 26 [0]
+x += 1 [1]
+if (x == digit) x = 1, else x = 0   if (digit == 1) x = 1, else x = 0
+y = 0
+y += 25 [25]
+y *= x [if digit == 1, 25, else 0]
+y += 1 [if digit == 1, 26, else 1]
+z *= y [0]
+y = digit
+y += 11
+y *= x [if digit == 1, 12, else 0]
+z += y [if digit == 1, 12, else 0]
+
+here:
+x = 0
+y = [if digit == 1, 12, else 0]
+z = [if digit == 1, 12, else 0]
+
+inp digit
+x = z
+x %= 26
+x += 14
+if (x == digit) x = 1, else x = 0
+y = 0
+y += 25
+y *= x
+y += 1
+z *= y
+y = digit
+y += 10
+y *= x
+z += y
+
+inp digit
+x = z
+x %= 26
+z /= 26
+x -= 11
+if (x == digit) x = 1, else x = 0
+y = 0
+y += 25
+y *= x
+y += 1
+z *= y
+y = digit
+y += 13
+y *= x
+z += y
+
+inp digit
+x = z
+x %= 26
+x += 14
+if (x == digit) x = 1, else x = 0
+y = 0
+y += 25
+y *= x
+y += 1
+z *= y
+y = digit
+y += 3
+y *= x
+z += y
+
+inp digit
+x = z
+x %= 26
+z /= 26
+x -= 1
+if (x == digit) x = 1, else x = 0
+y = 0
+y += 25
+y *= x
+y += 1
+z *= y
+y = digit
+y += 10
+y *= x
+z += y
+
+inp digit
+x = z
+x %= 26
+z /= 26
+x -= 8
+if (x == digit) x = 1, else x = 0
+y = 0
+y += 25
+y *= x
+y += 1
+z *= y
+y = digit
+y += 10
+y *= x
+z += y
+
+inp digit
+x = z
+x %= 26
+z /= 26
+x -= 5
+if (x == digit) x = 1, else x = 0
+y = 0
+y += 25
+y *= x
+y += 1
+z *= y
+y = digit
+y += 14
+y *= x
+z += y
+
+inp digit
+x = z
+x %= 26
+z /= 26
+x -= 16
+if (x == digit) x = 1, else x = 0
+y = 0
+y += 25
+y *= x
+y += 1
+z *= y
+y = digit
+y += 6
+y *= x
+z += y
+
+inp digit
+x = z
+x %= 26
+z /= 26
+x += -6
+if (x == digit) x = 1, else x = 0
+y = 0
+y += 25
+y *= x
+y += 1
+z *= y
+y = digit
+y += 5
+y *= x
+z += y
