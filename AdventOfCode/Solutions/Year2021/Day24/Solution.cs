@@ -41,7 +41,7 @@ namespace AdventOfCode.Solutions.Year2021
         protected override string? SolvePartOne()
         {
             // Only use the digits 1 through 9
-            var nums = Enumerable.Range(1, 9);
+            var possibleDigits = Enumerable.Range(1, 9);
 
             IEnumerable<long> check(int[] digits, int i, int z)
             {
@@ -49,11 +49,15 @@ namespace AdventOfCode.Solutions.Year2021
                     ? new[] { long.Parse(String.Join("", digits)) } : new long[0];
 
                 IEnumerable<long> sub(IEnumerable<int> range, Func<int, int> z) =>
+                    // Append this digit to the number and check the next possible digit
                     range.SelectMany(w => check(digits.Append(w).ToArray(), i + 1, z(w)));
 
+                // There are two types of programs:
+                // div z 1 => b is > 0, sometimes runs (if z%26 + b == digit), truncates z /= 26
+                // div z 26 => b is < 0, always runs and modifies z = z * 26 + digit + c
                 return programs[i].b < 0
-                    ? sub(nums.Where(n => z % 26 + programs[i].b == n), (w) => z / 26)
-                    : sub(nums, (w) => z * 26 + w + programs[i].c);
+                    ? sub(possibleDigits.Where(n => z % 26 + programs[i].b == n), (w) => z / 26)
+                    : sub(possibleDigits, (w) => z * 26 + w + programs[i].c);
             }
 
             // Get all possible answers
