@@ -39,7 +39,7 @@ namespace AdventOfCode.Solutions.Year2021
             var sz = Int32.Parse(matches.Groups[6].Value);
             var ez = Int32.Parse(matches.Groups[7].Value);
 
-            return (matches.Groups[1].Value == "on", sx, ex, sy, ey, sz, ez);
+            return (matches.Groups[1].Value == "on", Math.Min(sx, ex), Math.Max(sx, ex), Math.Min(sy, ey), Math.Max(sy, ey), Math.Min(sz, ez), Math.Max(sz, ez));
         }
 
         private (bool success, bool on, int sx, int ex, int sy, int ey, int sz, int ez) ParseLine(string line)
@@ -75,33 +75,58 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            // For part 2, we're going to load up a list of these bounds
-            // And simply traverse them backwards to find something that matches
-            // each possible point
-            var bounds = Input.SplitByNewline().Select(line => ActualParseLine(line)).Reverse().ToArray();
+            // I thought about cube-splitting here, but I'm not sure my brain can take that
+            // Then I saw something smart here: https://github.com/viceroypenguin/adventofcode/blob/master/2021/day22.original.cs
+            // /u/viceroypenguin made a simple piece of code:
+            // Build all of the boxes, but for every overlap, add a negating overlap so it isn't double counted
+            // Then simply sum everything up
 
-            // Find our max bounds
-            var sx = bounds.Min(b => b.sx);
-            var ex = bounds.Max(b => b.ex);
-            var sy = bounds.Min(b => b.sy);
-            var ey = bounds.Max(b => b.ey);
-            var sz = bounds.Min(b => b.sz);
-            var ez = bounds.Max(b => b.ez);
+            var boxes = new List<(bool on, int sx, int ex, int sy, int ey, int sz, int ez)>();
 
-            ulong count = 0;
+            foreach(var line in Input.SplitByNewline())
+            {
+                var newBox = ActualParseLine(line);
 
-            for (int x = sx; x <= ex; x++)
-                for (int y = sy; y <= ey; y++)
-                    for (int z = sz; z <= ez; z++)
+                // Foreach of our previous boxes, add any overlap here with a negation
+                boxes.AddRange(
+                    boxes
+                    .Select(box =>
                     {
-                        var b = bounds.FirstOrDefault(b => b.sx <= x && x <= b.ex && b.sy <= y && y <= b.ey && b.sz <= z && z <= b.ez);
+                        return (!box.on,
+                            Math.Max(box.sx, newBox.sx), Math.Min(box.ex, newBox.ex),
+                            Math.Max(box.sy, newBox.sy), Math.Min(box.ey, newBox.ey),
+                            Math.Max(box.sz, newBox.sz), Math.Min(box.ez, newBox.ez)
+                            );
+                    })
+                    .Where(box =>
+                    {
+                        return
+                            box.Item2 <= box.Item3
+                            &&
+                            box.Item4 <= box.Item5
+                            &&
+                            box.Item6 <= box.Item7;
+                    })
+                    // Add a ToList so we don't modify the collection until the list is done being generated
+                    .ToList()
+                );
 
-                        // Default will be false (null bool)
-                        if (b.on)
-                            count++;
-                    }
+                // If this is lit, add it
+                if (newBox.on)
+                    boxes.Add(newBox);
+            }
 
-            return count.ToString();
+            return boxes.Sum(box =>
+            {
+                return
+                    (box.on ? 1 : -1)
+                    *
+                    (
+                        (box.ex - box.sx + 1L) *
+                        (box.ey - box.sy + 1L) *
+                        (box.ez - box.sz + 1L)
+                    );
+            }).ToString();
         }
     }
 }
