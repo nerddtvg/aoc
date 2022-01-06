@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -21,14 +22,14 @@ namespace AdventOfCode.Solutions.Year2021
             {
                 pods = new Amphipod[8]
                 {
-                    new Amphipod() { pod = 'A', x = 4, y = 1, moveCost = 1 },
-                    new Amphipod() { pod = 'A', x = 8, y = 2, moveCost = 1 },
-                    new Amphipod() { pod = 'B', x = 2, y = 2, moveCost = 10 },
-                    new Amphipod() { pod = 'B', x = 4, y = 1, moveCost = 10 },
-                    new Amphipod() { pod = 'C', x = 4, y = 2, moveCost = 100 },
-                    new Amphipod() { pod = 'C', x = 6, y = 1, moveCost = 100 },
-                    new Amphipod() { pod = 'D', x = 2, y = 1, moveCost = 1000 },
-                    new Amphipod() { pod = 'D', x = 8, y = 1, moveCost = 1000 }
+                    new Amphipod() { pod = 'A', index = 1, x = 4, y = 1, moveCost = 1 },
+                    new Amphipod() { pod = 'A', index = 2, x = 8, y = 2, moveCost = 1 },
+                    new Amphipod() { pod = 'B', index = 1, x = 2, y = 2, moveCost = 10 },
+                    new Amphipod() { pod = 'B', index = 2, x = 6, y = 2, moveCost = 10 },
+                    new Amphipod() { pod = 'C', index = 1, x = 4, y = 2, moveCost = 100 },
+                    new Amphipod() { pod = 'C', index = 2, x = 6, y = 1, moveCost = 100 },
+                    new Amphipod() { pod = 'D', index = 1, x = 2, y = 1, moveCost = 1000 },
+                    new Amphipod() { pod = 'D', index = 2, x = 8, y = 1, moveCost = 1000 }
                 }
             };
         }
@@ -52,12 +53,40 @@ namespace AdventOfCode.Solutions.Year2021
             public Amphipod[] pods = new Amphipod[0];
 
             public bool isSolved => pods.All(pod => pod.isSolved);
+
+            internal string podsHash => string.Join("-", pods
+                .OrderBy(pod => pod.pod)
+                .ThenBy(pod => pod.x)
+                .ThenBy(pod => pod.y)
+                .SelectMany(pod => new int[] { pod.pod, pod.x, pod.y })
+                .ToArray());
+
+            public override int GetHashCode()
+            {
+                return podsHash.GetHashCode();
+            }
+
+            public override bool Equals([NotNullWhen(true)] object? obj)
+            {
+                // Check if the pods are equal
+                if (obj == null || obj.GetType() != typeof(State))
+                    return false;
+
+                return Equals((State)obj);
+            }
+
+            public bool Equals(State obj)
+            {
+                // Ignore the costs, only care about the pods and their locations (position of A1 and A2 do not matter if swapped)
+                return podsHash == obj.podsHash;
+            }
         }
 
         public struct Amphipod
         {
             // This defines a pod (location and move cost)
             public char pod;
+            public int index;
             public int x;
             public int y;
             public int moveCost = 0;
@@ -96,13 +125,13 @@ namespace AdventOfCode.Solutions.Year2021
             foreach(var move in moveIntoRoom)
             {
                 // Make sure we're not blocked (validation this is a good move)
-                var diffX = move.x - move.podRoomX;
-                if (Enumerable.Range(diffX, Math.Abs(diffX)).Any(i => state.pods.Count(pod => pod.x == move.x + i) > 0))
+                var diffX = Math.Abs(move.podRoomX - move.x);
+                if (Enumerable.Range(Math.Min(move.x, move.podRoomX), diffX+1).Any(i => state.pods.Count(pod => !(pod.pod == move.pod && pod.index == move.index) && pod.x == move.x + i) > 0))
                     continue;
 
                 // Find the appropriate room and step count
                 // Start with finding out if the pair amphipod is already in the room, if so we only move 1 y down otherwise we move 2 to the bottom
-                var steps = state.pods.Count(pod => pod.pod == move.pod && pod.x != move.x && pod.isSolved) == 1 ? 1 : 2;
+                var steps = state.pods.Count(pod => pod.pod == move.pod && pod.index != move.index && pod.isSolved) == 1 ? 1 : 2;
 
                 // Start our new pod
                 var newPod = move.Clone();
@@ -114,7 +143,7 @@ namespace AdventOfCode.Solutions.Year2021
 
                 // So now we have our step count, increase the cost
                 var newState = state.Clone();
-                var newPods = state.pods.Where(pod => !(pod.x == move.x && pod.y == move.y && pod.pod != move.pod)).Append(newPod).ToArray();
+                var newPods = newState.pods.Where(pod => !(pod.pod == move.pod && pod.index == move.index)).Append(newPod).OrderBy(pod => pod.pod).ThenBy(pod => pod.index).ToArray();
 
                 // Update!
                 newState.pods = newPods;
@@ -132,7 +161,7 @@ namespace AdventOfCode.Solutions.Year2021
                 var blockedRight = false;
 
                 // Make sure we are not blocked above
-                if (state.pods.Count(pod => pod.x == move.x && pod.y != move.y) == 1)
+                if (state.pods.Count(pod => pod.x == move.x && pod.y != move.y - 1) == 1)
                     continue;
 
                 // Start our step count as our y steps up out of the room
@@ -165,7 +194,7 @@ namespace AdventOfCode.Solutions.Year2021
 
                                     // Our new state
                                     var newState = state.Clone();
-                                    var newPods = state.pods.Where(pod => !(pod.x == move.x && pod.y == move.y && pod.pod != move.pod)).Append(newPod).ToArray();
+                                    var newPods = newState.pods.Where(pod => !(pod.pod == move.pod && pod.index == move.index)).Append(newPod).OrderBy(pod => pod.pod).ThenBy(pod => pod.index).ToArray();
 
                                     newState.pods = newPods;
                                     newState.cost += steps + diffX;
@@ -186,7 +215,7 @@ namespace AdventOfCode.Solutions.Year2021
                     {
                         var newX = move.x + diffX;
 
-                        if (newX >= 0)
+                        if (newX <= 10)
                         {
                             // If this is an open space and not a door (2, 4, 6, 8)
                             // then it is a valid move
@@ -201,7 +230,7 @@ namespace AdventOfCode.Solutions.Year2021
 
                                     // Our new state
                                     var newState = state.Clone();
-                                    var newPods = state.pods.Where(pod => !(pod.x == move.x && pod.y == move.y && pod.pod != move.pod)).Append(newPod).ToArray();
+                                    var newPods = newState.pods.Where(pod => !(pod.pod == move.pod && pod.index == move.index)).Append(newPod).OrderBy(pod => pod.pod).ThenBy(pod => pod.index).ToArray();
 
                                     newState.pods = newPods;
                                     newState.cost += steps + diffX;
@@ -237,6 +266,10 @@ namespace AdventOfCode.Solutions.Year2021
             {
                 // Get the next node to work on
                 var currentNode = openSet.Dequeue();
+
+                // Debug: If all are in a room, break for checks
+                if (currentNode.cost > 0 && currentNode.pods.All(pod => pod.inRoom))
+                    System.Diagnostics.Debugger.Break();
 
                 // Removed the short-circuit code so that we could cound steps more
                 if (currentNode.isSolved)
