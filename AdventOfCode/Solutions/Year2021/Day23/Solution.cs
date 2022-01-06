@@ -121,6 +121,15 @@ namespace AdventOfCode.Solutions.Year2021
             // The spot above must be empty
             var moveIntoHall = state.pods.Where(pod => pod.inRoom && !(pod.isSolved && pod.y == 2) && (pod.y == 1 || state.pods.Count(pod2 => pod2.x == pod.x && pod2.y == 1) == 0)).ToList();
 
+            // Those we can move directly into their appropriate room
+            // This applies if their destination room has 0 pods or 1 pod that is the same
+            var swapIntoRoom = moveIntoHall
+                .Where(pod => state.pods.Count(pod2 => pod2.x == pod.podRoomX && pod2.pod != pod.pod) == 0)
+                .ToList();
+
+            if (swapIntoRoom.Count > 0)
+                System.Diagnostics.Debugger.Break();
+
             // Do each possible action
             foreach(var move in moveIntoRoom)
             {
@@ -169,7 +178,7 @@ namespace AdventOfCode.Solutions.Year2021
 
                 // We have a start x (pod.x) and can go left (>=0) or right (<=10)
                 // So let's start from x and move in each direction outwards
-                for (int diffX = 1; diffX <= 8; diffX++)
+                for (int diffX = 1; diffX <= 8 && (!blockedLeft || !blockedRight); diffX++)
                 {
                     // We can only move up to 8 in each direction
                     // And we can't stop above the room, so it is never zero
@@ -197,7 +206,7 @@ namespace AdventOfCode.Solutions.Year2021
                                     var newPods = newState.pods.Where(pod => !(pod.pod == move.pod && pod.index == move.index)).Append(newPod).OrderBy(pod => pod.pod).ThenBy(pod => pod.index).ToArray();
 
                                     newState.pods = newPods;
-                                    newState.cost += steps + diffX;
+                                    newState.cost += (steps + diffX) * move.moveCost;
 
                                     // Return this state and move on
                                     yield return newState;
@@ -233,7 +242,7 @@ namespace AdventOfCode.Solutions.Year2021
                                     var newPods = newState.pods.Where(pod => !(pod.pod == move.pod && pod.index == move.index)).Append(newPod).OrderBy(pod => pod.pod).ThenBy(pod => pod.index).ToArray();
 
                                     newState.pods = newPods;
-                                    newState.cost += steps + diffX;
+                                    newState.cost += (steps + diffX) * move.moveCost;
 
                                     // Return this state and move on
                                     yield return newState;
