@@ -27,12 +27,12 @@ namespace AdventOfCode.Solutions.Year<YEAR>
 
         protected override string? SolvePartOne()
         {
-            return null;
+            return string.Empty;
         }
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            return string.Empty;
         }
     }
 }
