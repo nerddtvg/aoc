@@ -8,12 +8,30 @@ using System.Text.RegularExpressions;
 
 namespace AdventOfCode
 {
+    /// <summary>
+    /// Application Configuration Class
+    /// </summary>
     class Config
     {
+        /// <summary>
+        /// Backing Field: Cookie
+        /// </summary>
         string _c = string.Empty;
+
+        /// <summary>
+        /// Backing Field: Year
+        /// </summary>
         int _y = 2015;
+
+        /// <summary>
+        /// Backing Field: Days
+        /// </summary>
+        /// <value></value>
         int[] _d = new int[] { 0 };
 
+        /// <summary>
+        /// Advent of Code Session Cookie
+        /// </summary>
         public string Cookie
         {
             get => _c;
@@ -22,6 +40,10 @@ namespace AdventOfCode
                 if (Regex.IsMatch(value, "^session=[a-z0-9]+$")) _c = value;
             }
         }
+
+        /// <summary>
+        /// Puzzle Year
+        /// </summary>
         public int Year
         {
             get => _y;
@@ -30,6 +52,11 @@ namespace AdventOfCode
                 if (value >= 2015 && value <= DateTime.Now.Year) _y = value;
             }
         }
+
+        /// <summary>
+        /// Puzzle Day(s)
+        /// </summary>
+        /// <value></value>
         [JsonConverter(typeof(DaysConverter))]
         public int[] Days
         {
@@ -58,7 +85,7 @@ namespace AdventOfCode
         {
             //Make sure we're looking at EST, or it might break for most of the US
             DateTime CURRENT_EST = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.Utc).AddHours(-5);
-            if (Cookie == default(string)) Cookie = "";
+            if (Cookie == default(string)) Cookie = string.Empty;
             if (Year == default(int)) Year = CURRENT_EST.Year;
             if (Days == default(int[])) Days = (CURRENT_EST.Month == 12 && CURRENT_EST.Day <= 25) ? new int[] { CURRENT_EST.Day } : new int[] { 0 };
         }
@@ -71,21 +98,19 @@ namespace AdventOfCode
                 PropertyNameCaseInsensitive = true,
                 WriteIndented = true
             };
-            Config config = default!;
-            if (File.Exists(path))
+
+            Config config = new();
+            if (File.Exists(path) && JsonSerializer.Deserialize<Config>(File.ReadAllText(path), options) is Config configCast)
             {
-                if (JsonSerializer.Deserialize<Config>(File.ReadAllText(path), options) is Config configCast)
-                {
-                    config = configCast;
-                    config.setDefaults();
-                }
+                config = configCast;
+                config.setDefaults();
             }
             else
             {
-                config = new Config();
                 config.setDefaults();
                 File.WriteAllText(path, JsonSerializer.Serialize<Config>(config, options));
             }
+
             return config;
         }
     }
