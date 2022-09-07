@@ -12,7 +12,7 @@ namespace AdventOfCode.Solutions.Year2015
 
     class Day12 : ASolution
     {
-        private object _doc;
+        private object? _doc;
 
         public Day12() : base(12, 2015, "")
         {
@@ -63,7 +63,10 @@ namespace AdventOfCode.Solutions.Year2015
 
         protected override string SolvePartTwo()
         {
-            return CountChildren((JsonElement) this._doc).ToString();
+            if (this._doc is JsonElement element)
+                return CountChildren(element).ToString();
+
+            return string.Empty;
         }
     }
 }

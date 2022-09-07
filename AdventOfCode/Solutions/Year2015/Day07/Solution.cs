@@ -9,10 +9,10 @@ namespace AdventOfCode.Solutions.Year2015
 {
     class Day7Operation
     {
-        public string operation { get; set; }
-        public string inA { get; set; }
-        public string inB { get; set; }
-        public string outputRegister { get; set; }
+        public string operation { get; set; } = string.Empty;
+        public string inA { get; set; } = string.Empty;
+        public string inB { get; set; } = string.Empty;
+        public string outputRegister { get; set; } = string.Empty;
 
         // Parsed values
         public UInt16 inAVal { get; set; } = UInt16.MaxValue;
@@ -277,7 +277,7 @@ namespace AdventOfCode.Solutions.Year2015
             if (!string.IsNullOrEmpty(DebugInput))
             {
                 PrintRegisters();
-                return null;
+                return string.Empty;
             }
 
             // Save for Part 2
@@ -296,7 +296,7 @@ namespace AdventOfCode.Solutions.Year2015
             // 5. ???
             // 6. PROFIT!
             if (this.saveValue == UInt16.MaxValue)
-                return null;
+                return string.Empty;
 
             // Reset the registers
             this.registers.Clear();

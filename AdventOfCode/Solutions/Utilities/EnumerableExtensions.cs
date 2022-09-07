@@ -239,7 +239,7 @@ namespace AdventOfCode.Solutions
         /// </summary>
         public static IEnumerable<IEnumerable<T>> Permutations<T>(this IEnumerable<T> values)
         {
-            return (values.Count() == 1) ? new[] { values } : values.SelectMany(v => Permutations(values.Where(x => x.Equals(v) == false)), (v, p) => p.Prepend(v));
+            return (values.Count() == 1) ? new[] { values } : values.SelectMany(v => Permutations(values.Where(x => Object.Equals(x, v) == false)), (v, p) => p.Prepend(v));
         }
 
         /// <summary>
@@ -265,14 +265,14 @@ namespace AdventOfCode.Solutions
         /// <typeparam name="T"></typeparam>
         public static void Deconstruct<T>(this IList<T> list, out T first, out IList<T> rest)
         {
-            first = list.Count > 0 ? list[0] : default(T); // or throw
+            first = list.Count > 0 ? list[0] : default!; // or throw
             rest = list.Skip(1).ToList();
         }
 
         public static void Deconstruct<T>(this IList<T> list, out T first, out T second, out IList<T> rest)
         {
-            first = list.Count > 0 ? list[0] : default(T); // or throw
-            second = list.Count > 1 ? list[1] : default(T); // or throw
+            first = list.Count > 0 ? list[0] : default!; // or throw
+            second = list.Count > 1 ? list[1] : default!; // or throw
             rest = list.Skip(2).ToList();
         }
 

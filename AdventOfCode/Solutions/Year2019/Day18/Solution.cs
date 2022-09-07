@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace AdventOfCode.Solutions.Year2019
 {
-    enum DoorKeyType {
+    enum DoorKeyType
+    {
         Wall,
         Passage,
         Door,
@@ -14,12 +15,13 @@ namespace AdventOfCode.Solutions.Year2019
         Entrance
     }
 
-    class DoorLockPos {
-        public int x {get;set;}
-        public int y {get;set;}
-        public DoorKeyType type {get;set;}
-        public string value {get;set;}
-        public bool locked {get;set;}
+    class DoorLockPos
+    {
+        public int x { get; set; }
+        public int y { get; set; }
+        public DoorKeyType type { get; set; }
+        public string value { get; set; } = string.Empty;
+        public bool locked { get; set; }
     }
 
     class Day18 : ASolution
@@ -31,19 +33,23 @@ namespace AdventOfCode.Solutions.Year2019
             int x = 0;
             int y = 0;
 
-            foreach(string line in Input.SplitByNewline()) {
-                foreach(char loc in line.ToCharArray()) {
-                    map.Add(new DoorLockPos() {
+            foreach (string line in Input.SplitByNewline())
+            {
+                foreach (char loc in line.ToCharArray())
+                {
+                    map.Add(new DoorLockPos()
+                    {
                         x = x,
                         y = y,
                         value = loc.ToString(),
-                        type = loc switch {
+                        type = loc switch
+                        {
                             '#' => DoorKeyType.Wall,
                             '.' => DoorKeyType.Passage,
                             '@' => DoorKeyType.Entrance,
-                            _ => (65 <= (int) loc && (int) loc <= 90) ? DoorKeyType.Door : DoorKeyType.Key
+                            _ => (65 <= (int)loc && (int)loc <= 90) ? DoorKeyType.Door : DoorKeyType.Key
                         },
-                        locked = (65 <= (int) loc && (int) loc <= 90) ? true : false
+                        locked = (65 <= (int)loc && (int)loc <= 90) ? true : false
                     });
                     x++;
                 }
@@ -54,12 +60,12 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string SolvePartOne()
         {
-            return null;
+            return string.Empty;
         }
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return string.Empty;
         }
     }
 }

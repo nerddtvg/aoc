@@ -97,7 +97,7 @@ namespace AdventOfCode.Solutions.Year2016
                 }
             } while (openSet.Count > 0);
 
-            return this.completePaths.OrderBy(l => l.Length).FirstOrDefault();
+            return this.completePaths.OrderBy(l => l.Length).FirstOrDefault() ?? string.Empty;
         }
 
         protected override string SolvePartOne()
@@ -107,7 +107,7 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return this.completePaths.OrderByDescending(l => l.Length).FirstOrDefault()?.Length.ToString();
+            return this.completePaths.OrderByDescending(l => l.Length).FirstOrDefault()?.Length.ToString() ?? string.Empty;
         }
     }
 }

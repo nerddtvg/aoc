@@ -7,7 +7,8 @@ using System.Collections;
 
 namespace AdventOfCode.Solutions.Year2020
 {
-    enum WaitingSpotType {
+    enum WaitingSpotType
+    {
         Empty,
         Occupied,
         Floor,
@@ -16,7 +17,7 @@ namespace AdventOfCode.Solutions.Year2020
 
     class Day11 : ASolution
     {
-        Dictionary<(int x, int y), WaitingSpotType> map;
+        Dictionary<(int x, int y), WaitingSpotType> map = new();
 
         int maxX;
         int maxY;
@@ -40,16 +41,19 @@ namespace AdventOfCode.Solutions.Year2020
             */
         }
 
-        private void loadMap() {
+        private void loadMap()
+        {
             int y = 0;
             int x;
 
             map = new Dictionary<(int x, int y), WaitingSpotType>();
 
-            foreach(string line in Input.SplitByNewline(true)) {
+            foreach (string line in Input.SplitByNewline(true))
+            {
                 x = 0;
 
-                foreach(char c in line) {
+                foreach (char c in line)
+                {
                     map[(x, y)] = (c == '.' ? WaitingSpotType.Floor : (c == 'L' ? WaitingSpotType.Empty : WaitingSpotType.Occupied));
                     x++;
                 }
@@ -62,7 +66,7 @@ namespace AdventOfCode.Solutions.Year2020
         }
 
         // Helper to get the adjacent seats
-        private List<WaitingSpotType> GetAdjacentSpots(int x, int y) => 
+        private List<WaitingSpotType> GetAdjacentSpots(int x, int y) =>
             new List<WaitingSpotType>() {
                 GetSpotType(x-1, y-1),
                 GetSpotType(x  , y-1),
@@ -75,7 +79,7 @@ namespace AdventOfCode.Solutions.Year2020
             };
 
         // Helper to get the adjacent seats
-        private List<WaitingSpotType> GetVisibleSpots(int x, int y) => 
+        private List<WaitingSpotType> GetVisibleSpots(int x, int y) =>
             new List<WaitingSpotType>() {
                 // Up => Left to right
                 getVisibleSpot(x, y, -1, -1),
@@ -91,13 +95,15 @@ namespace AdventOfCode.Solutions.Year2020
                 getVisibleSpot(x, y,  0,  1),
                 getVisibleSpot(x, y,  1,  1),
             };
-        
-        private WaitingSpotType getVisibleSpot(int x, int y, int dx, int dy) {
+
+        private WaitingSpotType getVisibleSpot(int x, int y, int dx, int dy)
+        {
             // Loop through all of the spots in the direction provided and return the first one
-            for(int i=1; ; i++) {
+            for (int i = 1; ; i++)
+            {
                 int tx = x + (dx * i);
                 int ty = y + (dy * i);
-                
+
                 // Shortcut some checks
                 if (tx < 0 || tx > maxX) return WaitingSpotType.None;
                 if (ty < 0 || ty > maxY) return WaitingSpotType.None;
@@ -111,13 +117,16 @@ namespace AdventOfCode.Solutions.Year2020
 
         private WaitingSpotType GetSpotType(int x, int y) => map.ContainsKey((x, y)) ? map[(x, y)] : WaitingSpotType.None;
 
-        private int runMap(int part=1) {
+        private int runMap(int part = 1)
+        {
             var newMap = new Dictionary<(int x, int y), WaitingSpotType>();
             int changes = 0;
-            
-            foreach(var kvp in map) {
+
+            foreach (var kvp in map)
+            {
                 // If this is floor, skip it
-                if (kvp.Value == WaitingSpotType.Floor) {
+                if (kvp.Value == WaitingSpotType.Floor)
+                {
                     newMap[kvp.Key] = kvp.Value;
                     continue;
                 }
@@ -125,19 +134,26 @@ namespace AdventOfCode.Solutions.Year2020
                 // Get occupied
                 int count = (part == 1 ? GetAdjacentSpots(kvp.Key.x, kvp.Key.y) : GetVisibleSpots(kvp.Key.x, kvp.Key.y)).Count(a => a == WaitingSpotType.Occupied);
 
-                if (kvp.Value == WaitingSpotType.Empty && count == 0) {
+                if (kvp.Value == WaitingSpotType.Empty && count == 0)
+                {
                     // Parts 1 and 2 => Empty has no spots occupied, it will be occupied
                     newMap[kvp.Key] = WaitingSpotType.Occupied;
                     changes++;
-                } else if (kvp.Value == WaitingSpotType.Occupied && count >= 4 && part == 1) {
+                }
+                else if (kvp.Value == WaitingSpotType.Occupied && count >= 4 && part == 1)
+                {
                     // Part 1 => If 4 or more adjacent spots are occupied, this becomes empty
                     newMap[kvp.Key] = WaitingSpotType.Empty;
                     changes++;
-                } else if (kvp.Value == WaitingSpotType.Occupied && count >= 5 && part == 2) {
+                }
+                else if (kvp.Value == WaitingSpotType.Occupied && count >= 5 && part == 2)
+                {
                     // Part 2 => If 5 or more *visibly* adjacent spots are occupied, this becomes empty
                     newMap[kvp.Key] = WaitingSpotType.Empty;
                     changes++;
-                } else {
+                }
+                else
+                {
                     // No change
                     newMap[kvp.Key] = kvp.Value;
                 }
@@ -148,22 +164,26 @@ namespace AdventOfCode.Solutions.Year2020
             return changes;
         }
 
-        private void drawMap() {
-            for(int y=0; y<=maxY; y++) {
-                for(int x=0; x<=maxX; x++) {
-                    switch(GetSpotType(x, y)) {
+        private void drawMap()
+        {
+            for (int y = 0; y <= maxY; y++)
+            {
+                for (int x = 0; x <= maxX; x++)
+                {
+                    switch (GetSpotType(x, y))
+                    {
                         case WaitingSpotType.Empty:
                             Console.Write("L");
                             break;
-                        
+
                         case WaitingSpotType.Occupied:
                             Console.Write("#");
                             break;
-                        
+
                         case WaitingSpotType.Floor:
                             Console.Write(".");
                             break;
-                        
+
                     }
                 }
                 Console.WriteLine();
@@ -174,7 +194,7 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartOne()
         {
             loadMap();
-            while(runMap(1) > 1) {}
+            while (runMap(1) > 1) { }
 
             return this.map.Count(a => a.Value == WaitingSpotType.Occupied).ToString();
         }
@@ -183,8 +203,9 @@ namespace AdventOfCode.Solutions.Year2020
         {
             loadMap();
             //drawMap();
-            
-            while(runMap(2) > 1) {
+
+            while (runMap(2) > 1)
+            {
                 //drawMap();
             }
 

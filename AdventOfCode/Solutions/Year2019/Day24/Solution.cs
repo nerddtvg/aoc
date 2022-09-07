@@ -73,10 +73,10 @@ namespace AdventOfCode.Solutions.Year2019
             this.history.Add(this.getBiodiversity());
         }
 
-        private ulong getBiodiversity(Dictionary<(int x, int y), bool> tempTiles = null) {
+        private ulong getBiodiversity(Dictionary<(int x, int y), bool>? tempTiles = default) {
             ulong ret = 0;
 
-            if (tempTiles == null)
+            if (tempTiles == default)
                 tempTiles = this.tiles;
 
             int maxX = tempTiles.Max(a => a.Key.x);

@@ -10,7 +10,7 @@ namespace AdventOfCode.Solutions.Year2016
 
     class Day06 : ASolution
     {
-        private Dictionary<int, List<char>> characters { get; set; }
+        private Dictionary<int, List<char>> characters { get; set; } = new();
 
         public Day06() : base(06, 2016, "")
         {

@@ -20,7 +20,7 @@ namespace AdventOfCode.Solutions.Year2018
 
     class Day10 : ASolution
     {
-        List<SkyLight> points;
+        List<SkyLight> points = new();
 
         public Day10() : base(10, 2018, "")
         {
@@ -78,7 +78,7 @@ namespace AdventOfCode.Solutions.Year2018
                 points.ForEach(a => a.RunVelocity());
             }
 
-            return null;
+            return string.Empty;
         }
 
         protected override string SolvePartTwo()

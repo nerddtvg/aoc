@@ -6,37 +6,46 @@ using System.Linq;
 
 namespace AdventOfCode.Solutions.Year2020
 {
-    class TicketField {
-        public string name {get;set;}
-        public List<TicketFieldRange> ranges {get;set;}
+    class TicketField
+    {
+        public string name { get; set; } = string.Empty;
+        public List<TicketFieldRange> ranges { get; set; } = new();
 
-        public bool IsValid(int input) {
-            foreach(var range in ranges)
+        public bool IsValid(int input)
+        {
+            foreach (var range in ranges)
                 if (range.min <= input && input <= range.max) return true;
 
             return false;
         }
     }
 
-    class TicketFieldRange {
-        public int min {get;set;}
-        public int max {get;set;}
+    class TicketFieldRange
+    {
+        public int min { get; set; }
+        public int max { get; set; }
 
-        public TicketFieldRange(int a, int b) {
-            if (a > b) {
+        public TicketFieldRange(int a, int b)
+        {
+            if (a > b)
+            {
                 this.min = b;
                 this.max = a;
-            } else {
+            }
+            else
+            {
                 this.min = a;
                 this.max = b;
             }
         }
     }
 
-    class Ticket {
-        public List<int> values {get;set;}
+    class Ticket
+    {
+        public List<int> values { get; set; }
 
-        public Ticket(string input) {
+        public Ticket(string input)
+        {
             this.values = input.ToIntArray(",").ToList();
         }
     }
@@ -45,7 +54,7 @@ namespace AdventOfCode.Solutions.Year2020
     {
         Dictionary<string, TicketField> fields = new Dictionary<string, TicketField>();
         List<Ticket> tickets = new List<Ticket>();
-        Ticket mine = null;
+        Ticket? mine = default;
 
         public Day16() : base(16, 2020, "")
         {
@@ -55,7 +64,8 @@ namespace AdventOfCode.Solutions.Year2020
             // Your ticket: groups[1]
             // Other tickets: groups[2]
 
-            foreach(var line in groups[0]) {
+            foreach (var line in groups[0])
+            {
                 // Need to parse
                 // Name can have spaces in it
                 // Example: class: 1-3 or 5-7
@@ -67,7 +77,8 @@ namespace AdventOfCode.Solutions.Year2020
 
                 fields.Add(
                     split[0],
-                    new TicketField() {
+                    new TicketField()
+                    {
                         name = split[0],
                         ranges = new List<TicketFieldRange>() {
                             new TicketFieldRange(Int32.Parse(range1[0]), Int32.Parse(range1[1])),
@@ -81,7 +92,8 @@ namespace AdventOfCode.Solutions.Year2020
             mine = new Ticket(groups[1][1]);
 
             // Other tickets
-            foreach(var line in groups[2]) {
+            foreach (var line in groups[2])
+            {
                 // There is a header
                 if (!line.Contains(",")) continue;
 
@@ -89,13 +101,17 @@ namespace AdventOfCode.Solutions.Year2020
             }
         }
 
-        private bool IsValidTicket(Ticket t) {
-            foreach(var v in t.values) {
+        private bool IsValidTicket(Ticket t)
+        {
+            foreach (var v in t.values)
+            {
                 bool valid = false;
 
                 // Check this field against all rules given
-                foreach(var f in this.fields) {
-                    if (f.Value.IsValid(v)) {
+                foreach (var f in this.fields)
+                {
+                    if (f.Value.IsValid(v))
+                    {
                         // Found one rule that matched, return here
                         valid = true;
                         break;
@@ -109,12 +125,14 @@ namespace AdventOfCode.Solutions.Year2020
             return true;
         }
 
-        private int GetInvalidSum(Ticket t) {
+        private int GetInvalidSum(Ticket t)
+        {
             // Go through each value and identify if it is invalid
             // If so, add to the sum
             int sum = 0;
 
-            foreach(int v in t.values) {
+            foreach (int v in t.values)
+            {
                 // Take this value through each possible field
                 // If there is at least one that is valid, it is a valid field
                 bool valid = this.fields.Select(a => a.Value.IsValid(v)).Count(a => a == true) > 0;
@@ -136,7 +154,7 @@ namespace AdventOfCode.Solutions.Year2020
             Console.WriteLine($"Before Count {this.tickets.Count}");
             List<Ticket> remove = new List<Ticket>();
 
-            foreach(var t in this.tickets)
+            foreach (var t in this.tickets)
                 if (!IsValidTicket(t)) remove.Add(t);
 
             // Remove these from the list (after we've iterated through it)
@@ -148,7 +166,8 @@ namespace AdventOfCode.Solutions.Year2020
             Dictionary<int, List<string>> possibles = new Dictionary<int, List<string>>();
 
             // Go through each field and figure out what matches, could be multiple
-            for(int i=0; i<this.fields.Count; i++) {
+            for (int i = 0; i < this.fields.Count; i++)
+            {
                 // Getting a list of values in this position across all tickets
                 List<int> values = this.tickets.Select(a => a.values[i]).ToList();
 
@@ -170,15 +189,19 @@ namespace AdventOfCode.Solutions.Year2020
             // So we need to reduce this down to figure out what is truly the only possible value for each
             // Start by finding all single possible fields and remove that value from any other
             bool removed = false;
-            do {
+            do
+            {
                 // Reset
                 removed = false;
 
-                possibles.Where(a => a.Value.Count == 1).ToList().ForEach(v => {
-                    for(int i=0; i<this.fields.Count; i++) {
+                possibles.Where(a => a.Value.Count == 1).ToList().ForEach(v =>
+                {
+                    for (int i = 0; i < this.fields.Count; i++)
+                    {
                         int before = possibles[i].Count;
 
-                        if (before > 1) {
+                        if (before > 1)
+                        {
                             // Remove this value from the list
                             possibles[i].Remove(v.Value.First());
 
@@ -187,7 +210,7 @@ namespace AdventOfCode.Solutions.Year2020
                         }
                     }
                 });
-            } while(removed);
+            } while (removed);
 
             // MANUAL: We stop here to identify if we have duplicates
             foreach (var kvp in possibles)
@@ -198,7 +221,7 @@ namespace AdventOfCode.Solutions.Year2020
             List<int> keys = possibles.Where(kvp => kvp.Value.First().StartsWith("departure")).Select(kvp => kvp.Key).ToList();
 
             // Ensure we use a ulong for this value
-            return keys.Select(a => (ulong) this.mine.values[a]).Aggregate((a,b) => a*b).ToString();
+            return keys.Select(a => (ulong)(this.mine?.values[a] ?? 0)).Aggregate((a, b) => a * b).ToString();
         }
     }
 }

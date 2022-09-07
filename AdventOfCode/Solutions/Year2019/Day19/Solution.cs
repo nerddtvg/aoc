@@ -46,7 +46,7 @@ namespace AdventOfCode.Solutions.Year2019
             int prevStart = 0;      // Improve performance by ignoring the void below the beam
             int L = 99;             // 100x100 block means x and x+99 inclusive
 
-            Intcode intcode = null;
+            Intcode intcode;
 
             for (int y = L; y < 10_000; y++)
             {
@@ -77,7 +77,7 @@ namespace AdventOfCode.Solutions.Year2019
                 }
             }
 
-            return null;
+            return string.Empty;
         }
     }
 }

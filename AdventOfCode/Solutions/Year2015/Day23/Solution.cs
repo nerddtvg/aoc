@@ -9,7 +9,7 @@ namespace AdventOfCode.Solutions.Year2015
 
     class Day23 : ASolution
     {
-        public Dictionary<char, uint> registers { get; set; }
+        public Dictionary<char, uint> registers { get; set; } = new();
 
         public Dictionary<int, string> instructions = new Dictionary<int, string>();
 

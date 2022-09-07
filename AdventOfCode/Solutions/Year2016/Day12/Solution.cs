@@ -10,7 +10,7 @@ namespace AdventOfCode.Solutions.Year2016
 
     class Day12 : ASolution
     {
-        private Dictionary<char, int> registers;
+        private Dictionary<char, int> registers = new();
         private int pos;
         private bool running;
 

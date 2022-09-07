@@ -61,7 +61,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return string.Empty;
         }
 
         protected RepairDroid.Direction GetNextDirection(RepairDroid.Tile tile, RepairDroid.Direction currentDirection) {

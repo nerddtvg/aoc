@@ -18,8 +18,8 @@ namespace AdventOfCode.Solutions.Year2019
             Intcode intcode = new Intcode(Input);
             intcode.SetInput(1);
             intcode.Run();
-            
-            return intcode.output_register.ToString();
+
+            return intcode.output_register.ToString() ?? string.Empty;
         }
 
         protected override string SolvePartTwo()
@@ -27,8 +27,8 @@ namespace AdventOfCode.Solutions.Year2019
             Intcode intcode = new Intcode(Input);
             intcode.SetInput(5);
             intcode.Run();
-            
-            return intcode.output_register.ToString();
+
+            return intcode.output_register.ToString() ?? string.Empty;
         }
     }
 }

@@ -151,7 +151,7 @@ namespace AdventOfCode.Solutions.Year2016
                     return permStr;
             }
 
-            return null;
+            return string.Empty;
         }
     }
 }

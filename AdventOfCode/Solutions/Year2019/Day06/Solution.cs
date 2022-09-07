@@ -7,16 +7,19 @@ using System.Linq;
 namespace AdventOfCode.Solutions.Year2019
 {
 
-    class TreeNode {
+    class TreeNode
+    {
         public int depth { get; set; }
-        public string name { get; set; }
-        public string parent_name { get; set; }
+        public string name { get; set; } = string.Empty;
+        public string parent_name { get; set; } = string.Empty;
 
-        public TreeNode() {
+        public TreeNode()
+        {
 
         }
 
-        public TreeNode(string name, string parent_name) {
+        public TreeNode(string name, string parent_name)
+        {
             this.name = name;
             this.parent_name = parent_name;
             this.depth = 0;
@@ -30,7 +33,8 @@ namespace AdventOfCode.Solutions.Year2019
         public Day06() : base(06, 2019, "")
         {
             nodes = new List<TreeNode>();
-            Input.SplitByNewline().ToList().ForEach(r => {
+            Input.SplitByNewline().ToList().ForEach(r =>
+            {
                 string n1 = r.Split(')')[0];
                 string n2 = r.Split(')')[1];
                 nodes.Add(new TreeNode(n2, n1));
@@ -52,20 +56,24 @@ namespace AdventOfCode.Solutions.Year2019
 
             // Search from SAN back towards COM to find the first overlap
             int c = 0;
-            TreeNode common = null;
+            TreeNode common = default!;
 
-            foreach(TreeNode n in SAN) {
+            foreach (TreeNode n in SAN)
+            {
                 c++;
-                
-                if (YOU.Where(r => r.name == n.name).Count() > 0) {
+
+                if (YOU.Where(r => r.name == n.name).Count() > 0)
+                {
                     common = YOU.Where(r => r.name == n.name).First();
                     break;
                 }
             }
 
             // Now we count for YOU
-            foreach(TreeNode n in YOU) {
-                if (n.name == common.name) {
+            foreach (TreeNode n in YOU)
+            {
+                if (n.name == common.name)
+                {
                     break;
                 }
 
@@ -78,33 +86,38 @@ namespace AdventOfCode.Solutions.Year2019
             return c.ToString();
         }
 
-        public List<TreeNode> FindPath(List<TreeNode> nodes, string name) {
-            if (name == "COM") {
+        public List<TreeNode> FindPath(List<TreeNode> nodes, string name)
+        {
+            if (name == "COM")
+            {
                 return new List<TreeNode>();
             }
 
-            List<TreeNode> n = new List<TreeNode>() { nodes.Where(a => a.name == name ).First() };
+            List<TreeNode> n = new List<TreeNode>() { nodes.Where(a => a.name == name).First() };
 
             n.AddRange(FindPath(nodes, n[0].parent_name));
 
             return n;
         }
 
-        public void CountDepth(TreeNode node) {
-            TreeNode actualNode = this.nodes.Where(r => r.name == node.name).FirstOrDefault();
+        public void CountDepth(TreeNode node)
+        {
+            TreeNode? actualNode = this.nodes.First(r => r.name == node.name);
 
-            if (node.parent_name == "COM") {
+            if (node.parent_name == "COM")
+            {
                 actualNode.depth = 1;
                 return;
             }
 
-            TreeNode parent = this.nodes.Where(r => r.name == node.parent_name).FirstOrDefault();
-            
-            if (parent.depth == 0) {
+            TreeNode? parent = this.nodes.First(r => r.name == node.parent_name);
+
+            if (parent.depth == 0)
+            {
                 CountDepth(parent);
             }
 
-            TreeNode actualParent = this.nodes.Where(r => r.name == node.parent_name).FirstOrDefault();
+            TreeNode? actualParent = this.nodes.First(r => r.name == node.parent_name);
 
             actualNode.depth = actualParent.depth + 1;
         }

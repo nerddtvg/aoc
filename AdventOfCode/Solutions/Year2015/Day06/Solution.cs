@@ -116,7 +116,7 @@ namespace AdventOfCode.Solutions.Year2015
 
         protected override string SolvePartTwo()
         {
-            return this.grid2.Sum(a => a.Value).ToString();
+            return this.grid2.Sum(a => a.Value)?.ToString() ?? "0";
         }
     }
 }

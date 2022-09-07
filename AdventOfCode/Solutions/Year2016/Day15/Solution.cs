@@ -62,7 +62,7 @@ namespace AdventOfCode.Solutions.Year2016
         {
             // No debug here
             if (!string.IsNullOrEmpty(DebugInput))
-                return null;
+                return string.Empty;
 
             // Add a new disk
             this.disks.Add(new Disk()

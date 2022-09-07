@@ -28,7 +28,8 @@ namespace AdventOfCode.Solutions.Year2018
             this.LoadInput();
         }
 
-        private void LoadInput() {
+        private void LoadInput()
+        {
             // Load the input into our linked list
             this.recipes.Clear();
             this.recipes.AddLast(3);
@@ -36,24 +37,28 @@ namespace AdventOfCode.Solutions.Year2018
 
             // Setup the elves
             this.elves.Clear();
-            this.elves.Add(recipes.First);
-            this.elves.Add(recipes.Last);
+            if (recipes.First != default)
+                this.elves.Add(recipes.First);
+            if (recipes.Last != default)
+                this.elves.Add(recipes.Last);
 
             // Remove the old entries
             this.found.Clear();
         }
 
-        private LinkedListNode<int> getRecipeCount(LinkedListNode<int> node, int x=0) {
-            for(int i=0; i<x; i++)
+        private LinkedListNode<int> getRecipeCount(LinkedListNode<int> node, int x = 0)
+        {
+            for (int i = 0; i < x; i++)
                 if (node.Next == null)
-                    node = node.List.First;
+                    node = node.List?.First!;
                 else
                     node = node.Next;
-            
+
             return node;
         }
 
-        private void runRound(string firstChar = "") {
+        private void runRound(string firstChar = "")
+        {
             // First thing we do is sum up all of the elves
             // Should never be higher than 18 (0-9 * 2)
             int sum = this.elves.Sum(a => a.Value);
@@ -69,17 +74,19 @@ namespace AdventOfCode.Solutions.Year2018
             digits.Add(sum % 10);
 
             // Add them
-            foreach(var digit in digits) {
+            foreach (var digit in digits)
+            {
                 var t = this.recipes.AddLast(digit);
 
                 // Save instances of our first character to ease in finding things later
                 if (!string.IsNullOrWhiteSpace(firstChar) && digit.ToString() == firstChar)
                     this.found.Add(t);
             }
-            
+
             // Now find the elves next nodes...
             List<LinkedListNode<int>> tElves = new List<LinkedListNode<int>>();
-            this.elves.ForEach(e => {
+            this.elves.ForEach(e =>
+            {
                 int i = e.Value + 1;
                 tElves.Add(this.getRecipeCount(e, i));
             });
@@ -92,14 +99,14 @@ namespace AdventOfCode.Solutions.Year2018
         {
             // We need to make as many recipes as our puzzle input says + 10
             int recipeCount = Int32.Parse(Input);
-            while(this.recipes.Count < recipeCount + 10)
+            while (this.recipes.Count < recipeCount + 10)
                 this.runRound();
-            
+
             string ret = "";
 
             // Now get the recipies
-            for(int i=0; i<10; i++)
-                ret += this.recipes.ElementAt<int>(recipeCount+i).ToString();
+            for (int i = 0; i < 10; i++)
+                ret += this.recipes.ElementAt<int>(recipeCount + i).ToString();
 
             return ret;
         }
@@ -110,7 +117,8 @@ namespace AdventOfCode.Solutions.Year2018
 
             // Run through the rounds
             // Look for instances of our puzzle input
-            while(true) {
+            while (true)
+            {
                 this.runRound(Input.Substring(0, 1));
 
                 // Look to see if our Puzzle input appears anywhere
@@ -118,27 +126,31 @@ namespace AdventOfCode.Solutions.Year2018
                 // Remove any that don't match to save time later
                 List<LinkedListNode<int>> remove = new List<LinkedListNode<int>>();
 
-                for(int i=0; i<this.found.Count; i++) {
+                for (int i = 0; i < this.found.Count; i++)
+                {
                     // Get the next 5 digits and check them
                     string temp = "";
                     var startNode = this.found[i];
                     var node = startNode;
 
-                    for(int q=0; node != null && q<Input.Length; q++) {
+                    for (int q = 0; node != null && q < Input.Length; q++)
+                    {
                         temp += node.Value.ToString();
                         node = node.Next;
                     }
 
                     // If we had a null entry, we hit the end of the list before the length is right
                     if (temp.Length < Input.Length) continue;
-                    
-                    if (temp == Input) {
+
+                    if (temp == Input)
+                    {
                         // Found it!
                         // Unfortunately we don't have an indexing solution for C# LinkedLists so we loop this...
                         var tempNode = startNode;
                         int count = 0;
 
-                        while(tempNode.Previous != null) {
+                        while (tempNode.Previous != null)
+                        {
                             count++;
                             tempNode = tempNode.Previous;
                         }

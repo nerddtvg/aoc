@@ -7,14 +7,16 @@ using System.Linq;
 
 namespace AdventOfCode.Solutions.Year2020
 {
-    class OuterBag {
-        public string color {get;set;}
-        public List<InnerBag> inner {get;set;}
+    class OuterBag
+    {
+        public string color { get; set; } = string.Empty;
+        public List<InnerBag> inner { get; set; } = new();
     }
 
-    class InnerBag {
-        public string color {get;set;}
-        public int qty {get;set;}
+    class InnerBag
+    {
+        public string color { get; set; } = string.Empty;
+        public int qty { get; set; }
     }
 
     class Day07 : ASolution
@@ -23,7 +25,8 @@ namespace AdventOfCode.Solutions.Year2020
 
         public Day07() : base(07, 2020, "")
         {
-            foreach(string line in Input.SplitByNewline()) {
+            foreach (string line in Input.SplitByNewline())
+            {
                 string[] parts = line.Split("bags contain");
                 string[] bags = parts[1].Replace(".", "").Trim().Split(",");
 
@@ -31,13 +34,14 @@ namespace AdventOfCode.Solutions.Year2020
                 t.color = parts[0].Replace(" bags", "").Trim();
                 t.inner = new List<InnerBag>();
 
-                foreach(string inner in bags) {
+                foreach (string inner in bags)
+                {
                     if (inner.Trim() == "no other bags") break;
 
                     // First character is a qty, the rest is a bag
                     string[] innerBag = inner.Trim().Split(" ", 2);
 
-                    t.inner.Add(new InnerBag() { qty = Int32.Parse(innerBag[0]), color = innerBag[1].Replace(" bags", "").Replace(" bag", "").Trim()});
+                    t.inner.Add(new InnerBag() { qty = Int32.Parse(innerBag[0]), color = innerBag[1].Replace(" bags", "").Replace(" bag", "").Trim() });
                 }
 
                 rules.Add(t);
@@ -49,7 +53,8 @@ namespace AdventOfCode.Solutions.Year2020
             // Find everything that contains a shiny gold bag
             List<string> bags = rules.Where(a => a.inner.Select(a => a.color).Contains("shiny gold")).Select(a => a.color).Distinct().ToList();
 
-            while(true) {
+            while (true)
+            {
                 // Save this for comparison
                 int beforeCount = bags.Count;
 
@@ -66,7 +71,8 @@ namespace AdventOfCode.Solutions.Year2020
             return bags.Count.ToString();
         }
 
-        private int bagCountIB(InnerBag bag) {
+        private int bagCountIB(InnerBag bag)
+        {
             // Calculate based on the ruleset
             OuterBag? ob = rules.Where(a => a.color == bag.color).FirstOrDefault();
             if (ob != null) return bag.qty * bagCount(ob);
@@ -74,7 +80,8 @@ namespace AdventOfCode.Solutions.Year2020
             return bag.qty;
         }
 
-        private int bagCount(OuterBag bag) {
+        private int bagCount(OuterBag bag)
+        {
             // Need to process this rule including ourselve
             int count = 1;
 
@@ -89,7 +96,7 @@ namespace AdventOfCode.Solutions.Year2020
         {
             // Work down the tree from shiny gold to determine how many bags it must contain
             // Remove one from the total because we can't count shiny gold
-            return (bagCount(rules.Where(a => a.color == "shiny gold").First())-1).ToString();
+            return (bagCount(rules.Where(a => a.color == "shiny gold").First()) - 1).ToString();
         }
     }
 }

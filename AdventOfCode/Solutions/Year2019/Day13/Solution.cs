@@ -34,14 +34,14 @@ namespace AdventOfCode.Solutions.Year2019
 
         public List<GameTile> tiles = new List<GameTile>();
 
-        public Intcode intcode = null;
+        public Intcode? intcode = default!;
 
         public Day13() : base(13, 2019, "")
         {
         }
 
         private void SetTiles() {
-            while(intcode.State == State.Waiting) {
+            while(intcode?.State == State.Waiting) {
                 // Each run is: x, y, tile
                 GameTile tile = new GameTile();
 
@@ -129,8 +129,8 @@ namespace AdventOfCode.Solutions.Year2019
                 stopNextScore = (tiles.Count > 0 && tiles.Count(c => c.tile == (int) TileType.Block) == 0);
 
                 // Check where the ball is
-                GameTile ball = tiles.Where(t => t.tile == (int) TileType.Ball).FirstOrDefault();
-                GameTile paddle = tiles.Where(t => t.tile == (int) TileType.Paddle).FirstOrDefault();
+                GameTile? ball = tiles.Where(t => t.tile == (int) TileType.Ball).FirstOrDefault();
+                GameTile? paddle = tiles.Where(t => t.tile == (int) TileType.Paddle).FirstOrDefault();
 
                 intcode.ClearInput();
                 

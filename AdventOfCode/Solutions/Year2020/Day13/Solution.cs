@@ -21,7 +21,8 @@ namespace AdventOfCode.Solutions.Year2020
             timestamp = UInt64.Parse(lines[0]);
 
             var split = lines[1].Split(",");
-            for(int i = 0; i<split.Length; i++) {
+            for (int i = 0; i < split.Length; i++)
+            {
                 // Ignore the x's
                 if (split[i] == "x") continue;
 
@@ -33,12 +34,15 @@ namespace AdventOfCode.Solutions.Year2020
         protected override string SolvePartOne()
         {
             // Find an easy multiple of the bus IDs greater than our timestamp
-            for(BigInteger i=0; i<timestamp + 100000; i++) {
+            for (BigInteger i = 0; i < timestamp + 100000; i++)
+            {
                 // Check each bus to see if it is a good multiple
-                foreach(var b in buses) {
-                    if ((timestamp+i)% b.bus == 0) {
+                foreach (var b in buses)
+                {
+                    if ((timestamp + i) % b.bus == 0)
+                    {
                         Console.WriteLine($"Bus ID: {b}");
-                        Console.WriteLine($"Timestamp: {timestamp+i}");
+                        Console.WriteLine($"Timestamp: {timestamp + i}");
                         Console.WriteLine($"Difference: {i}");
 
                         // Found one!
@@ -47,44 +51,45 @@ namespace AdventOfCode.Solutions.Year2020
                 }
             }
 
-            return null;
+            return string.Empty;
         }
 
         // Returns modulo inverse of a with respect to m using extended 
         // Euclid Algorithm. Refer below post for details: 
         // https://www.geeksforgeeks.org/multiplicative-inverse-under-modulo-m/ 
-        private BigInteger inv(BigInteger a, BigInteger m) {
-            BigInteger m0 = m, t, q; 
-            BigInteger x0 = 0, x1 = 1; 
-        
-            if (m == 1) 
-            return 0; 
-        
+        private BigInteger inv(BigInteger a, BigInteger m)
+        {
+            BigInteger m0 = m, t, q;
+            BigInteger x0 = 0, x1 = 1;
+
+            if (m == 1)
+                return 0;
+
             // Apply extended Euclid Algorithm 
-            while (a > 1) 
-            { 
+            while (a > 1)
+            {
                 // q is quotient 
-                q = a / m; 
-        
-                t = m; 
-        
+                q = a / m;
+
+                t = m;
+
                 // m is remainder now, process same as 
                 // euclid's algo 
                 m = a % m;
                 a = t;
-        
-                t = x0; 
-        
-                x0 = x1 - q * x0; 
-        
-                x1 = t; 
-            } 
-        
+
+                t = x0;
+
+                x0 = x1 - q * x0;
+
+                x1 = t;
+            }
+
             // Make x1 positive 
-            if (x1 < 0) 
-            x1 += m0; 
-        
-            return x1; 
+            if (x1 < 0)
+                x1 += m0;
+
+            return x1;
         }
 
         protected override string SolvePartTwo()
@@ -108,11 +113,12 @@ namespace AdventOfCode.Solutions.Year2020
                         pp[i] with respect to num[i]
             */
 
-            BigInteger prod = buses.Select(bus => bus.bus).Aggregate((a,b) => a*b);
+            BigInteger prod = buses.Select(bus => bus.bus).Aggregate((a, b) => a * b);
 
             BigInteger result = 0;
 
-            for(int i=0; i<buses.Count; i++) {
+            for (int i = 0; i < buses.Count; i++)
+            {
                 BigInteger pp = prod / buses[i].bus;
                 result += buses[i].remainder * inv(pp, buses[i].bus) * pp;
             }

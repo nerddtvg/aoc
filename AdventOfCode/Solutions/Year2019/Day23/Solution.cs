@@ -65,7 +65,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return string.Empty;
         }
     }
 }

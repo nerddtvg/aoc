@@ -54,7 +54,7 @@ namespace AdventOfCode.Solutions.Year2016
             Console.WriteLine($"Part 2 Sample '{Input}': {Utilities.ManhattanDistance((0, 0), this.firstDup)}");
 
             // Real work
-            DebugInput = null;
+            DebugInput = string.Empty;
             ResetPos();
             ProcessInput();
         }

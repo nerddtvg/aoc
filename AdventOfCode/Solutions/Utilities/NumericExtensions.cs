@@ -18,7 +18,7 @@ namespace AdventOfCode.Solutions
         /// <returns>An array of divisors</returns>
         public static UInt64[] GetDivisors(this UInt64 input)
         {
-            if (input == 0) return null;
+            if (input == 0) throw new ArgumentException("Input cannot be zero.");
 
             var divisors = new SortedSet<UInt64>();
 

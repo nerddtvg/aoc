@@ -6,18 +6,21 @@ using System.Linq;
 
 namespace AdventOfCode.Solutions.Year2018
 {
-    class GuardShift {
-        public int guard {get;set;}
-        public Dictionary<int, int> minutes{get;set;}
+    class GuardShift
+    {
+        public int guard { get; set; }
+        public Dictionary<int, int> minutes { get; set; } = new();
 
         // How many minutes where they asleep over all shifts?
-        public int minutesAsleep {
-            get{
+        public int minutesAsleep
+        {
+            get
+            {
                 return this.minutes.Values.Sum();
             }
         }
 
-        public DateTime date {get;set;}
+        public DateTime date { get; set; }
     }
 
     class Day04 : ASolution
@@ -33,7 +36,8 @@ namespace AdventOfCode.Solutions.Year2018
 
             DateTime lastSleep = DateTime.Now;
 
-            foreach(string line in Input.SplitByNewline().OrderBy(a => a)) {
+            foreach (string line in Input.SplitByNewline().OrderBy(a => a))
+            {
                 // Samples:
                 /*
                  * [1518-11-01 00:00] Guard #10 begins shift
@@ -54,7 +58,7 @@ namespace AdventOfCode.Solutions.Year2018
                  * [1518-11-05 00:45] falls asleep
                  * [1518-11-05 00:55] wakes up
                  */
-                
+
                 string[] parts = line.Replace("[", "").Split("]").Select(a => a.Trim()).ToArray();
 
                 // Parse the date/time
@@ -62,14 +66,17 @@ namespace AdventOfCode.Solutions.Year2018
                 parts[0] += ":00Z";
                 DateTime shiftTime = DateTime.ParseExact(parts[0], "u", null);
 
-                if (shiftTime.Hour > 0) {
+                if (shiftTime.Hour > 0)
+                {
                     shiftTime.AddDays(1);
                 }
 
-                if (parts[1].Contains("begins")) {
+                if (parts[1].Contains("begins"))
+                {
                     // This is a shift start
                     // Do we need to save the previous one?
-                    if (!string.IsNullOrWhiteSpace(shift.guard.ToString())) {
+                    if (!string.IsNullOrWhiteSpace(shift.guard.ToString()))
+                    {
                         shifts.Add(shift);
 
                         // Reset!
@@ -79,14 +86,19 @@ namespace AdventOfCode.Solutions.Year2018
 
                     shift.date = shiftTime;
                     shift.guard = Int32.Parse(parts[1].Replace("#", "").Split(" ")[1]);
-                } else {
+                }
+                else
+                {
                     // We have a sleep or wake time
-                    if (parts[1].Contains("sleep")) {
+                    if (parts[1].Contains("sleep"))
+                    {
                         lastSleep = shiftTime;
-                    } else {
+                    }
+                    else
+                    {
                         // The guard has woken!
                         // Go through the minutes they were asleep and increment it
-                        for(int min=lastSleep.Minute; min<shiftTime.Minute; min++)
+                        for (int min = lastSleep.Minute; min < shiftTime.Minute; min++)
                             shift.minutes.Add(min, 1);
                     }
                 }
@@ -99,7 +111,7 @@ namespace AdventOfCode.Solutions.Year2018
         protected override string SolvePartOne()
         {
             // Find the guard with the most minutes asleep
-            int[] guard = shifts.GroupBy(a => a.guard).Select(a => new int[] {a.Key, shifts.Where(b => b.guard == a.Key).Sum(b => b.minutesAsleep)}).OrderByDescending(a => a[1]).First();
+            int[] guard = shifts.GroupBy(a => a.guard).Select(a => new int[] { a.Key, shifts.Where(b => b.guard == a.Key).Sum(b => b.minutesAsleep) }).OrderByDescending(a => a[1]).First();
 
             // Get all the guard shifts (for easy references)
             List<GuardShift> guardShifts = shifts.Where(a => a.guard == guard[0]).ToList();
@@ -152,7 +164,8 @@ namespace AdventOfCode.Solutions.Year2018
         protected override string SolvePartTwo()
         {
             // Find the guard who was asleep the most during a single minute
-            var guardMinute = shifts.GroupBy(a => a.guard).Select(a => {
+            var guardMinute = shifts.GroupBy(a => a.guard).Select(a =>
+            {
                 // What guard are we calculating?
                 int g = a.Key;
 

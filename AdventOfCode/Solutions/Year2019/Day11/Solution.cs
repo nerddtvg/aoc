@@ -203,9 +203,9 @@ namespace AdventOfCode.Solutions.Year2019
 
             for(y=sy; y<=ey; y++) {
                 for(x=sx; x<=ex; x++) {
-                    HullTile tile = tiles.FirstOrDefault(a => a.x == x && a.y == y);
+                    HullTile? tile = tiles.FirstOrDefault(a => a.x == x && a.y == y);
 
-                    if (tile == null || tile.color == 0) {
+                    if (tile == default || tile.color == 0) {
                         output += " ";
                     } else {
                         output += "#";

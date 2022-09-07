@@ -113,7 +113,7 @@ namespace AdventOfCode.Solutions.Year2020
                 }
             }
 
-            return null;
+            return string.Empty;
         }
     }
 }

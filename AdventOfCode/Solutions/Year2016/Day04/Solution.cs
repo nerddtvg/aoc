@@ -9,9 +9,9 @@ namespace AdventOfCode.Solutions.Year2016
 {
     class Day04Room
     {
-        public string name { get; set; }
+        public string name { get; set; } = string.Empty;
         public int sector { get; set; }
-        public string checksum { get; set; }
+        public string checksum { get; set; } = string.Empty;
     }
 
     class Day04 : ASolution

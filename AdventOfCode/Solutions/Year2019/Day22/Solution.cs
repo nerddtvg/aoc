@@ -11,7 +11,7 @@ namespace AdventOfCode.Solutions.Year2019
 
     class Day22 : ASolution
     {
-        private List<int> deck = null;
+        private List<int> deck = new();
         BigInteger count = new BigInteger(0);
 
         public Day22() : base(22, 2019, "")

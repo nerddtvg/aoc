@@ -110,13 +110,15 @@ namespace AdventOfCode.Solutions.Year2016
                 //return floors.Select(x => x.GetHashCode()).Aggregate(elevator.GetHashCode(), (x, y) => x ^ y);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return obj is FloorState && Equals((FloorState) obj);
             }
 
-            public bool Equals(FloorState obj)
+            public bool Equals(FloorState? obj)
             {
+                if (obj == default) return false;
+                
                 // Make sure we truly match
                 return elevator == obj.elevator
                     && floors.Length == obj.floors.Length

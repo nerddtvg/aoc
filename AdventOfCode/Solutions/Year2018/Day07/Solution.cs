@@ -7,24 +7,28 @@ using System.Linq;
 namespace AdventOfCode.Solutions.Year2018
 {
 
-    class SleighStep {
-        public string id {get;set;}
-        public List<string> prereq {get;set;}
-        public bool completed {get;set;}
-        public bool start {get;set;}
+    class SleighStep
+    {
+        public string id { get; set; } = string.Empty;
+        public List<string> prereq { get; set; } = new();
+        public bool completed { get; set; }
+        public bool start { get; set; }
 
-        public int timeRequried {
-            get {
+        public int timeRequried
+        {
+            get
+            {
                 // Add 60 + 1 to account for the shift of 'A'
-                return 61 + ((int) (((int) id.ToCharArray()[0]) - ((int) 'A')));
+                return 61 + ((int)(((int)id.ToCharArray()[0]) - ((int)'A')));
             }
         }
     }
 
-    class Worker {
-        public string id {get;set;}
-        public int tick {get;set;}
-        public int timeRequired {get;set;}
+    class Worker
+    {
+        public string id { get; set; } = string.Empty;
+        public int tick { get; set; }
+        public int timeRequired { get; set; }
 
         public bool IsIdle() => string.IsNullOrEmpty(this.id);
 
@@ -43,7 +47,8 @@ namespace AdventOfCode.Solutions.Year2018
 
         }
 
-        private void ParseInput() {
+        private void ParseInput()
+        {
             // Parse each line, samples:
             /*
              * Step C must be finished before step A can begin.
@@ -54,20 +59,25 @@ namespace AdventOfCode.Solutions.Year2018
              * Step D must be finished before step E can begin.
              * Step F must be finished before step E can begin.
              */
-            
+
             steps = new List<SleighStep>();
 
-            foreach(string line in Input.SplitByNewline()) {
+            foreach (string line in Input.SplitByNewline())
+            {
                 string[] parts = line.Split(" ");
-                if (steps.Count(a => a.id == parts[7]) == 0) {
+                if (steps.Count(a => a.id == parts[7]) == 0)
+                {
                     // New step!
-                    steps.Add(new SleighStep() {
+                    steps.Add(new SleighStep()
+                    {
                         id = parts[7],
                         completed = false,
                         start = false,
                         prereq = new List<string>() { parts[1] }
                     });
-                } else {
+                }
+                else
+                {
                     steps.Where(a => a.id == parts[7]).First().prereq.Add(parts[1]);
                     steps.Where(a => a.id == parts[7]).First().prereq = steps.Where(a => a.id == parts[7]).First().prereq.Distinct().ToList();
                 }
@@ -80,9 +90,11 @@ namespace AdventOfCode.Solutions.Year2018
             Console.WriteLine($"Ids: {ids.Count().ToString()}");
             Console.WriteLine($"Prereqs: {prereqs.Count().ToString()}");
 
-            foreach(string missing in prereqs.Where(a => !ids.Contains(a))) {
+            foreach (string missing in prereqs.Where(a => !ids.Contains(a)))
+            {
                 // These are "missing" which means they have no prereqs
-                steps.Add(new SleighStep() {
+                steps.Add(new SleighStep()
+                {
                     id = missing,
                     completed = false,
                     start = true,
@@ -99,24 +111,26 @@ namespace AdventOfCode.Solutions.Year2018
             // Go through and "process" the order
             string process = steps.Where(a => a.start == true).OrderBy(a => a.id).First().id;
 
-            while(!string.IsNullOrEmpty(process)) {
+            while (!string.IsNullOrEmpty(process))
+            {
                 // Find all of the steps this "completes"
                 steps.Where(a => a.id == process).ToList().ForEach(a => a.completed = true);
-                
+
                 // Add to the order
                 order += process;
 
                 // Go through and update the prereqs
-                steps.ForEach(a => {
+                steps.ForEach(a =>
+                {
                     if (a.prereq.Contains(process))
                         a.prereq.Remove(process);
                 });
 
                 // Clear this in case we don't have a result below
-                process = "";
+                process = string.Empty;
 
                 // Find the next step to process depending on who is not completed, who has no prereqs left, and alphabetical order
-                process = steps.Where(a => a.completed == false && a.prereq.Count == 0).OrderBy(a => a.id).FirstOrDefault()?.id;
+                process = steps.Where(a => a.completed == false && a.prereq.Count == 0).OrderBy(a => a.id).FirstOrDefault()?.id ?? string.Empty;
             }
 
             return order;
@@ -146,19 +160,23 @@ namespace AdventOfCode.Solutions.Year2018
             // Offset because our first step is to increment this
             int seconds = -1;
 
-            while(start || workers.Count(a => !a.IsIdle()) > 0) {
+            while (start || workers.Count(a => !a.IsIdle()) > 0)
+            {
                 // Tick, tick, tick!
                 start = false;
                 List<string> completed = new List<string>();
                 seconds++;
 
                 // Increment the worker times
-                workers.ForEach(worker => {
-                    if (!worker.IsIdle()) {
+                workers.ForEach(worker =>
+                {
+                    if (!worker.IsIdle())
+                    {
                         worker.tick++;
 
                         // Are they done?!
-                        if (worker.tick == steps.Where(a => a.id == worker.id).First().timeRequried) {
+                        if (worker.tick == steps.Where(a => a.id == worker.id).First().timeRequried)
+                        {
                             completed.Add(worker.id);
 
                             // Reset this worker
@@ -169,28 +187,31 @@ namespace AdventOfCode.Solutions.Year2018
                 });
 
                 // Go through what was completed and get things ready
-                completed.ForEach(complete => {
+                completed.ForEach(complete =>
+                {
                     // Find all of the steps this "completes"
                     steps.Where(a => a.id == complete).ToList().ForEach(a => a.completed = true);
 
                     // Go through and update the prereqs
-                    steps.ForEach(a => {
+                    steps.ForEach(a =>
+                    {
                         if (a.prereq.Contains(complete))
                             a.prereq.Remove(complete);
                     });
                 });
-                
+
                 // Get a list of what is available to work on (or being worked on)
                 List<string> available = GetNextAvailable();
 
                 // Find any idle workers and MAKE THEM WORK
                 // Need to do this through a manual loop because Linq ForEach didn't update variables
-                workers.Where(worker => worker.IsIdle()).ToList().ForEach(worker => {
+                workers.Where(worker => worker.IsIdle()).ToList().ForEach(worker =>
+                {
                     // Get a current list of what's in progress (refresh each loop to account for anything new)
                     List<string> inProgress = workers.Where(worker => !string.IsNullOrEmpty(worker.id)).Select(a => a.id).ToList();
 
                     // Find the first one in the list that is not being worked on
-                    worker.id = available.FirstOrDefault(a => !inProgress.Contains(a));
+                    worker.id = available.FirstOrDefault(a => !inProgress.Contains(a)) ?? string.Empty;
 
                     // This is only set to help debugging
                     if (!string.IsNullOrEmpty(worker.id))

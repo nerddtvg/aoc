@@ -10,7 +10,7 @@ namespace AdventOfCode.Solutions.Year2015
 
     class Day24 : ASolution
     {
-        private List<int> packageWeights { get; set; }
+        private List<int> packageWeights { get; set; } = new();
 
         public Day24() : base(24, 2015, "")
         {

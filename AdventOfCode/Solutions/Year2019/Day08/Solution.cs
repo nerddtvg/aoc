@@ -10,8 +10,8 @@ namespace AdventOfCode.Solutions.Year2019
     class Day08 : ASolution
     {
 
-        public int height {get; set;}
-        public int width { get;set;}
+        public int height { get; set; }
+        public int width { get; set; }
         public List<List<int>> layers { get; set; }
 
         public Day08() : base(08, 2019, "")
@@ -21,7 +21,8 @@ namespace AdventOfCode.Solutions.Year2019
             this.layers = Layers();
         }
 
-        public List<List<int>> Layers(string input = null) {
+        public List<List<int>> Layers(string? input = null)
+        {
             if (string.IsNullOrEmpty(input)) input = Input;
 
             int lineSize = (this.height * this.width);
@@ -42,19 +43,25 @@ namespace AdventOfCode.Solutions.Year2019
         {
             List<int> final = new List<int>();
 
-            for(int k = 0; k < (this.width * this.height); k++) {
+            for (int k = 0; k < (this.width * this.height); k++)
+            {
                 final.Add(layers.Select(a => a[k]).Where(a => a != 2).First());
             }
 
             // Print it
             string output = "\n";
-            for(int y = 0; y < this.height; y++) {
-                for(int x = 0; x < this.width; x++) {
+            for (int y = 0; y < this.height; y++)
+            {
+                for (int x = 0; x < this.width; x++)
+                {
                     int pixel = final[x + (y * this.width)];
 
-                    if (pixel == 1) {
+                    if (pixel == 1)
+                    {
                         output += "▓";
-                    } else {
+                    }
+                    else
+                    {
                         output += " ";
                     }
                 }

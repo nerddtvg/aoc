@@ -129,7 +129,7 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartTwo()
         {
-            return claims.Where(a => a.overlap == false).First()?.id.ToString();
+            return claims.Where(a => a.overlap == false).First()?.id.ToString() ?? string.Empty;
         }
     }
 }

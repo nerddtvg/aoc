@@ -110,7 +110,7 @@ namespace AdventOfCode.Solutions.Year2019
             // We need to rotate through and figure out what to do with our lives
             int vaporized = 0;
             int maxVaporized = 200;
-            AsteroidPoint temp = null;
+            AsteroidPoint? temp = default;
 
             do {
                 int i = 0;
@@ -129,6 +129,9 @@ namespace AdventOfCode.Solutions.Year2019
                     i++;
                 } while (i < angles.Count && vaporized < maxVaporized);
             } while (vaporized < maxVaporized);
+
+            if (temp == default)
+                return string.Empty;
 
             return $"Value: {((temp.x * 100) + temp.y).ToString("0000")}, x: {temp.x.ToString()}, y: {temp.y.ToString()}";
         }

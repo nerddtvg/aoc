@@ -330,7 +330,7 @@ namespace AdventOfCode.Solutions.Year2019 {
 
             for(int y=0; y<=Tiles.Max(em => em.y); y++) {
                 for(int x=0; x<=Tiles.Max(em => em.x); x++) {
-                    Tile t = Tiles.Where(em => em.x == x && em.y == y).FirstOrDefault();
+                    Tile? t = Tiles.Where(em => em.x == x && em.y == y).FirstOrDefault();
 
                     /*
                     0 is an empty tile. No game object appears in this tile.
@@ -340,7 +340,7 @@ namespace AdventOfCode.Solutions.Year2019 {
                     4 is a ball tile. The ball moves diagonally and bounces off objects.
                     */
 
-                    switch(t.tile_id) {
+                    switch(t?.tile_id ?? 5) {
                         case 0:
                             System.Console.Write(" ");
                             break;

@@ -13,7 +13,7 @@ namespace AdventOfCode.Solutions.Year2016
         int max_x = 49;
         int max_y = 5;
 
-        public Dictionary<(int x, int y), bool> grid;
+        public Dictionary<(int x, int y), bool> grid = new();
 
         public Day08() : base(08, 2016, "")
         {

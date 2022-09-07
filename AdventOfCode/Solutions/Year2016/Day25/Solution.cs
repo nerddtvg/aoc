@@ -213,8 +213,8 @@ namespace AdventOfCode.Solutions.Year2016
             // Registers
             int a = inVal;
             int b = 0;
-            int c = 0;
-            int d = 0;
+            // int c = 0;
+            // int d = 0;
             string ret = string.Empty;
             var foundRet = false;
 
@@ -330,7 +330,7 @@ namespace AdventOfCode.Solutions.Year2016
 
         protected override string SolvePartTwo()
         {
-            return null;
+            return string.Empty;
         }
     }
 }

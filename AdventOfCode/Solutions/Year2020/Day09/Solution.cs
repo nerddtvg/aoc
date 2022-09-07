@@ -39,7 +39,7 @@ namespace AdventOfCode.Solutions.Year2020
                 }
             }
 
-            return null;
+            return string.Empty;
         }
 
         protected override string SolvePartTwo()
@@ -66,7 +66,7 @@ namespace AdventOfCode.Solutions.Year2020
                 }
             }
 
-            return null;
+            return string.Empty;
         }
     }
 }

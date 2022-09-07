@@ -66,7 +66,7 @@ namespace AdventOfCode.Solutions.Year2018
                 k++;
             }
 
-            return null;
+            return string.Empty;
         }
     }
 }

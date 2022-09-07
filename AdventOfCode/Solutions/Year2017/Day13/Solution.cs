@@ -13,7 +13,7 @@ namespace AdventOfCode.Solutions.Year2017
     class Day13 : ASolution
     {
         private Dictionary<int, int> layers = new Dictionary<int, int>();
-        private int pos = 0;
+        // private int pos = 0;
 
         public Day13() : base(13, 2017, "Packet Scanners")
         {
@@ -23,7 +23,7 @@ namespace AdventOfCode.Solutions.Year2017
         private void Reset()
         {
             this.layers.Clear();
-            this.pos = 0;
+            // this.pos = 0;
 
             foreach(var line in Input.SplitByNewline())
             {

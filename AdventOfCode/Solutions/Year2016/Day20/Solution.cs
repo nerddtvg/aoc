@@ -90,7 +90,7 @@ namespace AdventOfCode.Solutions.Year2016
         {
             var c = ((ulong)uint.MaxValue + 1) - this.blocked.Sum(block => (block.end - block.start) + 1);
 
-            return c.ToString();
+            return c.ToString() ?? string.Empty;
         }
     }
 }

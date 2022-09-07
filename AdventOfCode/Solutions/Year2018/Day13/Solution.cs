@@ -110,7 +110,7 @@ namespace AdventOfCode.Solutions.Year2018
                         // We also need to determine what tile is underneath this position
                         // We can only find up and left neighbors (we haven't gotten further right or down)
                         // Since we can't land on an intersection or turn (rules), we can just check if we have a left
-                        if (neighbors[CartDirection.Left] != null && ((MineTrackTile) neighbors[CartDirection.Left]).type != TrackType.Vertical) {
+                        if (neighbors[CartDirection.Left] != null && ((MineTrackTile?) neighbors[CartDirection.Left])?.type != TrackType.Vertical) {
                             // This is a horizontal tile
                             this.trackTiles.Add(new MineTrackTile() {
                                 x = x,
@@ -138,10 +138,10 @@ namespace AdventOfCode.Solutions.Year2018
                             // Turn! Need to figure out what direction
 
                             // We can't search downwards because we haven't gotten there
-                            if (neighbors[CartDirection.Up] != null && (((MineTrackTile) neighbors[CartDirection.Up]).type == TrackType.Vertical || ((MineTrackTile) neighbors[CartDirection.Up]).type == TrackType.Intersection)) {
+                            if (neighbors[CartDirection.Up] != null && (((MineTrackTile?) neighbors[CartDirection.Up])?.type == TrackType.Vertical || ((MineTrackTile?) neighbors[CartDirection.Up])?.type == TrackType.Intersection)) {
                                 // One of the UL or UR tiles
                                 // We can't search right because we haven't gotten there
-                                if (neighbors[CartDirection.Left] != null && (((MineTrackTile) neighbors[CartDirection.Left]).type == TrackType.Horizontal || ((MineTrackTile) neighbors[CartDirection.Left]).type == TrackType.Intersection))
+                                if (neighbors[CartDirection.Left] != null && (((MineTrackTile?) neighbors[CartDirection.Left])?.type == TrackType.Horizontal || ((MineTrackTile?) neighbors[CartDirection.Left])?.type == TrackType.Intersection))
                                     this.trackTiles.Add(new MineTrackTile() {
                                         x = x,
                                         y = y,
@@ -156,7 +156,7 @@ namespace AdventOfCode.Solutions.Year2018
                             } else {
                                 // One of the DL or DR tiles
                                 // We can't search right because we haven't gotten there
-                                if (neighbors[CartDirection.Left] != null && (((MineTrackTile) neighbors[CartDirection.Left]).type == TrackType.Horizontal || ((MineTrackTile) neighbors[CartDirection.Left]).type == TrackType.Intersection))
+                                if (neighbors[CartDirection.Left] != null && (((MineTrackTile?) neighbors[CartDirection.Left])?.type == TrackType.Horizontal || ((MineTrackTile?) neighbors[CartDirection.Left])?.type == TrackType.Intersection))
                                     this.trackTiles.Add(new MineTrackTile() {
                                         x = x,
                                         y = y,
@@ -358,7 +358,7 @@ namespace AdventOfCode.Solutions.Year2018
                 if (draw) this.printTrack();
             }
 
-            if (this.collisions.Count == 0) return null;
+            if (this.collisions.Count == 0) return string.Empty;
 
             return $"{this.collisions.First().x},{this.collisions.First().y}";
         }
@@ -371,7 +371,7 @@ namespace AdventOfCode.Solutions.Year2018
             }
 
             // There can be ONLY ONE!
-            if (this.carts.Count != 1) return null;
+            if (this.carts.Count != 1) return string.Empty;
 
             return $"{this.carts.First().Value.x},{this.carts.First().Value.y}";
         }

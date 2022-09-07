@@ -7,21 +7,23 @@ using System.Linq;
 namespace AdventOfCode.Solutions.Year2018
 {
 
-    class PlanetTile {
-        public int x {get;set;}
-        public int y {get;set;}
-        public string id {get;set;}
-        public int area {get;set;}
-        public bool edge {get;set;}
+    class PlanetTile
+    {
+        public int x { get; set; }
+        public int y { get; set; }
+        public string id { get; set; } = string.Empty;
+        public int area { get; set; }
+        public bool edge { get; set; }
     }
 
-    class SpaceTile {
-        public int x {get;set;}
-        public int y {get;set;}
-        public string id {get;set;}
-        public bool planet {get;set;}
-        public List<(string id, int distance)> distances {get;set;}
-        public int totalDistance {get;set;}
+    class SpaceTile
+    {
+        public int x { get; set; }
+        public int y { get; set; }
+        public string id { get; set; } = string.Empty;
+        public bool planet { get; set; }
+        public List<(string id, int distance)> distances { get; set; } = new();
+        public int totalDistance { get; set; }
     }
 
     class Day06 : ASolution
@@ -34,10 +36,12 @@ namespace AdventOfCode.Solutions.Year2018
         {
             // Parse each
             char id = '(';
-            foreach(string line in Input.SplitByNewline()) {
+            foreach (string line in Input.SplitByNewline())
+            {
                 string[] xy = line.Split(",");
-                
-                planets.Add(new PlanetTile() {
+
+                planets.Add(new PlanetTile()
+                {
                     x = Int32.Parse(xy[0]),
                     y = Int32.Parse(xy[1].Trim()),
                     id = (id++).ToString(),
@@ -58,27 +62,35 @@ namespace AdventOfCode.Solutions.Year2018
 
             bool draw = false;
 
-            for(int y=minY; y<=maxY; y++) {
-                for(int x=minX; x<=maxX; x++) {
+            for (int y = minY; y <= maxY; y++)
+            {
+                for (int x = minX; x <= maxX; x++)
+                {
                     // Is this location a planet?
                     PlanetTile? planet = planets.FirstOrDefault(a => a.x == x && a.y == y);
-                    
+
                     // Loop through the planets to find the closest
                     // We do this for planets as well to account for part 2
                     var distances = planets.Select(a => (a.id, Distance(x, y, a))).OrderBy(a => a.Item2).ToList();
                     int totalDistance = distances.Sum(a => a.Item2);
 
-                    if (planet != null) {
+                    if (planet != null)
+                    {
                         // Set the info
                         tiles.Add(new SpaceTile() { x = x, y = y, id = planet.id, planet = true, distances = distances, totalDistance = totalDistance });
                         if (draw) Console.Write(planet.id);
-                    } else {
+                    }
+                    else
+                    {
                         // At least two planets have the same distance
                         // Save the distances calculated for later
-                        if (distances[0].Item2 == distances[1].Item2) {
+                        if (distances[0].Item2 == distances[1].Item2)
+                        {
                             tiles.Add(new SpaceTile() { x = x, y = y, id = ".", planet = false, distances = distances, totalDistance = totalDistance });
                             if (draw) Console.Write(".");
-                        } else {
+                        }
+                        else
+                        {
                             tiles.Add(new SpaceTile() { x = x, y = y, id = distances[0].id, planet = false, distances = distances, totalDistance = totalDistance });
                             if (draw) Console.Write(distances[0].id);
 

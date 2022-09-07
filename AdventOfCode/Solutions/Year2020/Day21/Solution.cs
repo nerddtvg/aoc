@@ -6,10 +6,11 @@ using System.Linq;
 
 namespace AdventOfCode.Solutions.Year2020
 {
-    class Food {
-        public int id {get;set;}
-        public List<string> ingredients {get;set;}
-        public List<string> allergens {get;set;}
+    class Food
+    {
+        public int id { get; set; }
+        public List<string> ingredients { get; set; } = new();
+        public List<string> allergens { get; set; } = new();
     }
 
     class Day21 : ASolution
@@ -20,9 +21,10 @@ namespace AdventOfCode.Solutions.Year2020
 
         public Day21() : base(21, 2020, "")
         {
-            int i=0;
+            int i = 0;
 
-            foreach(string line in Input.SplitByNewline(true)) {
+            foreach (string line in Input.SplitByNewline(true))
+            {
                 // Ingredients: parts[0]
                 // Allergens: parts[1]
                 var parts = line.Split("(", StringSplitOptions.TrimEntries);
@@ -45,7 +47,8 @@ namespace AdventOfCode.Solutions.Year2020
             // For each food with allergen A listed:
             // * Find all common ingredients
             // * Remove ingredients from that list that are not listed in other foods
-            foreach(var allergen in this.allergens) {
+            foreach (var allergen in this.allergens)
+            {
                 // Find all of the foods that have this
                 var tFoods = this.foods.Where(a => a.allergens.Contains(allergen)).ToList();
 
@@ -54,7 +57,8 @@ namespace AdventOfCode.Solutions.Year2020
                 var tIngredients = tFoods[0].ingredients;
 
                 // Find all that match
-                foreach(var tFood in tFoods) {
+                foreach (var tFood in tFoods)
+                {
                     tIngredients = tIngredients.Intersect(tFood.ingredients).ToList();
                 }
 
@@ -91,15 +95,17 @@ namespace AdventOfCode.Solutions.Year2020
             // Now we need to figure out what ingredient has what allergen
             // We will work to reduce the ingredientAllergens list to do this
 
-            while(true) {
+            while (true)
+            {
                 bool removed = false;
 
                 // Get a list of all ingredientAllergens that have only one ingredient (known match)
                 var ingredients = this.ingredientAllergens.Where(a => a.Value.Count == 1).Select(a => a.Value[0]);
 
                 // Remove any from the lists
-                foreach(var ing in ingredients)
-                    foreach(var kvp in this.ingredientAllergens) {
+                foreach (var ing in ingredients)
+                    foreach (var kvp in this.ingredientAllergens)
+                    {
                         // Only remove if we have more than one listed
                         if (kvp.Value.Count == 1) continue;
 
@@ -115,9 +121,9 @@ namespace AdventOfCode.Solutions.Year2020
             // Blank line for easier reading
             Console.WriteLine("");
 
-            foreach(var kvp in this.ingredientAllergens)
+            foreach (var kvp in this.ingredientAllergens)
                 Console.WriteLine($"Allergen: {kvp.Key}, Ingredients: {string.Join(", ", kvp.Value)}");
-            
+
             // Now we return a string of ingredients sorted by allergen alphabetically
             List<string> output = new List<string>();
             foreach (var key in this.ingredientAllergens.Keys.OrderBy(a => a))

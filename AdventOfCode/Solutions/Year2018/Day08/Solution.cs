@@ -6,30 +6,36 @@ using System.Linq;
 
 namespace AdventOfCode.Solutions.Year2018
 {
-    class LicenseTreeNode {
-        public List<LicenseTreeNode> childNodes {get;set;}
-        public List<int> metadata {get;set;}
+    class LicenseTreeNode
+    {
+        public List<LicenseTreeNode> childNodes { get; set; } = new();
+        public List<int> metadata { get; set; } = new();
 
-        public int metadataSum {
-            get {
+        public int metadataSum
+        {
+            get
+            {
                 return this.metadata.Sum() + childNodes.Sum(a => a.metadataSum);
             }
         }
 
-        public int nodeValue {
-            get {
+        public int nodeValue
+        {
+            get
+            {
                 // No child nodes, metadata is summarized
                 if (this.childNodes.Count == 0) return metadataSum;
 
                 // Child nodes becomes a nightmare
-                return this.metadata.Sum(a => {
+                return this.metadata.Sum(a =>
+                {
                     // if it is 0, no value
                     if (a == 0) return 0;
 
                     // If this node doesn't exist, no value
                     if (this.childNodes.Count < a) return 0;
 
-                    return this.childNodes[a-1].nodeValue;
+                    return this.childNodes[a - 1].nodeValue;
                 });
             }
         }
@@ -45,9 +51,10 @@ namespace AdventOfCode.Solutions.Year2018
             root = ParseInput(Input.ToIntArray(" ").ToList()).node;
         }
 
-        private (List<int> remaining, LicenseTreeNode node) ParseInput(List<int> parts) {
+        private (List<int> remaining, LicenseTreeNode node) ParseInput(List<int> parts)
+        {
             // Check we have valid info
-            if (parts == null || parts.Count == 0) return (new List<int>(), null);
+            if (parts == null || parts.Count == 0) return (new List<int>(), default!);
 
             // Our return object
             var node = new LicenseTreeNode();
@@ -72,15 +79,17 @@ namespace AdventOfCode.Solutions.Year2018
             parts.RemoveRange(0, 2);
 
             // Tracking our child work
-            (List<int> remaining, LicenseTreeNode node) childOut = (new List<int>(), null);
+            (List<int> remaining, LicenseTreeNode node) childOut = (new List<int>(), default!);
 
             // Start a list
             node.childNodes = new List<LicenseTreeNode>();
             node.metadata = new List<int>();
 
             // Do we have children?
-            if (childCount > 0) {
-                for(int c=0; c<childCount; c++) {
+            if (childCount > 0)
+            {
+                for (int c = 0; c < childCount; c++)
+                {
                     // Go through and parse each of the children and handle the remainder
                     childOut = ParseInput(parts);
 
@@ -91,9 +100,10 @@ namespace AdventOfCode.Solutions.Year2018
                 }
             }
 
-            if (metaCount > 0) {
+            if (metaCount > 0)
+            {
                 node.metadata = parts.GetRange(0, metaCount);
-            
+
                 // Remove these now
                 parts.RemoveRange(0, metaCount);
             }
