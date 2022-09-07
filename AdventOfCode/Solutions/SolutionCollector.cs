@@ -22,7 +22,7 @@ namespace AdventOfCode.Solutions
             }
             catch(InvalidOperationException)
             {
-                return null;
+                return default!;
             }
         }
 
@@ -46,9 +46,9 @@ namespace AdventOfCode.Solutions
             foreach(int day in days)
             {
                 var solution = Type.GetType($"AdventOfCode.Solutions.Year{year}.Day{day.ToString("D2")}");
-                if(solution != null)
+                if(solution != null && Activator.CreateInstance(solution) is ASolution solutionCast)
                 {
-                    yield return (ASolution)Activator.CreateInstance(solution);
+                    yield return solutionCast;
                 }
             }
         }
