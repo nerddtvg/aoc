@@ -180,8 +180,7 @@ namespace AdventOfCode.Solutions.Year2018
             {
                 for (int x = 0; x <= maxX; x++)
                 {
-                    var tile = this.tiles.ContainsKey((x, y)) ? this.tiles[(x, y)] : WaterTile.Sand;
-                    Console.Write(tileText[(int)tile]);
+                    Console.Write(tileText[(int)GetTile((x, y))]);
                 }
 
                 Console.WriteLine();
@@ -199,6 +198,7 @@ namespace AdventOfCode.Solutions.Year2018
             // My answers are off by just a few, refactoring
             // 50828 = Too low
             // 50835 = Tow low
+            // 50838 = Answer but C# isn't getting that
             // 50842 = Too high
 
             return this.tiles.Count(a => a.Value == WaterTile.Flowing || a.Value == WaterTile.Still).ToString();
@@ -206,7 +206,7 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartTwo()
         {
-            return string.Empty;
+            return this.tiles.Count(a => a.Value == WaterTile.Still).ToString();
         }
     }
 }
