@@ -176,9 +176,9 @@ namespace AdventOfCode.Solutions.Year2018
 
         private void PrintGrid()
         {
-            for (int y = minY; y <= maxY; y++)
+            for (int y = 0; y <= maxY; y++)
             {
-                for (int x = minX; x <= maxX; x++)
+                for (int x = 0; x <= maxX; x++)
                 {
                     var tile = this.tiles.ContainsKey((x, y)) ? this.tiles[(x, y)] : WaterTile.Sand;
                     Console.Write(tileText[(int)tile]);
@@ -194,7 +194,7 @@ namespace AdventOfCode.Solutions.Year2018
         {
             RunFlowing((500, 1));
 
-            // PrintGrid();
+            PrintGrid();
 
             // My answers are off by just a few, refactoring
             // 50828 = Too low
