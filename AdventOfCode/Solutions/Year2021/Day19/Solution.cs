@@ -7,7 +7,6 @@ using MathNet.Numerics.LinearAlgebra;
 
 using System.Linq;
 
-#nullable enable
 
 // This is based on https://github.com/zedrdave/advent_of_code/blob/master/2021/19/__main__.py
 // https://old.reddit.com/r/adventofcode/comments/rjpf7f/2021_day_19_solutions/hp8pkmb/
@@ -177,4 +176,3 @@ namespace AdventOfCode.Solutions.Year2021
     }
 }
 
-#nullable restore

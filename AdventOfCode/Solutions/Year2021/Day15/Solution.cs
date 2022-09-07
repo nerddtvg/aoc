@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 
 using System.Linq;
 
-#nullable enable
 
 namespace AdventOfCode.Solutions.Year2021
 {
@@ -152,4 +151,3 @@ namespace AdventOfCode.Solutions.Year2021
     }
 }
 
-#nullable restore

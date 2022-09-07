@@ -6,8 +6,6 @@ using System.Net.Http;
 // StopWatch
 using System.Diagnostics;
 
-#nullable enable
-
 namespace AdventOfCode.Solutions
 {
 
@@ -36,10 +34,10 @@ namespace AdventOfCode.Solutions
 
         public void Solve(int part = 0)
         {
-            if(string.IsNullOrEmpty(Input)) return;
+            if (string.IsNullOrEmpty(Input)) return;
 
             string output = $"--- {Year} Day {Day}: {Title} --- \n";
-            if(!string.IsNullOrEmpty(DebugInput))
+            if (!string.IsNullOrEmpty(DebugInput))
             {
                 output += $"!!! DebugInput used:\n{DebugInput}\n";
             }
@@ -111,7 +109,7 @@ namespace AdventOfCode.Solutions
             string INPUT_URL = $"https://adventofcode.com/{Year}/day/{Day}/input";
             string input = "";
 
-            if(File.Exists(INPUT_FILEPATH) && new FileInfo(INPUT_FILEPATH).Length > 0)
+            if (File.Exists(INPUT_FILEPATH) && new FileInfo(INPUT_FILEPATH).Length > 0)
             {
                 input = File.ReadAllText(INPUT_FILEPATH);
             }
@@ -122,18 +120,21 @@ namespace AdventOfCode.Solutions
                     TimeZoneInfo estZone;
 
                     // Avoiding hard-coding in the timezone offset from UTC
-                    try {
+                    try
+                    {
                         estZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-                    } catch(TimeZoneNotFoundException) {
+                    }
+                    catch (TimeZoneNotFoundException)
+                    {
                         estZone = TimeZoneInfo.FindSystemTimeZoneById("US/Eastern");
                     }
-                    
+
                     DateTimeOffset CURRENT_EST = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, estZone);
-                    if(CURRENT_EST < new DateTimeOffset(Year, 12, Day, 0, 0, 0, estZone.GetUtcOffset(DateTimeOffset.UtcNow))) throw new InvalidOperationException();
+                    if (CURRENT_EST < new DateTimeOffset(Year, 12, Day, 0, 0, 0, estZone.GetUtcOffset(DateTimeOffset.UtcNow))) throw new InvalidOperationException();
 
                     var cookieContainer = new CookieContainer();
                     using (var handler = new HttpClientHandler() { CookieContainer = cookieContainer })
-                    using(var client = new HttpClient(handler))
+                    using (var client = new HttpClient(handler))
                     {
                         // Get the base URI for this cookie
                         var uri = new Uri(INPUT_URL);
@@ -146,7 +147,7 @@ namespace AdventOfCode.Solutions
                         File.WriteAllText(INPUT_FILEPATH, input);
                     }
                 }
-                catch(WebException e)
+                catch (WebException e)
                 {
                     if (e.Response == null)
                     {
@@ -169,11 +170,11 @@ namespace AdventOfCode.Solutions
                         }
                     }
                 }
-                catch(InvalidOperationException)
+                catch (InvalidOperationException)
                 {
                     Console.WriteLine($"Day {Day}: Cannot fetch puzzle input before given date (Eastern Standard Time).");
                 }
-                catch(TimeZoneNotFoundException)
+                catch (TimeZoneNotFoundException)
                 {
                     Console.WriteLine($"Day {Day}: Unable to find the time zone (Eastern Time Zone or US/Eastern) in the system definitions.");
                 }
@@ -185,5 +186,3 @@ namespace AdventOfCode.Solutions
         protected abstract string? SolvePartTwo();
     }
 }
-
-#nullable restore

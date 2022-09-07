@@ -6,10 +6,8 @@ using System.Reflection;
 
 namespace AdventOfCode.Solutions
 {
-
     class SolutionCollector : IEnumerable<ASolution>
     {
-
         IEnumerable<ASolution> Solutions;
 
         public SolutionCollector(int year, int[] days) => Solutions = LoadSolutions(year, days).ToArray();

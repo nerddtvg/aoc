@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Diagnostics.CodeAnalysis;
 
-#nullable enable
 
 namespace AdventOfCode.Solutions.Year2021
 {
@@ -317,4 +316,3 @@ namespace AdventOfCode.Solutions.Year2021
     }
 }
 
-#nullable restore

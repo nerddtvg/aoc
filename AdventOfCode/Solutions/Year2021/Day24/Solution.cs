@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 
 using System.Linq;
 
-#nullable enable
 
 // /u/Ok_System_5724 had a really cool solution: https://old.reddit.com/r/adventofcode/comments/rnejv5/2021_day_24_solutions/hqgl5hj/
 // While I simplified the code into C#, the math was escaping me while trying to read it.
@@ -73,4 +72,3 @@ namespace AdventOfCode.Solutions.Year2021
     }
 }
 
-#nullable restore

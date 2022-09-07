@@ -15,15 +15,14 @@ using System.Security.Cryptography;
 
 namespace AdventOfCode.Solutions
 {
-
     public static class Utilities
     {
         // https://stackoverflow.com/a/3150821/419956 by @RonWarholic
         public static IEnumerable<T> Flatten<T>(this T[,] map)
         {
-            for(int row = 0; row < map.GetLength(0); row++)
+            for (int row = 0; row < map.GetLength(0); row++)
             {
-                for(int col = 0; col < map.GetLength(1); col++)
+                for (int col = 0; col < map.GetLength(1); col++)
                 {
                     yield return map[row, col];
                 }
@@ -101,7 +100,7 @@ namespace AdventOfCode.Solutions
         /// <param name="count">The number of times to repeat the given <paramref name="action"/></param>
         public static void Repeat(this Action action, int count)
         {
-            for(int i = 0; i < count; i++) action();
+            for (int i = 0; i < count; i++) action();
         }
 
         /// <summary>
@@ -111,10 +110,9 @@ namespace AdventOfCode.Solutions
         /// <param name="count">The number of times to repeat the given <paramref name="action"/></param>
         public static void Repeat(this Action<int> action, int count)
         {
-            for(int i = 0; i < count; i++) action(i);
+            for (int i = 0; i < count; i++) action(i);
         }
 
-        #nullable enable
         /// <summary>
         /// Hashing a string with MD5
         /// </summary>
@@ -150,6 +148,5 @@ namespace AdventOfCode.Solutions
         public static double SeriesSum(double a1, double a2, int count) =>
             // This is a summation of a series of n entries A: Sn = (n*(A1 + An))/2
             (count * (a1 + a2)) / 2;
-        #nullable restore
     }
 }

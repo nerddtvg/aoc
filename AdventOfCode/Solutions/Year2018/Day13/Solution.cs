@@ -6,7 +6,6 @@ using System.Linq;
 
 using System.Collections;
 
-#nullable enable
 
 namespace AdventOfCode.Solutions.Year2018
 {

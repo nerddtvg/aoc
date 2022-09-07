@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 
 using System.Linq;
-#nullable enable
 
 namespace AdventOfCode.Solutions.Year2020
 {

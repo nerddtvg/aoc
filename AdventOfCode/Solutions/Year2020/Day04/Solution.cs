@@ -6,7 +6,6 @@ using System.Linq;
 
 using System.Text.RegularExpressions;
 
-#nullable enable
 
 namespace AdventOfCode.Solutions.Year2020
 {

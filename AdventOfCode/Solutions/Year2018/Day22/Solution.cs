@@ -7,7 +7,6 @@ using System.Linq;
 
 using System.Diagnostics;
 
-#nullable enable
 
 namespace AdventOfCode.Solutions.Year2018
 {
@@ -303,4 +302,3 @@ namespace AdventOfCode.Solutions.Year2018
     }
 }
 
-#nullable restore

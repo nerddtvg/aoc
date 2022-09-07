@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 
 namespace AdventOfCode
 {
-
     class Config
     {
         string _c = string.Empty;
