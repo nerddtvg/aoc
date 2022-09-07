@@ -46,6 +46,8 @@ namespace AdventOfCode.Solutions.Year2021
 
         public struct State
         {
+            public State() { }
+
             // This defines where each amphipod is located
             // And the current cost
             public int cost = 0;
@@ -84,11 +86,13 @@ namespace AdventOfCode.Solutions.Year2021
 
         public struct Amphipod
         {
+            public Amphipod() { }
+
             // This defines a pod (location and move cost)
-            public char pod;
-            public int index;
-            public int x;
-            public int y;
+            public char pod = '0';
+            public int index = 0;
+            public int x = 0;
+            public int y = 0;
             public int moveCost = 0;
 
             // We're in a room if we're not in the hallway

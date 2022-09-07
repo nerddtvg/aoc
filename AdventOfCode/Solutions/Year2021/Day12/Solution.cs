@@ -16,6 +16,8 @@ namespace AdventOfCode.Solutions.Year2021
         {
             public string start = string.Empty;
             public string end = string.Empty;
+
+            public Path() { }
         }
 
         public Path[] paths;

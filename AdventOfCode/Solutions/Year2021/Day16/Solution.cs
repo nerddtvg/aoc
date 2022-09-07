@@ -37,6 +37,8 @@ namespace AdventOfCode.Solutions.Year2021
             public int lengthType = -1;
             public int length = -1;
             public List<Packet> children = new List<Packet>();
+
+            public Packet() { }
         }
 
         public Day16() : base(16, 2021, "Packet Decoder")
