@@ -238,7 +238,12 @@ namespace AdventOfCode.Solutions.Year2018
                     PrintGrid();
             }
             
-            PrintGrid();
+            // PrintGrid();
+
+            // My answers are off by just a few, refactoring
+            // 50828 = Too low
+            // 50835 = Tow low
+            // 50842 = Too high
 
             return this.tiles.Count(a => a.Value == WaterTile.Flowing || a.Value == WaterTile.Still).ToString();
         }
