@@ -89,129 +89,89 @@ namespace AdventOfCode.Solutions.Year2018
             maxX = this.tiles.Keys.Max(pos => pos.x);
         }
 
-        private bool runFlowing()
+        // Refactored like this: https://old.reddit.com/r/adventofcode/comments/a6wpup/2018_day_17_solutions/ebysx1y/
+
+        private void RunFlowing((int x, int y) pos)
         {
-            // This will run one generation of flowing water
-            // If we return true, we made changes
+            // Change this tile to flowing
+            this.tiles[pos] = WaterTile.Flowing;
 
-            // Foreach WaterTile.Flowing =>
-            // Flow down then left+right
-            var flowingKeys = this.tiles.Where(kvp => kvp.Value == WaterTile.Flowing).Select(kvp => kvp.Key).ToList();
-
-            var ret = false;
-
-            foreach(var flow in flowingKeys)
+            (int x, int y) = (pos.x, pos.y);
+            while (GetTile((x, y+1)) != WaterTile.Clay && GetTile((x, y+1)) != WaterTile.Still)
             {
-                // Check that we can flow down
-                var posY = (x: flow.x, y: flow.y + 1);
+                y++;
 
-                // Don't go past the max depth
-                if (posY.y > maxY)
-                {
-                    continue;
-                }
+                // Bail out if above the max
+                if (y > maxY)
+                    return;
 
-                // We can flow down
-                if (!this.tiles.ContainsKey(posY) || this.tiles[posY] == WaterTile.Sand)
-                {
-                    ret = true;
-                    this.tiles[posY] = WaterTile.Flowing;
-                    continue;
-                }
-
-                // We're already flowing down, skip
-                if (this.tiles[posY] == WaterTile.Flowing)
-                {
-                    continue;
-                }
-
-                // If the tile below us is still or clay, move left+right, we become still
-                if (this.tiles[posY] == WaterTile.Clay || this.tiles[posY] == WaterTile.Still)
-                {
-                    // Left and Right
-                    var posX1 = (x: flow.x - 1, y: flow.y);
-                    var posX2 = (x: flow.x + 1, y: flow.y);
-
-                    // Move left, if sand or non-existent, it's flowing
-                    while (GetTile(posX1) == WaterTile.Sand)
-                    {
-                        ret = true;
-                        this.tiles[posX1] = WaterTile.Flowing;
-
-                        // If the next tile below is Sand, stop moving
-                        var posX1Y = (posX1.x, posX1.y + 1);
-                        if (GetTile(posX1Y) == WaterTile.Sand)
-                            break;
-                            
-                        posX1 = (x: posX1.x - 1, y: posX1.y);
-                    }
-
-                    // Move right, if sand or non-existent, it's flowing
-                    while (GetTile(posX2) == WaterTile.Sand)
-                    {
-                        ret = true;
-                        this.tiles[posX2] = WaterTile.Flowing;
-
-                        // If the next tile below is Sand, stop moving
-                        var posX2Y = (posX2.x, posX1.y + 1);
-                        if (GetTile(posX2Y) == WaterTile.Sand)
-                            break;
-
-                        posX2 = (x: posX2.x + 1, y: posX2.y);
-                    }
-
-                    // If we have "flowed", continue
-                    if (ret)
-                        continue;
-
-                    // Lastly, we need to detect any "rows" of flowing water blocked by clay
-                    if (GetTile(posX1) == WaterTile.Clay || GetTile(posX2) == WaterTile.Clay)
-                    {
-                        // Determine if we have a line of flowing here
-                        // bounded by clay on both sides
-                        int clayX1 = flow.x;
-                        int clayX2 = flow.x;
-
-                        // Check left
-                        do
-                        {
-                            if (GetTile((clayX1, flow.y)) == WaterTile.Clay || GetTile((clayX1, flow.y)) != WaterTile.Flowing || clayX1 < minX)
-                                break;
-
-                            clayX1--;
-                        } while (true);
-
-                        do
-                        {
-                            if (GetTile((clayX2, flow.y)) == WaterTile.Clay || GetTile((clayX2, flow.y)) != WaterTile.Flowing || clayX2 > maxX)
-                                break;
-
-                            clayX2++;
-                        } while (true);
-
-                        // If either of these are sand, we don't do anything
-                        if (GetTile((clayX1, flow.y)) == WaterTile.Sand || GetTile((clayX2, flow.y)) == WaterTile.Sand)
-                        {
-                            continue;
-                        }
-
-                        // If this is out of bounds, skip
-                        if (clayX1 >= minX && clayX2 <= maxX)
-                        {
-                            for (int x = clayX1 + 1; x < clayX2; x++)
-                            {
-                                this.tiles[(x, flow.y)] = WaterTile.Still;
-                            }
-
-                            ret = true;
-                        }
-                    }
-
-                    continue;
-                }
+                // This is now flowing
+                this.tiles[(x, y)] = WaterTile.Flowing;
             }
 
-            return ret;
+            do
+            {
+                bool downLeft = false;
+                bool downRight = false;
+
+                int rangeMinX;
+                for (rangeMinX = x; rangeMinX >= 0; rangeMinX--)
+                {
+                    if (GetTile((rangeMinX, y + 1)) != WaterTile.Clay && GetTile((rangeMinX, y + 1)) != WaterTile.Still)
+                    {
+                        downLeft = true;
+                        break;
+                    }
+
+                    this.tiles[(rangeMinX, y)] = WaterTile.Flowing;
+
+                    if (GetTile((rangeMinX - 1, y)) == WaterTile.Clay || GetTile((rangeMinX - 1, y)) == WaterTile.Still)
+                    {
+                        break;
+                    }
+                }
+
+                int rangeMaxX;
+                for (rangeMaxX = x; rangeMaxX <= maxX; rangeMaxX++)
+                {
+                    if (GetTile((rangeMaxX, y + 1)) != WaterTile.Clay && GetTile((rangeMaxX, y + 1)) != WaterTile.Still)
+                    {
+                        downRight = true;
+                        break;
+                    }
+
+                    this.tiles[(rangeMaxX, y)] = WaterTile.Flowing;
+
+                    if (GetTile((rangeMaxX + 1, y)) == WaterTile.Clay || GetTile((rangeMaxX + 1, y)) == WaterTile.Still)
+                    {
+                        break;
+                    }
+                }
+
+                // Expand
+                if (downLeft)
+                {
+                    if (GetTile((rangeMinX, y)) != WaterTile.Flowing)
+                        RunFlowing((rangeMinX, y));
+                }
+                
+                if (downRight)
+                {
+                    if (GetTile((rangeMaxX, y)) != WaterTile.Flowing)
+                        RunFlowing((rangeMaxX, y));
+                }
+
+                if (downLeft || downRight)
+                    return;
+
+                // Found a boundary, fill it up
+                for (int ax = rangeMinX; ax <= rangeMaxX; ax++)
+                {
+                    this.tiles[(ax, y)] = WaterTile.Still;
+                }
+
+                y--;
+            } while (true);
         }
 
         private void PrintGrid()
@@ -232,12 +192,8 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string SolvePartOne()
         {
-            while (this.runFlowing())
-            {
-                if (!string.IsNullOrEmpty(DebugInput))
-                    PrintGrid();
-            }
-            
+            RunFlowing((500, 1));
+
             // PrintGrid();
 
             // My answers are off by just a few, refactoring
