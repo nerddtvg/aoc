@@ -19,7 +19,7 @@ namespace AdventOfCode.Solutions.Year2018
     {
         Dictionary<(int x, int y), WaterTile> tiles = new Dictionary<(int x, int y), WaterTile>();
 
-        public readonly string[] tileText = new string[] { ".", "#", "|", "~", "+" };
+        public readonly string[] tileText = new string[] { " ", "#", "|", " ", "+" };
 
         private int minY = 0;
         private int maxY = 0;
