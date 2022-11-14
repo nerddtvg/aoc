@@ -48,7 +48,7 @@ namespace AdventOfCode.Solutions.Year2016
             return neighbors;
         }
 
-        public class node
+        public class Node
         {
             public (int x, int y) pos = (0, 0);
             public string path = string.Empty;
@@ -59,7 +59,7 @@ namespace AdventOfCode.Solutions.Year2016
         public string AStar((int x, int y) start, (int x, int y) goal, string startPath)
         {
             // This is the list of nodes we need to search
-            var openSet = new HashSet<node>() { new node { path = startPath, gScore = Int32.MaxValue - 1 } };
+            var openSet = new HashSet<Node>() { new Node { path = startPath, gScore = Int32.MaxValue - 1 } };
 
             do
             {
@@ -90,7 +90,7 @@ namespace AdventOfCode.Solutions.Year2016
                 foreach(var n in neighbors)
                 {
                     // We track all paths (may backtrack), no if statement here
-                    var tempNode = new node() { pos = n.Value, path = n.Key, gScore = tgScore };
+                    var tempNode = new Node() { pos = n.Value, path = n.Key, gScore = tgScore };
 
                     // HashSet prevents duplicates
                     openSet.Add(tempNode);
