@@ -11,10 +11,11 @@ namespace AdventOfCode.Solutions.Year2021
 
     class Day18 : ASolution
     {
+        public const bool printDebug = false;
 
         public Day18() : base(18, 2021, "Snailfish")
         {
-            var example1 = @"
+            var ParsingSample = @"
 [1,2]
 [[1,2],3]
 [9,[8,7]]
@@ -23,14 +24,13 @@ namespace AdventOfCode.Solutions.Year2021
 [[[9,[3,8]],[[0,9],6]],[[[3,7],[4,9]],3]]
 [[[[1,3],[5,3]],[[1,3],[8,7]]],[[[4,9],[6,9]],[[8,2],[7,3]]]]";
 
-            DebugInput = example1;
-
             // Make sure our parsing is going correctly
-            foreach(var line in example1.SplitByNewline())
+            foreach(var line in ParsingSample.SplitByNewline())
             {
                 Debug.Assert(Debug.Equals(SnailfishNode.Parse(line).ToString(), line));
             }
 
+            // Explode
             var explodeExamples = new Dictionary<string, string>()
             {
                 { "[[[[[9,8],1],2],3],4]", "[[[[0,9],2],3],4]" },
@@ -46,6 +46,18 @@ namespace AdventOfCode.Solutions.Year2021
                 Debug.Assert(node.Explode(), $"Explode failed: {explode.Key}");
                 Debug.Assert(Debug.Equals(node.ToString(), explode.Value), $"Expected: {explode.Value}\nActual: {node.ToString()}");
             }
+
+            // Split
+            Debug.Assert(Debug.Equals("[5,5]", SnailfishNode.SplitNode(10).ToString()));
+            Debug.Assert(Debug.Equals("[5,6]", SnailfishNode.SplitNode(11).ToString()));
+            Debug.Assert(Debug.Equals("[6,6]", SnailfishNode.SplitNode(12).ToString()));
+
+            // Addition
+            var a = SnailfishNode.Parse("[[[[4,3],4],4],[7,[[8,4],9]]]");
+            var b = SnailfishNode.Parse("[1,1]");
+            var add = SnailfishNode.AddNodes(a, b);
+
+            Debug.Assert(Debug.Equals(add.ToString(), "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"), $"Expected: [[[[0,7],4],[[7,8],[6,0]]],[8,1]]\nActual: {add.ToString()}");
         }
 
         protected override string? SolvePartOne()
@@ -151,6 +163,8 @@ namespace AdventOfCode.Solutions.Year2021
                 bool changes = false;
                 do
                 {
+                    Debug.WriteLineIf(Day18.printDebug, ToString());
+
                     // Reset each loop
                     changes = false;
 
@@ -219,9 +233,9 @@ namespace AdventOfCode.Solutions.Year2021
                         if (leftNode != default)
                         {
                             if (leftNode.LeftRegular.HasValue)
-                                leftNode.LeftRegular += Left.RightRegular;
+                                leftNode.LeftRegular += Left.LeftRegular;
                             else if (leftNode.RightRegular.HasValue)
-                                leftNode.RightRegular += Left.RightRegular;
+                                leftNode.RightRegular += Left.LeftRegular;
                         }
 
                         Left = default;
@@ -361,6 +375,25 @@ namespace AdventOfCode.Solutions.Year2021
                 }
 
                 return false;
+            }
+
+            /// <summary>
+            /// Adding two nodes is simply combining and then reducing
+            /// </summary>
+            public static SnailfishNode AddNodes(SnailfishNode a, SnailfishNode b)
+            {
+                var newParent = new SnailfishNode()
+                {
+                    Left = a,
+                    Right = b
+                };
+
+                a.Parent = newParent;
+                b.Parent = newParent;
+
+                newParent.Reduce();
+
+                return newParent;
             }
 
             public static SnailfishNode SplitNode(int value)
