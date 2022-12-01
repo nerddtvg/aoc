@@ -298,6 +298,8 @@ namespace AdventOfCode.Solutions.Year2021
             // gScore is the known shortest path from start to Key, other values are assumed infinity
             var gScore = new Dictionary<State, int>() { { start, 0 } };
 
+            int minSteps = int.MaxValue;
+
             do
             {
                 // Get the next node to work on
@@ -307,11 +309,11 @@ namespace AdventOfCode.Solutions.Year2021
                 // if (currentNode.cost > 0 && currentNode.pods.All(pod => pod.inRoom))
                 //     System.Diagnostics.Debugger.Break();
 
-                // Removed the short-circuit code so that we could cound steps more
+                // Removed the short-circuit code so that we could count steps more
                 if (currentNode.isSolved)
                 {
                     // Found the shortest possible route
-                    return currentNode.cost;
+                    minSteps = Math.Min(minSteps, currentNode.cost);
                 }
 
                 // Get possible neighbors
@@ -335,7 +337,7 @@ namespace AdventOfCode.Solutions.Year2021
                 }
             } while (openSet.Count > 0);
 
-            return 0;
+            return minSteps;
         }
     }
 
