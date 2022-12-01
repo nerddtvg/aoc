@@ -19,15 +19,28 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartOne()
         {
-            return Input.SplitByBlankLine().Max(lines => lines.Select(line => Int32.Parse(line)).Sum()).ToString();
+            return Input.SplitByBlankLine()
+                // For each elf, split by new lines...
+                .Max(lines =>
+                    lines
+                    // Convert to integers
+                    .Select(line => Int32.Parse(line))
+                    // Sum the total
+                    .Sum()
+                )
+                .ToString();
         }
 
         protected override string? SolvePartTwo()
         {
             return Input.SplitByBlankLine()
+                // For each elf, split by new lines, sum the total
                 .Select(lines => lines.Select(line => Int32.Parse(line)).Sum())
+                // Order it from highest to lowest
                 .OrderByDescending(x => x)
+                // Get the top 3
                 .Take(3)
+                // Sum the totals
                 .Sum()
                 .ToString();
         }
