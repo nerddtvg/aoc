@@ -127,13 +127,13 @@ namespace AdventOfCode.Solutions.Year2021
                 .Where(pod => !state.pods.Any(pod2 => pod2.x == pod.podRoomX && pod2.pod != pod.pod))
                 .ToList();
 
-            if (moveIntoRoom.Count > 0 || swapIntoRoom.Count > 0)
-                System.Diagnostics.Debugger.Break();
+            // if (moveIntoRoom.Count > 0 || swapIntoRoom.Count > 0)
+            //     System.Diagnostics.Debugger.Break();
 
-            if (!state.pods.Any(pod => pod.x == 2) || !state.pods.Any(pod => pod.x == 4) || !state.pods.Any(pod => pod.x == 6) || !state.pods.Any(pod => pod.x == 8))
-                System.Diagnostics.Debugger.Break();
+            // if (!state.pods.Any(pod => pod.x == 2) || !state.pods.Any(pod => pod.x == 4) || !state.pods.Any(pod => pod.x == 6) || !state.pods.Any(pod => pod.x == 8))
+            //     System.Diagnostics.Debugger.Break();
 
-            // if (state.pods.Count(pod => pod.pod == 'D' && pod.y == 0) == 2)
+            // if (state.pods.Count(pod => pod.pod == 'D' && pod.y == 0 && pod.x > 8) == 2)
             //     System.Diagnostics.Debugger.Break();
 
             // Do each possible action
@@ -182,7 +182,7 @@ namespace AdventOfCode.Solutions.Year2021
                 var blockedRight = false;
 
                 // Make sure we are not blocked above
-                if (state.pods.Count(pod => pod.x == move.x && pod.y != move.y - 1) == 1)
+                if (state.pods.Any(pod => pod.x == move.x && pod.y < move.y))
                     continue;
 
                 // Start our step count as our y steps up out of the room
