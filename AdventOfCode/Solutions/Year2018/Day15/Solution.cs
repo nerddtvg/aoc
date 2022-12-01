@@ -12,7 +12,7 @@ namespace AdventOfCode.Solutions.Year2018
     class Day15 : ASolution
     {
 
-        public Day15() : base(15, 2018, "")
+        public Day15() : base(15, 2018, "Beverage Bandits")
         {
 
         }
