@@ -12,13 +12,15 @@ namespace AdventOfCode.Solutions.Year2021
 
     class Day23 : ASolution
     {
-        State initial;
+        State part1;
         State part1example;
+        State part2;
+        State part2example;
 
         public Day23() : base(23, 2021, "Amphipod")
         {
             // Our initial state
-            this.initial = new State()
+            this.part1 = new State()
             {
                 pods = new Amphipod[8]
                 {
@@ -47,16 +49,66 @@ namespace AdventOfCode.Solutions.Year2021
                     new Amphipod() { pod = 'D', index = 2, x = 8, y = 1, moveCost = 1000 }
                 }
             };
+
+            this.part2 = new State()
+            {
+                pods = new Amphipod[16]
+                {
+                    new Amphipod() { pod = 'A', index = 1, x = 4, y = 1, maxY = 4, moveCost = 1 },
+                    new Amphipod() { pod = 'A', index = 2, x = 8, y = 4, maxY = 4, moveCost = 1 },
+                    new Amphipod() { pod = 'B', index = 1, x = 2, y = 4, maxY = 4, moveCost = 10 },
+                    new Amphipod() { pod = 'B', index = 2, x = 6, y = 4, maxY = 4, moveCost = 10 },
+                    new Amphipod() { pod = 'C', index = 1, x = 4, y = 4, maxY = 4, moveCost = 100 },
+                    new Amphipod() { pod = 'C', index = 2, x = 6, y = 1, maxY = 4, moveCost = 100 },
+                    new Amphipod() { pod = 'D', index = 1, x = 2, y = 1, maxY = 4, moveCost = 1000 },
+                    new Amphipod() { pod = 'D', index = 2, x = 8, y = 1, maxY = 4, moveCost = 1000 },
+
+                    new Amphipod() { pod = 'A', index = 3, x = 6, y = 3, maxY = 4, moveCost = 1 },
+                    new Amphipod() { pod = 'A', index = 4, x = 8, y = 2, maxY = 4, moveCost = 1 },
+                    new Amphipod() { pod = 'B', index = 3, x = 4, y = 3, maxY = 4, moveCost = 10 },
+                    new Amphipod() { pod = 'B', index = 4, x = 6, y = 2, maxY = 4, moveCost = 10 },
+                    new Amphipod() { pod = 'C', index = 3, x = 4, y = 2, maxY = 4, moveCost = 100 },
+                    new Amphipod() { pod = 'C', index = 4, x = 8, y = 3, maxY = 4, moveCost = 100 },
+                    new Amphipod() { pod = 'D', index = 3, x = 2, y = 2, maxY = 4, moveCost = 1000 },
+                    new Amphipod() { pod = 'D', index = 4, x = 2, y = 3, maxY = 4, moveCost = 1000 }
+                }
+            };
+
+            this.part2example = new State()
+            {
+                pods = new Amphipod[16]
+                {
+                    new Amphipod() { pod = 'A', index = 1, x = 2, y = 4, maxY = 4, moveCost = 1 },
+                    new Amphipod() { pod = 'A', index = 2, x = 8, y = 4, maxY = 4, moveCost = 1 },
+                    new Amphipod() { pod = 'B', index = 1, x = 2, y = 1, maxY = 4, moveCost = 10 },
+                    new Amphipod() { pod = 'B', index = 2, x = 6, y = 1, maxY = 4, moveCost = 10 },
+                    new Amphipod() { pod = 'C', index = 1, x = 4, y = 1, maxY = 4, moveCost = 100 },
+                    new Amphipod() { pod = 'C', index = 2, x = 6, y = 4, maxY = 4, moveCost = 100 },
+                    new Amphipod() { pod = 'D', index = 1, x = 4, y = 4, maxY = 4, moveCost = 1000 },
+                    new Amphipod() { pod = 'D', index = 2, x = 8, y = 1, maxY = 4, moveCost = 1000 },
+
+                    new Amphipod() { pod = 'A', index = 3, x = 6, y = 3, maxY = 4, moveCost = 1 },
+                    new Amphipod() { pod = 'A', index = 4, x = 8, y = 2, maxY = 4, moveCost = 1 },
+                    new Amphipod() { pod = 'B', index = 3, x = 4, y = 3, maxY = 4, moveCost = 10 },
+                    new Amphipod() { pod = 'B', index = 4, x = 6, y = 2, maxY = 4, moveCost = 10 },
+                    new Amphipod() { pod = 'C', index = 3, x = 4, y = 2, maxY = 4, moveCost = 100 },
+                    new Amphipod() { pod = 'C', index = 4, x = 8, y = 3, maxY = 4, moveCost = 100 },
+                    new Amphipod() { pod = 'D', index = 3, x = 2, y = 2, maxY = 4, moveCost = 1000 },
+                    new Amphipod() { pod = 'D', index = 4, x = 2, y = 3, maxY = 4, moveCost = 1000 }
+                }
+            };
         }
 
         protected override string? SolvePartOne()
         {
-            return AStar(this.initial.Clone()).ToString();
+            // With updated Part 2 code, this answer is off by 2 with the example and input (+2 to the answer)
+            return AStar(this.part1).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            this.part2.pods = this.part2.pods.SortPods();
+            return AStar(this.part2).ToString();
         }
 
         public struct State
@@ -114,11 +166,11 @@ namespace AdventOfCode.Solutions.Year2021
                 // Anything in a hallway
                 .Where(pod => !pod.inRoom)
                 // Where the room is completely open
-                // or y=2 is the right type and y=1 is open
+                // or anything below is the same type
                 .Where(pod =>
-                    (!state.pods.Any(pod2 => pod2.x == pod.podRoomX))
+                    !state.pods.Any(pod2 => pod2.x == pod.podRoomX)
                     ||
-                    (state.pods.Any(pod2 => pod2.x == pod.podRoomX && pod2.y == 2 && pod2.pod == pod.pod) && !state.pods.Any(pod2 => pod2.x == pod.podRoomX && pod2.y == 1))
+                    state.pods.Where(pod2 => pod2.x == pod.podRoomX).All(pod2 => pod2.pod == pod.pod)
                 )
                 .ToList();
 
@@ -127,33 +179,21 @@ namespace AdventOfCode.Solutions.Year2021
             var moveIntoHall = state.pods
                 // Must be in a room
                 .Where(pod => pod.inRoom)
-                // Not solved and in the bottom
-                .Where(pod => !(pod.isSolved && pod.y == 2))
-                // In bottom with nothing above or in top with the wrong type below (if we don't match at least one of them is wrong)
+                // Nothing is above
+                .Where(pod => !state.pods.Any(pod2 => pod2.x == pod.x && pod2.y < pod.y))
+                // Either is in the wrong room OR has the wrong types below
                 .Where(pod =>
-                    (pod.y == 2 && !state.pods.Any(pod2 => pod2.x == pod.x && pod2.y == 1))
+                    !pod.isSolved
                     ||
-                    (pod.y == 1 && state.pods.Any(pod2 => pod2.x == pod.x && pod2.y == 2 && pod2.pod != pod.pod))
+                    state.pods.Any(pod2 => pod2.pod != pod.pod && pod2.x == pod.x && pod2.y > pod.y)
                 )
                 .ToList();
 
             // Those we can move directly into their appropriate room
-            // This applies if their destination room has 0 pods or 1 pod that is the same
+            // This applies if their destination room has 0 pods or pods that are the same
             var swapIntoRoom = moveIntoHall
-                .Where(pod => !state.pods.Any(pod2 => pod2.x == pod.podRoomX && pod2.pod != pod.pod))
+                .Where(pod => !pod.isSolved && !state.pods.Any(pod2 => pod2.x == pod.podRoomX && pod2.pod != pod.pod))
                 .ToList();
-
-            // if (state.cost >= 40 && state.pods.Any(pod => pod.pod == 'B' && pod.index == 2 && pod.y == 0))
-            //     System.Diagnostics.Debugger.Break();
-
-            // if (moveIntoRoom.Count > 0 || swapIntoRoom.Count > 0)
-            //     System.Diagnostics.Debugger.Break();
-
-            // if (!state.pods.Any(pod => pod.x == 2) || !state.pods.Any(pod => pod.x == 4) || !state.pods.Any(pod => pod.x == 6) || !state.pods.Any(pod => pod.x == 8))
-            //     System.Diagnostics.Debugger.Break();
-
-            // if (state.pods.Count(pod => pod.pod == 'D' && pod.y == 0 && pod.x > 8) == 2)
-            //     System.Diagnostics.Debugger.Break();
 
             // Do each possible action
             foreach (var move in moveIntoRoom.Union(swapIntoRoom))
@@ -168,7 +208,7 @@ namespace AdventOfCode.Solutions.Year2021
                     continue;
 
                 // Find the appropriate room and step count
-                var steps = state.pods.Any(pod => pod.x == move.podRoomX) ? 1 : 2;
+                var steps = move.maxY - state.pods.Count(pod => pod.x == move.podRoomX);
 
                 // Start our new pod
                 var newPod = move.Clone();
@@ -298,7 +338,7 @@ namespace AdventOfCode.Solutions.Year2021
             // gScore is the known shortest path from start to Key, other values are assumed infinity
             var gScore = new Dictionary<State, int>() { { start, 0 } };
 
-            int minSteps = int.MaxValue;
+            int minCost = int.MaxValue;
 
             do
             {
@@ -313,8 +353,12 @@ namespace AdventOfCode.Solutions.Year2021
                 if (currentNode.isSolved)
                 {
                     // Found the shortest possible route
-                    minSteps = Math.Min(minSteps, currentNode.cost);
+                    minCost = Math.Min(minCost, currentNode.cost);
                 }
+
+                // Shortcut: If we have already found a shorter path, ignore this
+                if (currentNode.cost >= minCost)
+                    continue;
 
                 // Get possible neighbors
                 // Then we get each of the possible moves because there could be multiple moves to each tile
@@ -323,11 +367,11 @@ namespace AdventOfCode.Solutions.Year2021
                 {
                     // Our priority is going to simply be the number of steps to the appropriate room for any unsolved
                     // This is a really, really rough cost just to prioritize the lowest first
-                    var tgScore = currentNode.cost + currentNode
+                    var tgScore = move.cost + currentNode
                         .pods
                         .Where(pod => !pod.isSolved).Sum(pod => pod.moveCost * (pod.y + Math.Abs(pod.x - pod.podRoomX)));
 
-                    if (!gScore.ContainsKey(move) || move.cost < gScore[move])
+                    if (move.cost < minCost && (!gScore.ContainsKey(move) || move.cost < gScore[move]))
                     {
                         gScore[move] = move.cost;
 
@@ -337,7 +381,7 @@ namespace AdventOfCode.Solutions.Year2021
                 }
             } while (openSet.Count > 0);
 
-            return minSteps;
+            return minCost;
         }
     }
 
@@ -351,6 +395,7 @@ namespace AdventOfCode.Solutions.Year2021
         public int x = 0;
         public int y = 0;
         public int moveCost = 0;
+        public int maxY = 2;
 
         // We're in a room if we're not in the hallway
         public bool inRoom => y > 0;
