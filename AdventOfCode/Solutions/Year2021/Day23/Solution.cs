@@ -13,6 +13,7 @@ namespace AdventOfCode.Solutions.Year2021
     class Day23 : ASolution
     {
         State initial;
+        State part1example;
 
         public Day23() : base(23, 2021, "Amphipod")
         {
@@ -28,6 +29,21 @@ namespace AdventOfCode.Solutions.Year2021
                     new Amphipod() { pod = 'C', index = 1, x = 4, y = 2, moveCost = 100 },
                     new Amphipod() { pod = 'C', index = 2, x = 6, y = 1, moveCost = 100 },
                     new Amphipod() { pod = 'D', index = 1, x = 2, y = 1, moveCost = 1000 },
+                    new Amphipod() { pod = 'D', index = 2, x = 8, y = 1, moveCost = 1000 }
+                }
+            };
+
+            this.part1example = new State()
+            {
+                pods = new Amphipod[8]
+                {
+                    new Amphipod() { pod = 'A', index = 1, x = 2, y = 2, moveCost = 1 },
+                    new Amphipod() { pod = 'A', index = 2, x = 8, y = 2, moveCost = 1 },
+                    new Amphipod() { pod = 'B', index = 1, x = 2, y = 1, moveCost = 10 },
+                    new Amphipod() { pod = 'B', index = 2, x = 6, y = 1, moveCost = 10 },
+                    new Amphipod() { pod = 'C', index = 1, x = 4, y = 1, moveCost = 100 },
+                    new Amphipod() { pod = 'C', index = 2, x = 6, y = 2, moveCost = 100 },
+                    new Amphipod() { pod = 'D', index = 1, x = 4, y = 2, moveCost = 1000 },
                     new Amphipod() { pod = 'D', index = 2, x = 8, y = 1, moveCost = 1000 }
                 }
             };
@@ -127,6 +143,9 @@ namespace AdventOfCode.Solutions.Year2021
                 .Where(pod => !state.pods.Any(pod2 => pod2.x == pod.podRoomX && pod2.pod != pod.pod))
                 .ToList();
 
+            // if (state.cost >= 40 && state.pods.Any(pod => pod.pod == 'B' && pod.index == 2 && pod.y == 0))
+            //     System.Diagnostics.Debugger.Break();
+
             // if (moveIntoRoom.Count > 0 || swapIntoRoom.Count > 0)
             //     System.Diagnostics.Debugger.Break();
 
@@ -141,7 +160,7 @@ namespace AdventOfCode.Solutions.Year2021
             {
                 // Make sure we're not blocked (validation this is a good move)
                 var diffX = Math.Abs(move.podRoomX - move.x);
-                if (Enumerable.Range(Math.Min(move.x, move.podRoomX), diffX + 1).Any(i => state.pods.Count(pod => !(pod.pod == move.pod && pod.index == move.index) && pod.x == move.x + i) > 0))
+                if (state.pods.Any(pod => pod.y == 0 && pod.x > Math.Min(move.x, move.podRoomX) && pod.x < Math.Max(move.x, move.podRoomX)))
                     continue;
 
                 // If someone is already in this room and not the correct pod, skip it
@@ -186,7 +205,7 @@ namespace AdventOfCode.Solutions.Year2021
                     continue;
 
                 // Start our step count as our y steps up out of the room
-                int steps = move.y;
+                int stepsY = move.y;
 
                 // We have a start x (pod.x) and can go left (>=0) or right (<=10)
                 // So let's start from x and move in each direction outwards
@@ -216,7 +235,7 @@ namespace AdventOfCode.Solutions.Year2021
                                     // Our new state
                                     var newState = state.Clone();
                                     newState.pods = newState.pods.ReplacePod(newPod);
-                                    newState.cost += (steps + diffX) * move.moveCost;
+                                    newState.cost += (stepsY + diffX) * move.moveCost;
 
                                     // Return this state and move on
                                     yield return newState;
@@ -250,7 +269,7 @@ namespace AdventOfCode.Solutions.Year2021
                                     // Our new state
                                     var newState = state.Clone();
                                     newState.pods = newState.pods.ReplacePod(newPod);
-                                    newState.cost += (steps + diffX) * move.moveCost;
+                                    newState.cost += (stepsY + diffX) * move.moveCost;
 
                                     // Return this state and move on
                                     yield return newState;
@@ -285,8 +304,8 @@ namespace AdventOfCode.Solutions.Year2021
                 var currentNode = openSet.Dequeue();
 
                 // Debug: If all are in a room, break for checks
-                if (currentNode.cost > 0 && currentNode.pods.All(pod => pod.inRoom))
-                    System.Diagnostics.Debugger.Break();
+                // if (currentNode.cost > 0 && currentNode.pods.All(pod => pod.inRoom))
+                //     System.Diagnostics.Debugger.Break();
 
                 // Removed the short-circuit code so that we could cound steps more
                 if (currentNode.isSolved)
