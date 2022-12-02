@@ -142,17 +142,15 @@ namespace AdventOfCode.Solutions.Year2021
 
                 Debug.WriteLineIf(printDebug, $"  {tLine.ToString()}");
                 Debug.WriteLineIf(printDebug, $"+ {newLine.ToString()}");
-                var b = SnailfishNode.AddNodes((SnailfishNode)tLine.Clone(), newLine);
-                Debug.WriteLineIf(printDebug, $"= {b.ToString()}");
+                tLine = SnailfishNode.AddNodes(tLine, newLine);
+                Debug.WriteLineIf(printDebug, $"= {tLine.ToString()}");
                 Debug.WriteLineIf(printDebug, "");
-
-                tLine = b;
             }
 
             return tLine;
         }
 
-        class SnailfishNode : ICloneable
+        class SnailfishNode
         {
             public SnailfishNode? Left { get; set; }
             public SnailfishNode? Right { get; set; }
@@ -519,27 +517,6 @@ namespace AdventOfCode.Solutions.Year2021
             {
                 // For assertions and debug
                 return $"[{LeftRegular?.ToString() ?? Left?.ToString() ?? "XXX"},{RightRegular?.ToString() ?? Right?.ToString() ?? "XXX"}]";
-            }
-
-            public object Clone() => CloneInternal();
-
-            private SnailfishNode CloneInternal()
-            {
-                var newNode = new SnailfishNode()
-                {
-                    LeftRegular = this.LeftRegular,
-                    RightRegular = this.RightRegular,
-                    Left = this.Left?.CloneInternal(),
-                    Right = this.Right?.CloneInternal()
-                };
-                
-                if (newNode.Left != default)
-                    newNode.Left.Parent = newNode;
-
-                if (newNode.Right != default)
-                    newNode.Right.Parent = newNode;
-
-                return newNode;
             }
         }
     }
