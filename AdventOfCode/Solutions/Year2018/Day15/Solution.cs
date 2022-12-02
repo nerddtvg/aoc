@@ -16,7 +16,7 @@ namespace AdventOfCode.Solutions.Year2018
 
         public int minDistance { get; set; } = int.MaxValue;
 
-        public const bool printDebug = true;
+        public const bool printDebug = false;
 
         public Day15() : base(15, 2018, "Beverage Bandits")
         {
@@ -234,8 +234,22 @@ namespace AdventOfCode.Solutions.Year2018
                         {
                             // Shortcut...
                             // Don't skip if minDistance == searchScore so we can compare positions later
-                            if (minDistance < searchScore || (scores.ContainsKey(newPos) && scores[newPos].score <= searchScore))
+                            if (minDistance < searchScore)
                                 continue;
+                            
+                            if (scores.ContainsKey(newPos) && scores[newPos].score <= searchScore)
+                            {
+                                // Shortcut only if score < searchScore
+                                // Or if score == searchScore AND the direction chosen from the start is "bad"
+                                if (scores[newPos].score < searchScore)
+                                    continue;
+
+                                if (scores[newPos].startingMove.y < startingMove.y)
+                                    continue;
+
+                                if (scores[newPos].startingMove.x < startingMove.x)
+                                    continue;
+                            }
 
                             // Update the move for state tracking
                             if (searchScore == 1)
@@ -250,24 +264,30 @@ namespace AdventOfCode.Solutions.Year2018
                             if (endpoint == newPos)
                             {
                                 // We found a possible solution
-                                if (positionScores.ContainsKey(newPos))
+                                if (positionScores.ContainsKey(endpoint))
                                 {
-                                    if (positionScores[newPos].score < searchScore)
+                                    if (positionScores[endpoint].score < searchScore)
                                         continue;
 
                                     // Determine if this is the "better" score by reading order
-                                    if (positionScores[newPos].score == searchScore)
+                                    if (positionScores[endpoint].score == searchScore)
                                     {
-                                        if (positionScores[newPos].startingMove.y < startingMove.y)
+                                        if (positionScores[endpoint].startingMove.y < startingMove.y)
                                             continue;
 
-                                        if (positionScores[newPos].startingMove.x < startingMove.x)
+                                        if (positionScores[endpoint].startingMove.x < startingMove.x)
                                             continue;
                                     }
                                 }
 
                                 // A good solution!
-                                positionScores[newPos] = (searchScore, startingMove);
+                                positionScores[endpoint] = (searchScore, startingMove);
+                                continue;
+                            }
+
+                            // Make sure we're not requeueing the same thing
+                            if (queue.UnorderedItems.Any(kvp => kvp.Element == newPos && kvp.Priority <= searchScore))
+                            {
                                 continue;
                             }
 
