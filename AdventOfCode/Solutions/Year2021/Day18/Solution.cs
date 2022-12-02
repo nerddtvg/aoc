@@ -115,6 +115,54 @@ namespace AdventOfCode.Solutions.Year2021
                     $"Expected: {addition.Value}\nActual: {add.ToString()}"
                 );
             }
+
+            // Magnitude
+            var magnitudeExamples = new Dictionary<string, int>()
+            {
+                { "[9,1]", 29 },
+                { "[1,9]", 21 },
+                { "[[9,1],[1,9]]", 129 },
+                { "[[1,2],[[3,4],5]]", 143 },
+                { "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", 1384 },
+                { "[[[[1,1],[2,2]],[3,3]],[4,4]]", 445 },
+                { "[[[[3,0],[5,3]],[4,4]],[5,5]]", 791 },
+                { "[[[[5,0],[7,4]],[5,5]],[6,6]]", 1137 },
+                { "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", 3488 },
+                {
+                    @"[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
+                    [[[5,[2,8]],4],[5,[[9,9],0]]]
+                    [6,[[[6,2],[5,6]],[[7,6],[4,7]]]]
+                    [[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]
+                    [[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]
+                    [[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]
+                    [[[[5,4],[7,7]],8],[[8,3],8]]
+                    [[9,3],[[9,9],[6,[4,9]]]]
+                    [[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]
+                    [[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]",
+                    4140
+                },
+                {
+                    "[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]", 4140
+                }
+            };
+
+            foreach(var magnitude in magnitudeExamples)
+            {
+                SnailfishNode node;
+                if (magnitude.Key.Contains('\n'))
+                {
+                    // Do the math first
+                    node = AddLines(magnitude.Key.SplitByNewline(true));
+                }
+                else
+                {
+                    node = SnailfishNode.Parse(magnitude.Key);
+                }
+
+                var actualMagnitude = node.Magnitude;
+
+                Debug.Assert(Debug.Equals(actualMagnitude, magnitude.Value), $"Expected: {magnitude.Value}\nActual: {actualMagnitude}", $"Input: {magnitude.Key}");
+            }
         }
 
         protected override string? SolvePartOne()
@@ -517,6 +565,16 @@ namespace AdventOfCode.Solutions.Year2021
             {
                 // For assertions and debug
                 return $"[{LeftRegular?.ToString() ?? Left?.ToString() ?? "XXX"},{RightRegular?.ToString() ?? Right?.ToString() ?? "XXX"}]";
+            }
+
+            /// <summary>
+            /// The magnitude of a pair is 3 times the magnitude of its left element
+            /// plus 2 times the magnitude of its right element. The magnitude of
+            /// a regular number is just that number.
+            /// </summary>
+            public int Magnitude
+            {
+                get => (3 * (LeftRegular ?? Left?.Magnitude ?? throw new Exception())) + (2 * (RightRegular ?? Right?.Magnitude ?? throw new Exception()));
             }
         }
     }
