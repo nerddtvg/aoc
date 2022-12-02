@@ -16,6 +16,8 @@ namespace AdventOfCode.Solutions.Year2018
 
         public int minDistance { get; set; } = int.MaxValue;
 
+        public const bool printDebug = true;
+
         public Day15() : base(15, 2018, "Beverage Bandits")
         {
             var examples = new Dictionary<string, int>()
@@ -29,6 +31,48 @@ namespace AdventOfCode.Solutions.Year2018
                     #.....#
                     #######",
                     27730
+                },
+                {
+                    @"#######
+                    #G..#E#
+                    #E#E.E#
+                    #G.##.#
+                    #...#E#
+                    #...E.#
+                    #######",
+                    36334
+                },
+                {
+                    @"#######
+                    #E.G#.#
+                    #.#G..#
+                    #G.#.G#
+                    #G..#.#
+                    #...E.#
+                    #######",
+                    27755
+                },
+                {
+                    @"#######
+                    #.E...#
+                    #.#..G#
+                    #.###.#
+                    #E#G#G#
+                    #...#G#
+                    #######",
+                    28944
+                },
+                {
+                    @"#########
+                    #G......#
+                    #.E.#...#
+                    #..##..G#
+                    #...##..#
+                    #...#...#
+                    #.G...G.#
+                    #.....G.#
+                    #########",
+                    18740
                 }
             };
 
@@ -42,9 +86,9 @@ namespace AdventOfCode.Solutions.Year2018
                 Debug.Assert(Debug.Equals(outcome, example.Value), $"Expected: {example.Value}\nActual: {outcome}");
             }
 
-            // // Reset at the end
-            // DebugInput = string.Empty;
-            // ResetGrid();
+            // Reset at the end
+            DebugInput = string.Empty;
+            ResetGrid();
         }
 
         private void ResetGrid()
@@ -90,9 +134,8 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string? SolvePartOne()
         {
-            // var outcome = PlayGame();
-            // return outcome.ToString();
-            return null;
+            var outcome = PlayGame();
+            return outcome.ToString();
         }
 
         protected override string? SolvePartTwo()
@@ -114,8 +157,6 @@ namespace AdventOfCode.Solutions.Year2018
                 // Determine the units to play and the order
                 var playableUnits = GetUnits();
 
-                if (i >= 44) System.Diagnostics.Debugger.Break();
-
                 for (var k = 0; k < playableUnits.Count; k++)
                 {
                     // If we only complete a partial round, exit early for the math to work
@@ -132,6 +173,9 @@ namespace AdventOfCode.Solutions.Year2018
 
                 PrintGrid();
             }
+
+            if (printDebug)
+                Console.WriteLine($"Complete Rounds: {i}");
 
             // Return the Outcome = round count * HP remaining
             return i * units.Where(unit => unit.isAlive).Sum(unit => unit.HP);
@@ -287,6 +331,8 @@ namespace AdventOfCode.Solutions.Year2018
 
         private void PrintGrid()
         {
+            if (!printDebug) return;
+
             var maxY = grid.Max(kvp => kvp.Key.y);
             var maxX = grid.Max(kvp => kvp.Key.x);
 
@@ -334,7 +380,7 @@ namespace AdventOfCode.Solutions.Year2018
         private IEnumerable<(int x, int y)> GetNeighbors((int x, int y) pos)
         {
             foreach (var tPos in new (int x, int y)[] { (pos.x - 1, pos.y), (pos.x + 1, pos.y), (pos.x, pos.y - 1), (pos.x, pos.y + 1) })
-                if (grid.ContainsKey(tPos) && grid[tPos] == TileType.Open && !units.Any(unitSearch => unitSearch.x == tPos.x && unitSearch.y == tPos.y))
+                if (grid.ContainsKey(tPos) && grid[tPos] == TileType.Open && !units.Any(unitSearch => unitSearch.isAlive && unitSearch.x == tPos.x && unitSearch.y == tPos.y))
                     yield return tPos;
         }
 
