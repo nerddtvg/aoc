@@ -167,7 +167,7 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartOne()
         {
-            return null;
+            return AddLines(Input.SplitByNewline()).Magnitude.ToString();
         }
 
         protected override string? SolvePartTwo()
