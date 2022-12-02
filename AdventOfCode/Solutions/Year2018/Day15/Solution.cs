@@ -42,9 +42,9 @@ namespace AdventOfCode.Solutions.Year2018
                 Debug.Assert(Debug.Equals(outcome, example.Value), $"Expected: {example.Value}\nActual: {outcome}");
             }
 
-            // Reset at the end
-            DebugInput = string.Empty;
-            ResetGrid();
+            // // Reset at the end
+            // DebugInput = string.Empty;
+            // ResetGrid();
         }
 
         private void ResetGrid()
@@ -105,7 +105,7 @@ namespace AdventOfCode.Solutions.Year2018
             var playableUnits = GetUnits();
 
             // Protection against endless loops
-            int i = 0;
+            int i = 1;
             int maxLoops = 1000;
 
             PrintGrid();
@@ -118,11 +118,14 @@ namespace AdventOfCode.Solutions.Year2018
                     PlayUnit(playableUnits[k]);
 
                     // If we only complete a partial round, exit early for the math to work
-                    if (GameOver && k < playableUnits.Count-1)
+                    if (GameOver && k < playableUnits.Count - 1)
+                    {
+                        i--;
                         break;
-
-                    i++;
+                    }
                 }
+
+                i++;
 
                 PrintGrid();
             }
@@ -157,7 +160,7 @@ namespace AdventOfCode.Solutions.Year2018
                     .OrderBy(pos => pos.ManhattanDistance((unit.x, unit.y)))
                     .Distinct();
 
-                var positionScores = new Dictionary<(int x, int y), (int score, (int x, int y) move)>();
+                var positionScores = new Dictionary<(int x, int y), (int score, (int x, int y) startingMove)>();
 
                 // Calculate distances
                 foreach (var endpoint in endpoints)
@@ -165,7 +168,7 @@ namespace AdventOfCode.Solutions.Year2018
                     // Reset our counter
                     minDistance = int.MaxValue;
 
-                    var scores = new Dictionary<(int x, int y), (int score, (int x, int y) move)>()
+                    var scores = new Dictionary<(int x, int y), (int score, (int x, int y) startingMove)>()
                     {
                         { (unit.x, unit.y), (0, (unit.x, unit.y)) }
                     };
@@ -177,38 +180,52 @@ namespace AdventOfCode.Solutions.Year2018
                     {
                         var searchPos = queue.Dequeue();
                         var searchScore = scores[searchPos].score + 1;
-                        var searchMove = scores[searchPos].move;
+                        var startingMove = scores[searchPos].startingMove;
 
                         // Get all possible moves in this spot
-                        foreach(var move in GetNeighbors(searchPos))
+                        foreach(var newPos in GetNeighbors(searchPos))
                         {
                             // Shortcut...
-                            if (minDistance <= searchScore || (scores.ContainsKey(move) && scores[move].score <= searchScore))
+                            // Don't skip if minDistance == searchScore so we can compare positions later
+                            if (minDistance < searchScore || (scores.ContainsKey(newPos) && scores[newPos].score <= searchScore))
                                 continue;
 
                             // Update the move for state tracking
                             if (searchScore == 1)
                             {
-                                searchMove = move;
+                                startingMove = newPos;
                             }
 
                             // Save our spot
-                            scores[move] = (searchScore, searchMove);
+                            scores[newPos] = (searchScore, startingMove);
 
                             // Second shortcut
-                            if (endpoint == searchPos)
+                            if (endpoint == newPos)
                             {
                                 // We found a possible solution
-                                if (positionScores.ContainsKey(searchPos) && positionScores[searchPos].score < searchScore)
-                                    continue;
+                                if (positionScores.ContainsKey(newPos))
+                                {
+                                    if (positionScores[newPos].score < searchScore)
+                                        continue;
+
+                                    // Determine if this is the "better" score by reading order
+                                    if (positionScores[newPos].score == searchScore)
+                                    {
+                                        if (positionScores[newPos].startingMove.y < startingMove.y)
+                                            continue;
+
+                                        if (positionScores[newPos].startingMove.x < startingMove.x)
+                                            continue;
+                                    }
+                                }
 
                                 // A good solution!
-                                positionScores[searchPos] = (searchScore, searchMove);
+                                positionScores[newPos] = (searchScore, startingMove);
                                 continue;
                             }
 
                             // Didn't find a solution, so let's add it to the queue
-                            queue.Enqueue(move, searchScore);
+                            queue.Enqueue(newPos, searchScore);
                         }
 
                         if (positionScores.Count > 0)
@@ -222,17 +239,17 @@ namespace AdventOfCode.Solutions.Year2018
                 if (positionScores.Count > 0)
                 {
                     var lowestScore = positionScores.Min(score => score.Value.score);
-                    var move = positionScores.First(score => score.Value.score == lowestScore).Value.move;
+                    var move = positionScores.First(score => score.Value.score == lowestScore).Value.startingMove;
 
                     if (positionScores.Count(score => score.Value.score == lowestScore) > 1)
                     {
-                        // Find the first in reading order
+                        // Find the first in reading order of the endpoints
                         move = positionScores.Where(score => score.Value.score == lowestScore)
-                            .OrderBy(score => score.Value.move.x)
-                            .ThenBy(score => score.Value.move.y)
+                            .OrderBy(score => score.Key.y)
+                            .ThenBy(score => score.Key.x)
                             .First()
                             .Value
-                            .move;
+                            .startingMove;
                     }
 
                     // Make the move
@@ -294,6 +311,16 @@ namespace AdventOfCode.Solutions.Year2018
                         }
                     }
                 }
+
+                // Print HPs
+                var str = "   " + string.Join(", ",
+                    units
+                    .Where(unit => unit.isAlive && unit.y == y)
+                    .OrderBy(unit => unit.x)
+                    .Select(unit => string.Format("{0}({1,3:D})", (unit.Type == UnitType.Elf ? 'E' : 'G'), unit.HP))
+                );
+                Console.Write(str);
+
                 Console.WriteLine();
             }
         }
