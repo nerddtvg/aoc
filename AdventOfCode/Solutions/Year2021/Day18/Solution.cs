@@ -11,53 +11,110 @@ namespace AdventOfCode.Solutions.Year2021
 
     class Day18 : ASolution
     {
-        public const bool printDebug = false;
+        public const bool printDebug = true;
 
         public Day18() : base(18, 2021, "Snailfish")
         {
-            var ParsingSample = @"
-[1,2]
-[[1,2],3]
-[9,[8,7]]
-[[1,9],[8,5]]
-[[[[1,2],[3,4]],[[5,6],[7,8]]],9]
-[[[9,[3,8]],[[0,9],6]],[[[3,7],[4,9]],3]]
-[[[[1,3],[5,3]],[[1,3],[8,7]]],[[[4,9],[6,9]],[[8,2],[7,3]]]]";
+//             var ParsingSample = @"
+// [1,2]
+// [[1,2],3]
+// [9,[8,7]]
+// [[1,9],[8,5]]
+// [[[[1,2],[3,4]],[[5,6],[7,8]]],9]
+// [[[9,[3,8]],[[0,9],6]],[[[3,7],[4,9]],3]]
+// [[[[1,3],[5,3]],[[1,3],[8,7]]],[[[4,9],[6,9]],[[8,2],[7,3]]]]";
 
-            // Make sure our parsing is going correctly
-            foreach(var line in ParsingSample.SplitByNewline())
-            {
-                Debug.Assert(Debug.Equals(SnailfishNode.Parse(line).ToString(), line));
-            }
+            // // Make sure our parsing is going correctly
+            // foreach(var line in ParsingSample.SplitByNewline())
+            // {
+            //     Debug.Assert(Debug.Equals(SnailfishNode.Parse(line).ToString(), line));
+            // }
 
             // Explode
-            var explodeExamples = new Dictionary<string, string>()
-            {
-                { "[[[[[9,8],1],2],3],4]", "[[[[0,9],2],3],4]" },
-                { "[7,[6,[5,[4,[3,2]]]]]", "[7,[6,[5,[7,0]]]]" },
-                { "[[6,[5,[4,[3,2]]]],1]", "[[6,[5,[7,0]]],3]" },
-                { "[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]", "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]" },
-                { "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]", "[[3,[2,[8,0]]],[9,[5,[7,0]]]]" }
-            };
+            // var explodeExamples = new Dictionary<string, string>()
+            // {
+            //     { "[[[[[9,8],1],2],3],4]", "[[[[0,9],2],3],4]" },
+            //     { "[7,[6,[5,[4,[3,2]]]]]", "[7,[6,[5,[7,0]]]]" },
+            //     { "[[6,[5,[4,[3,2]]]],1]", "[[6,[5,[7,0]]],3]" },
+            //     { "[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]", "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]" },
+            //     { "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]", "[[3,[2,[8,0]]],[9,[5,[7,0]]]]" }
+            // };
 
-            foreach(var explode in explodeExamples)
-            {
-                var node = SnailfishNode.Parse(explode.Key);
-                Debug.Assert(node.Explode(), $"Explode failed: {explode.Key}");
-                Debug.Assert(Debug.Equals(node.ToString(), explode.Value), $"Expected: {explode.Value}\nActual: {node.ToString()}");
-            }
+            // foreach(var explode in explodeExamples)
+            // {
+            //     var node = SnailfishNode.Parse(explode.Key);
+            //     Debug.Assert(node.Explode(), $"Explode failed: {explode.Key}");
+            //     Debug.Assert(Debug.Equals(node.ToString(), explode.Value), $"Expected: {explode.Value}\nActual: {node.ToString()}");
+            // }
 
-            // Split
-            Debug.Assert(Debug.Equals("[5,5]", SnailfishNode.SplitNode(10).ToString()));
-            Debug.Assert(Debug.Equals("[5,6]", SnailfishNode.SplitNode(11).ToString()));
-            Debug.Assert(Debug.Equals("[6,6]", SnailfishNode.SplitNode(12).ToString()));
+            // // Split
+            // Debug.Assert(Debug.Equals("[5,5]", SnailfishNode.SplitNode(10).ToString()));
+            // Debug.Assert(Debug.Equals("[5,6]", SnailfishNode.SplitNode(11).ToString()));
+            // Debug.Assert(Debug.Equals("[6,6]", SnailfishNode.SplitNode(12).ToString()));
 
             // Addition
-            var a = SnailfishNode.Parse("[[[[4,3],4],4],[7,[[8,4],9]]]");
-            var b = SnailfishNode.Parse("[1,1]");
-            var add = SnailfishNode.AddNodes(a, b);
+            var additionExamples = new Dictionary<string, string>()
+            {
+                {
+                    @"[[[[4,3],4],4],[7,[[8,4],9]]]
+                    [1,1]",
+                    "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
+                },
+                {
+                    @"[1,1]
+                    [2,2]
+                    [3,3]
+                    [4,4]",
+                    "[[[[1,1],[2,2]],[3,3]],[4,4]]"
+                },
+                {
+                    @"[1,1]
+                    [2,2]
+                    [3,3]
+                    [4,4]
+                    [5,5]",
+                    "[[[[3,0],[5,3]],[4,4]],[5,5]]"
+                },
+                {
+                    @"[1,1]
+                    [2,2]
+                    [3,3]
+                    [4,4]
+                    [5,5]
+                    [6,6]",
+                    "[[[[5,0],[7,4]],[5,5]],[6,6]]"
+                },
+                {
+                    @"[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
+                    [7,[[[3,7],[4,3]],[[6,3],[8,8]]]]",
+                    "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"
+                }
+                // ,{
+                //     @"[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
+                //     [7,[[[3,7],[4,3]],[[6,3],[8,8]]]]
+                //     [[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]
+                //     [[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]
+                //     [7,[5,[[3,8],[1,4]]]]
+                //     [[2,[2,2]],[8,[8,1]]]
+                //     [2,9]
+                //     [1,[[[9,3],9],[[9,0],[0,7]]]]
+                //     [[[5,[7,4]],7],1]
+                //     [[[[4,2],2],6],[8,7]]",
+                //     "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"
+                // }
+            };
 
-            Debug.Assert(Debug.Equals(add.ToString(), "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"), $"Expected: [[[[0,7],4],[[7,8],[6,0]]],[8,1]]\nActual: {add.ToString()}");
+            foreach(var addition in additionExamples)
+            {
+                var add = AddLines(addition.Key.SplitByNewline(true));
+                Debug.Assert(
+                    Debug.Equals(
+                        add.ToString(),
+                        addition.Value
+                    ),
+                    $"Expected: {addition.Value}\nActual: {add.ToString()}"
+                );
+            }
         }
 
         protected override string? SolvePartOne()
@@ -70,7 +127,32 @@ namespace AdventOfCode.Solutions.Year2021
             return null;
         }
 
-        class SnailfishNode
+        /// <summary>
+        /// For an array of lines, add the first two lines together, then add the third, and so on
+        /// </summary>
+        private SnailfishNode AddLines(string[] lines)
+        {
+            if (lines.Length < 2)
+                throw new Exception();
+
+            var tLine = SnailfishNode.Parse(lines[0]);
+            foreach(var line in lines.Skip(1))
+            {
+                var newLine = SnailfishNode.Parse(line);
+
+                Debug.WriteLineIf(printDebug, $"  {tLine.ToString()}");
+                Debug.WriteLineIf(printDebug, $"+ {newLine.ToString()}");
+                var b = SnailfishNode.AddNodes((SnailfishNode)tLine.Clone(), newLine);
+                Debug.WriteLineIf(printDebug, $"= {b.ToString()}");
+                Debug.WriteLineIf(printDebug, "");
+
+                tLine = b;
+            }
+
+            return tLine;
+        }
+
+        class SnailfishNode : ICloneable
         {
             public SnailfishNode? Left { get; set; }
             public SnailfishNode? Right { get; set; }
@@ -163,7 +245,7 @@ namespace AdventOfCode.Solutions.Year2021
                 bool changes = false;
                 do
                 {
-                    Debug.WriteLineIf(Day18.printDebug, ToString());
+                    Debug.WriteLineIf(Day18.printDebug, $"  * {ToString()}");
 
                     // Reset each loop
                     changes = false;
@@ -223,19 +305,27 @@ namespace AdventOfCode.Solutions.Year2021
                     if (Left != default)
                     {
                         // Left explodes
+                        // This finds the next node on the Left that has a RightRegular value
                         var leftNode = FindLeftMostRegularNumberNode();
 
                         // Our RightRegular += Left.RightRegular
-                        RightRegular += Left.RightRegular;
+                        // Or if we have a Right node, LeftRegular
+                        if (Right != default)
+                            Right.LeftRegular += Left.RightRegular;
+                        else
+                            RightRegular += Left.RightRegular;
 
                         // Left becomes LeftRegular == 0
                         // Add Left.LeftRegular to leftNode.RightRegular
                         if (leftNode != default)
                         {
-                            if (leftNode.LeftRegular.HasValue)
-                                leftNode.LeftRegular += Left.LeftRegular;
-                            else if (leftNode.RightRegular.HasValue)
+                            if (leftNode.RightRegular.HasValue)
                                 leftNode.RightRegular += Left.LeftRegular;
+                            else
+                            {
+                                // It's possible we came at it from the same level on the right
+                                leftNode.LeftRegular += Left.LeftRegular;
+                            }
                         }
 
                         Left = default;
@@ -244,7 +334,13 @@ namespace AdventOfCode.Solutions.Year2021
                     else if (Right != default)
                     {
                         // Right explodes
+                        // This finds the next node on the Right that has a LeftRegular value
                         var rightNode = FindRightMostRegularNumberNode();
+
+                        // Different: For Right explosions, there is no Left node
+                        // because otherwise the Left would have been exploded first
+                        if (Left != default)
+                            throw new Exception();
 
                         // Our LeftRegular += Right.LeftRegular
                         LeftRegular += Right.LeftRegular;
@@ -255,8 +351,11 @@ namespace AdventOfCode.Solutions.Year2021
                         {
                             if (rightNode.LeftRegular.HasValue)
                                 rightNode.LeftRegular += Right.RightRegular;
-                            else if (rightNode.RightRegular.HasValue)
+                            else
+                            {
+                                // It's possible we came at it from the same level on the left
                                 rightNode.RightRegular += Right.RightRegular;
+                            }
                         }
 
                         Right = default;
@@ -274,15 +373,8 @@ namespace AdventOfCode.Solutions.Year2021
             /// </summary>
             public SnailfishNode? FindLeftMostRegularNumberNode()
             {
-                // First go down to the left
-                // if (Left != default)
-                //     return Left.FindLeftMostRegularNumberNode();
-
-                // We have a regular number?
-                if (LeftRegular.HasValue)
-                    return this;
-
-                // We have to move up
+                // Go up until we find the first viable Left node (one that doesn't point back to this),
+                // and then proceed down the tree Right and look for the first RightRegular
                 var tParent = Parent;
                 var tNode = this;
                 while (tParent != default)
@@ -300,7 +392,17 @@ namespace AdventOfCode.Solutions.Year2021
                         if (tParent.LeftRegular.HasValue)
                             return tParent;
 
-                        return tParent.Left?.FindRightMostRegularNumberNode();
+                        // First move down to the Left
+                        tParent = tParent.Left;
+
+                        // Otherwise, go down the tree now
+                        while(tParent != default)
+                        {
+                            if (tParent.RightRegular.HasValue)
+                                return tParent;
+
+                            tParent = tParent.Right;
+                        }
                     }
                 }
 
@@ -312,15 +414,8 @@ namespace AdventOfCode.Solutions.Year2021
             /// </summary>
             public SnailfishNode? FindRightMostRegularNumberNode()
             {
-                // First go down to the right
-                // if (Right != default)
-                //     return Right.FindRightMostRegularNumberNode();
-
-                // We have a regular number?
-                if (RightRegular.HasValue)
-                    return this;
-
-                // We have to move up
+                // Go up until we find the first viable Right node (one that doesn't point back to this),
+                // and then proceed down the tree Left and look for the first LeftRegular
                 var tParent = Parent;
                 var tNode = this;
                 while (tParent != default)
@@ -338,12 +433,120 @@ namespace AdventOfCode.Solutions.Year2021
                         if (tParent.RightRegular.HasValue)
                             return tParent;
 
-                        return tParent.Right?.FindLeftMostRegularNumberNode();
+                        // First move down to the Right
+                        tParent = tParent.Right;
+
+                        // Otherwise, go down the tree now
+                        while (tParent != default)
+                        {
+                            if (tParent.LeftRegular.HasValue)
+                                return tParent;
+
+                            tParent = tParent.Left;
+                        }
                     }
                 }
 
                 return default;
             }
+
+            // /// <summary>
+            // /// Find the node that owns the Left-Most Regular Number
+            // /// </summary>
+            // public SnailfishNode? FindLeftMostRegularNumberNode(bool searchDown)
+            // {
+            //     // First go down to the left
+            //     if (searchDown)
+            //     {
+            //         var aNode = this;
+            //         do
+            //         {
+            //             if (aNode.LeftRegular.HasValue)
+            //                 break;
+
+            //             aNode = aNode.Left;
+            //         } while (aNode != default);
+
+            //         return aNode;
+            //     }
+
+            //     // We have a regular number?
+            //     if (LeftRegular.HasValue)
+            //         return this;
+
+            //     // We have to move up
+            //     var tParent = Parent;
+            //     var tNode = this;
+            //     while (tParent != default)
+            //     {
+            //         // If "we" are the Right node, move up another level
+            //         if (tParent.Left == tNode)
+            //         {
+            //             tNode = tParent;
+            //             tParent = tParent.Parent;
+            //         }
+            //         else
+            //         {
+            //             // We have moved up and to the Left, now look down to the Right for our closest neighbor
+            //             // This cannot go into an infinite loop because we're guaranteed to have a Regular number
+            //             if (tParent.LeftRegular.HasValue)
+            //                 return tParent;
+
+            //             return tParent.Left?.FindRightMostRegularNumberNode(tParent.Parent == default);
+            //         }
+            //     }
+
+            //     return default;
+            // }
+
+            // /// <summary>
+            // /// Find the node that owns the Right-Most Regular Number
+            // /// </summary>
+            // public SnailfishNode? FindRightMostRegularNumberNode(bool searchDown = false)
+            // {
+            //     // First go down to the right on the right-side
+            //     if (searchDown)
+            //     {
+            //         var aNode = this;
+            //         do
+            //         {
+            //             if (aNode.RightRegular.HasValue)
+            //                 break;
+
+            //             aNode = aNode.Right;
+            //         } while (aNode != default);
+
+            //         return aNode;
+            //     }
+
+            //     // We have a regular number?
+            //     if (RightRegular.HasValue)
+            //         return this;
+
+            //     // We have to move up
+            //     var tParent = Parent;
+            //     var tNode = this;
+            //     while (tParent != default)
+            //     {
+            //         // If "we" are the Right node, move up another level
+            //         if (tParent.Right == tNode)
+            //         {
+            //             tNode = tParent;
+            //             tParent = tParent.Parent;
+            //         }
+            //         else
+            //         {
+            //             // We have moved up and to the Right, now look down to the Left for our closest neighbor
+            //             // This cannot go into an infinite loop because we're guaranteed to have a Regular number
+            //             if (tParent.RightRegular.HasValue)
+            //                 return tParent;
+
+            //             return tParent.Right?.FindLeftMostRegularNumberNode(tParent.Parent == default);
+            //         }
+            //     }
+
+            //     return default;
+            // }
 
             public bool Split()
             {
@@ -414,6 +617,27 @@ namespace AdventOfCode.Solutions.Year2021
             {
                 // For assertions and debug
                 return $"[{LeftRegular?.ToString() ?? Left?.ToString() ?? "XXX"},{RightRegular?.ToString() ?? Right?.ToString() ?? "XXX"}]";
+            }
+
+            public object Clone() => CloneInternal();
+
+            private SnailfishNode CloneInternal()
+            {
+                var newNode = new SnailfishNode()
+                {
+                    LeftRegular = this.LeftRegular,
+                    RightRegular = this.RightRegular,
+                    Left = this.Left?.CloneInternal(),
+                    Right = this.Right?.CloneInternal()
+                };
+                
+                if (newNode.Left != default)
+                    newNode.Left.Parent = newNode;
+
+                if (newNode.Right != default)
+                    newNode.Right.Parent = newNode;
+
+                return newNode;
             }
         }
     }
