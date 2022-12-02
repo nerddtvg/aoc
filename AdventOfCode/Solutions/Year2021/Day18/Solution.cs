@@ -172,7 +172,24 @@ namespace AdventOfCode.Solutions.Year2021
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            int maximumMagnitude = int.MinValue;
+
+            // Look at each pair of Snailfish numbers in the input
+            // Compute a+b and b+a, finding each magnitude, find the maximum
+            foreach(var combo in Input.SplitByNewline().GetAllCombos(2))
+            {
+                var a = SnailfishNode.Parse(combo[0]);
+                var b = SnailfishNode.Parse(combo[1]);
+
+                maximumMagnitude = Math.Max(SnailfishNode.AddNodes(a, b).Magnitude, maximumMagnitude);
+
+                // Reset due to pass by reference
+                a = SnailfishNode.Parse(combo[0]);
+                b = SnailfishNode.Parse(combo[1]);
+                maximumMagnitude = Math.Max(SnailfishNode.AddNodes(b, a).Magnitude, maximumMagnitude);
+            }
+
+            return maximumMagnitude.ToString();
         }
 
         /// <summary>
