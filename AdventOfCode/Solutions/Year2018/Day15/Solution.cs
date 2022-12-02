@@ -90,8 +90,9 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string? SolvePartOne()
         {
-            var outcome = PlayGame();
-            return outcome.ToString();
+            // var outcome = PlayGame();
+            // return outcome.ToString();
+            return null;
         }
 
         protected override string? SolvePartTwo()
@@ -101,11 +102,8 @@ namespace AdventOfCode.Solutions.Year2018
 
         private int PlayGame()
         {
-            // Determine the units to play and the order
-            var playableUnits = GetUnits();
-
             // Protection against endless loops
-            int i = 1;
+            int i = 0;
             int maxLoops = 1000;
 
             PrintGrid();
@@ -113,16 +111,21 @@ namespace AdventOfCode.Solutions.Year2018
             // Play until there is only one unit type left
             while (!GameOver && i < maxLoops)
             {
+                // Determine the units to play and the order
+                var playableUnits = GetUnits();
+
+                if (i >= 44) System.Diagnostics.Debugger.Break();
+
                 for (var k = 0; k < playableUnits.Count; k++)
                 {
-                    PlayUnit(playableUnits[k]);
-
                     // If we only complete a partial round, exit early for the math to work
-                    if (GameOver && k < playableUnits.Count - 1)
+                    if (GameOver)
                     {
                         i--;
                         break;
                     }
+
+                    PlayUnit(playableUnits[k]);
                 }
 
                 i++;
