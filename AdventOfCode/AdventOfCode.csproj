@@ -4,6 +4,11 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
+
+    <!--
+      CS0162 - Unreachable code detected
+    -->
+    <NoWarn>CS0162</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
