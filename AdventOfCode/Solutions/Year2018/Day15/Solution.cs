@@ -197,6 +197,20 @@ namespace AdventOfCode.Solutions.Year2018
 
         private bool GameOver => this.units.Where(unit => unit.isAlive).Select(unit => unit.Type).Distinct().Count() == 1;
 
+        struct FoundAnswer
+        {
+            public (int x, int y) endpoint;
+            public int score;
+            public (int x, int y) startingMove;
+
+            public FoundAnswer((int x, int y) endpoint, int score, (int x, int y) startingMove)
+            {
+                this.endpoint = endpoint;
+                this.score = score;
+                this.startingMove = startingMove;
+            }
+        }
+
         private void PlayUnit(Unit unit)
         {
             // First double check if we're dead, in case we were killed mid-round
@@ -221,7 +235,7 @@ namespace AdventOfCode.Solutions.Year2018
                     .OrderBy(pos => pos.ManhattanDistance((unit.x, unit.y)))
                     .Distinct();
 
-                var positionScores = new Dictionary<(int x, int y), (int score, (int x, int y) startingMove)>();
+                var positionScores = new List<FoundAnswer>();
 
                 // Calculate distances
                 foreach (var endpoint in endpoints)
@@ -251,7 +265,7 @@ namespace AdventOfCode.Solutions.Year2018
                             if (minDistance < searchScore)
                                 continue;
                             
-                            if (scores.ContainsKey(newPos) && scores[newPos].score <= searchScore)
+                            if (scores.ContainsKey(newPos) && scores[newPos].score < searchScore)
                             {
                                 // Shortcut only if score < searchScore
                                 // Or if score == searchScore AND the direction chosen from the start is "bad"
@@ -278,39 +292,30 @@ namespace AdventOfCode.Solutions.Year2018
                             if (endpoint == newPos)
                             {
                                 // We found a possible solution
-                                if (positionScores.ContainsKey(endpoint))
+                                if (positionScores.Any(answer => answer.endpoint == endpoint))
                                 {
-                                    if (positionScores[endpoint].score < searchScore)
+                                    if (positionScores.Any(answer => answer.endpoint == endpoint && answer.score < searchScore))
                                         continue;
-
-                                    // Determine if this is the "better" score by reading order
-                                    if (positionScores[endpoint].score == searchScore)
-                                    {
-                                        if (positionScores[endpoint].startingMove.y < startingMove.y)
-                                            continue;
-
-                                        if (positionScores[endpoint].startingMove.x < startingMove.x)
-                                            continue;
-                                    }
                                 }
 
                                 // A good solution!
-                                positionScores[endpoint] = (searchScore, startingMove);
+                                positionScores.Add(new FoundAnswer(endpoint, searchScore, startingMove));
                                 continue;
                             }
 
                             // Make sure we're not requeueing the same thing
-                            if (queue.UnorderedItems.Any(kvp => kvp.Element == newPos && kvp.Priority <= searchScore))
+                            var newPriority = WeightedPriority(newPos, endpoint, searchScore);
+                            if (queue.UnorderedItems.Any(kvp => kvp.Element == newPos && kvp.Priority <= newPriority))
                             {
                                 continue;
                             }
 
                             // Didn't find a solution, so let's add it to the queue
-                            queue.Enqueue(newPos, searchScore);
+                            queue.Enqueue(newPos, newPriority);
                         }
 
                         if (positionScores.Count > 0)
-                            minDistance = positionScores.Min(score => score.Value.score);
+                            minDistance = positionScores.Min(answer => answer.score);
                     }
                 }
 
@@ -319,24 +324,24 @@ namespace AdventOfCode.Solutions.Year2018
                 // Tiebreaker: Reading order
                 if (positionScores.Count > 0)
                 {
-                    var lowestScore = positionScores.Min(score => score.Value.score);
-                    var move = positionScores.First(score => score.Value.score == lowestScore).Value.startingMove;
+                    // First find all of the minimum moves
+                    // Recalc to be safe
+                    minDistance = positionScores.Min(answer => answer.score);
 
-                    if (positionScores.Count(score => score.Value.score == lowestScore) > 1)
-                    {
-                        // Find the first in reading order of the endpoints
-                        move = positionScores.Where(score => score.Value.score == lowestScore)
-                            .OrderBy(score => score.Key.y)
-                            .ThenBy(score => score.Key.x)
-                            .First()
-                            .Value
-                            .startingMove;
-                    }
+                    var choices = positionScores.Where(answer => answer.score == minDistance).ToList();
 
-                    // Make the move
-                    // Double check this distance is one (if not, we have done math poorly)
-                    if (move.ManhattanDistance((unit.x, unit.y)) != 1)
-                        throw new Exception();
+                    // If we have multiple choices...
+                    // First, find the endpoint first in reading order
+                    var readingOrderEndpoint = choices.Select(answer => answer.endpoint).ReadingOrder().First();
+
+                    // Get the list of possible moves that end here and have the minimum score
+                    var possibleMoves = positionScores.Where(answer => answer.endpoint == readingOrderEndpoint && answer.score == minDistance).ToList();
+
+                    // Now, if we have multiple we will get the first response
+                    var move = possibleMoves.First().startingMove;
+
+                    if (possibleMoves.Count > 1)
+                        possibleMoves.Select(answer => answer.startingMove).ReadingOrder().First();
 
                     unit.x = move.x;
                     unit.y = move.y;
@@ -361,6 +366,14 @@ namespace AdventOfCode.Solutions.Year2018
                     target.isAlive = (target.HP > 0);
                 }
             }
+        }
+
+        /// <summary>
+        /// Generate a weighted score for the queue
+        /// </summary>
+        private int WeightedPriority((int a, int b) start, (int a, int b) end, int score)
+        {
+            return score + (int)start.ManhattanDistance(end);
         }
 
         private void PrintGrid()
