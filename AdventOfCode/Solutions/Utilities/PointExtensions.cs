@@ -142,5 +142,14 @@ namespace AdventOfCode.Solutions
         {
             return (UInt64)Math.Abs(a.x - b.x) + (UInt64)Math.Abs(a.y - b.y) + (uint)Math.Abs(a.z - b.z);
         }
+
+        /// <summary>
+        /// Return a list of points in reading order (top to bottom, left to right)
+        /// </summary>
+        /// <param name="points">A <see cref="IEnumerable{T}" /> of (x, y) values.</param>
+        public static IEnumerable<(int x, int y)> ReadingOrder(this IEnumerable<(int x, int y)> points)
+        {
+            return points.OrderBy(point => point.y).ThenBy(point => point.x);
+        }
     }
 }
