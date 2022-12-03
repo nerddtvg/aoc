@@ -22,20 +22,40 @@ namespace AdventOfCode.Solutions.Year2022
                 CrZsJsPPZsGzwwsLwLmpwMDw");
 
             Debug.Assert(Debug.Equals(example, 157), $"Expected: 157\nActual: {example}");
+
+            example = GroupSum(@"vJrwpWtwJgWrhcsFMMfFFhFp
+                jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+                PmmdzqPrVvPwwTWBwg");
+
+            // r = 18
+            Debug.Assert(Debug.Equals(example, 18), $"Expected: 18\nActual: {example}");
+
+            example = GroupSum(@"wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+                ttgJtRGJQctTZtZT
+                CrZsJsPPZsGzwwsLwLmpwMDw");
+
+            // Z = 52
+            Debug.Assert(Debug.Equals(example, 52), $"Expected: 52\nActual: {example}");
+
+            example = GroupSum(@"vJrwpWtwJgWrhcsFMMfFFhFp
+                jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+                PmmdzqPrVvPwwTWBwg
+                wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+                ttgJtRGJQctTZtZT
+                CrZsJsPPZsGzwwsLwLmpwMDw");
+
+            Debug.Assert(Debug.Equals(example, 70), $"Expected: 70\nActual: {example}");
         }
 
         private int PrioritySum(string input)
         {
             int endSum = 0;
 
-            // a-z => 1 to 26
-            // A-Z => 27 to 52
             foreach (var sacks in
                 input.SplitByNewline(true)
                 .Select(line => line
                     .ToCharArray()
-                    .Select(c => (int)c)
-                    .Select(c => c > 97 ? c - 96 : c - 38)
+                    .Select(c => CharacterPriority(c))
                     .ToArray()
                 )
             )
@@ -52,6 +72,39 @@ namespace AdventOfCode.Solutions.Year2022
             return endSum;
         }
 
+        /// <summary>
+        /// a-z => 1 to 26
+        /// A-Z => 27 to 52
+        /// </summary>
+        private int CharacterPriority(char c) => c > 97 ? c - 96 : c - 38;
+
+        private int GroupSum(string input)
+        {
+            // For each group of 3, find the intersecting character
+            // Convert that to a Priority
+            // Sum
+            var inputLines = input
+                .SplitByNewline(true)
+                .Select(line => line
+                    .ToCharArray()
+                    .Select(c => CharacterPriority(c))
+                    .ToArray()
+                )
+                .ToArray();
+
+            if (inputLines.Length % 3 != 0)
+                throw new Exception();
+
+            int endSum = 0;
+
+            for (int i = 0; i < inputLines.Length; i += 3)
+            {
+                endSum += inputLines[i].Intersect(inputLines[i + 1]).Intersect(inputLines[i + 2]).Sum();
+            }
+
+            return endSum;
+        }
+
         protected override string? SolvePartOne()
         {
             return PrioritySum(Input).ToString();
@@ -59,7 +112,7 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            return GroupSum(Input).ToString();
         }
     }
 }
