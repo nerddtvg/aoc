@@ -17,6 +17,7 @@ namespace AdventOfCode.Solutions.Year2018
         public int minDistance { get; set; } = int.MaxValue;
 
         public const bool printDebug = false;
+        public const bool printFinal = true;
 
         public Day15() : base(15, 2018, "Beverage Bandits")
         {
@@ -41,6 +42,16 @@ namespace AdventOfCode.Solutions.Year2018
                     #...E.#
                     #######",
                     36334
+                },
+                {
+                    @"#######
+                    #E..EG#
+                    #.#G.E#
+                    #E.##E#
+                    #G..#.#
+                    #..E#.#
+                    #######",
+                    39514
                 },
                 {
                     @"#######
@@ -149,7 +160,7 @@ namespace AdventOfCode.Solutions.Year2018
             int i = 0;
             int maxLoops = 1000;
 
-            PrintGrid();
+            if (printDebug) PrintGrid();
 
             // Play until there is only one unit type left
             while (!GameOver && i < maxLoops)
@@ -158,7 +169,7 @@ namespace AdventOfCode.Solutions.Year2018
                 var playableUnits = GetUnits();
 
                 for (var k = 0; k < playableUnits.Count; k++)
-                {
+                {       
                     // If we only complete a partial round, exit early for the math to work
                     if (GameOver)
                     {
@@ -171,10 +182,13 @@ namespace AdventOfCode.Solutions.Year2018
 
                 i++;
 
-                PrintGrid();
+                if (printDebug) PrintGrid();
             }
 
-            if (printDebug)
+            if (printFinal && !printDebug)
+                PrintGrid();
+
+            if (printDebug || printFinal)
                 Console.WriteLine($"Complete Rounds: {i}");
 
             // Return the Outcome = round count * HP remaining
@@ -351,8 +365,6 @@ namespace AdventOfCode.Solutions.Year2018
 
         private void PrintGrid()
         {
-            if (!printDebug) return;
-
             var maxY = grid.Max(kvp => kvp.Key.y);
             var maxX = grid.Max(kvp => kvp.Key.x);
 
