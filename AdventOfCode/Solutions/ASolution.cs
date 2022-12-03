@@ -141,6 +141,8 @@ namespace AdventOfCode.Solutions
 
                         // Add the cookie
                         var cookie = Program.Config.Cookie.Split('=', 2, StringSplitOptions.TrimEntries);
+                        if (cookie.Length != 2)
+                            throw new Exception("Unexpected cookie value. Expected in <name>=<value> format.");
                         cookieContainer.Add(uri, new Cookie(cookie[0], cookie.Length > 1 ? cookie[1] : string.Empty));
 
                         input = client.GetStringAsync(INPUT_URL).Result.TrimEnd();
