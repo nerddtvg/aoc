@@ -6,8 +6,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Diagnostics;
 
-// Part 1 Answer: 193476 (69 rounds)
-// Found with another solution to assist in debugging this one
+// It takes over 1.5 minutes for part 2, there is probably optimization that can be done
 
 namespace AdventOfCode.Solutions.Year2018
 {
@@ -19,8 +18,8 @@ namespace AdventOfCode.Solutions.Year2018
 
         public int minDistance { get; set; } = int.MaxValue;
 
-        public const bool printDebug = true;
-        public const bool printFinal = true;
+        public const bool printDebug = false;
+        public const bool printFinal = false;
 
         public Day15() : base(15, 2018, "Beverage Bandits")
         {
@@ -150,15 +149,31 @@ namespace AdventOfCode.Solutions.Year2018
         {
             var outcome = PlayGame();
             return outcome.ToString();
-            // return "";
         }
 
         protected override string? SolvePartTwo()
         {
+            for (int elfPower = 4; elfPower <= 100; elfPower++)
+            {
+                ResetGrid();
+
+                // Set the elf power
+                units.Where(unit => unit.Type == UnitType.Elf)
+                    .ToList()
+                    .ForEach(unit => unit.AttackPower = elfPower);
+
+                var outcome = PlayGame(true);
+
+                if (outcome == 0)
+                    continue;
+
+                return outcome.ToString();
+            }
+
             return null;
         }
 
-        private int PlayGame()
+        private int PlayGame(bool part2 = false)
         {
             // Protection against endless loops
             int i = 0;
@@ -182,6 +197,9 @@ namespace AdventOfCode.Solutions.Year2018
                     }
 
                     PlayUnit(playableUnits[k]);
+
+                    if (part2 && units.Any(unit => unit.Type == UnitType.Elf && !unit.isAlive))
+                        return 0;
                 }
 
                 i++;
@@ -196,6 +214,7 @@ namespace AdventOfCode.Solutions.Year2018
             {
                 Console.WriteLine($"Complete Rounds: {i}");
                 Console.WriteLine($"Remaining HP: {units.Where(unit => unit.isAlive).Sum(unit => unit.HP)}");
+                Console.WriteLine($"Elf HP: {units.First(unit => unit.Type == UnitType.Elf).HP}");
             }
 
             // Return the Outcome = round count * HP remaining
