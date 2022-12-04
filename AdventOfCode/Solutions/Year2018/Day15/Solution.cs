@@ -6,6 +6,9 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Diagnostics;
 
+// Part 1 Answer: 193476 (69 rounds)
+// Found with another solution to assist in debugging this one
+
 namespace AdventOfCode.Solutions.Year2018
 {
 
@@ -189,7 +192,10 @@ namespace AdventOfCode.Solutions.Year2018
                 PrintGrid();
 
             if (printDebug || printFinal)
+            {
                 Console.WriteLine($"Complete Rounds: {i}");
+                Console.WriteLine($"Remaining HP: {units.Where(unit => unit.isAlive).Sum(unit => unit.HP)}");
+            }
 
             // Return the Outcome = round count * HP remaining
             return i * units.Where(unit => unit.isAlive).Sum(unit => unit.HP);
@@ -200,12 +206,14 @@ namespace AdventOfCode.Solutions.Year2018
         struct FoundAnswer
         {
             public (int x, int y) endpoint;
+            public (int x, int y) target;
             public int score;
             public (int x, int y) startingMove;
 
-            public FoundAnswer((int x, int y) endpoint, int score, (int x, int y) startingMove)
+            public FoundAnswer((int x, int y) endpoint, (int x, int y) target, int score, (int x, int y) startingMove)
             {
                 this.endpoint = endpoint;
+                this.target = target;
                 this.score = score;
                 this.startingMove = startingMove;
             }
@@ -231,14 +239,14 @@ namespace AdventOfCode.Solutions.Year2018
                 // Then find the distance to each of those points
                 // Find the minimum distance path, if ties, use tie breaker methods
                 var endpoints = enemies
-                    .SelectMany(enemy => GetNeighbors(enemy))
-                    .OrderBy(pos => pos.ManhattanDistance((unit.x, unit.y)))
+                    .SelectMany(enemy => GetOpenNeighbors(enemy).Select(endpoint => (enemy, endpoint)))
+                    .OrderBy(target => target.endpoint.ManhattanDistance((unit.x, unit.y)))
                     .Distinct();
 
                 var positionScores = new List<FoundAnswer>();
 
                 // Calculate distances
-                foreach (var endpoint in endpoints)
+                foreach ((var enemy, var endpoint) in endpoints)
                 {
                     // Reset our counter
                     minDistance = int.MaxValue;
@@ -258,25 +266,18 @@ namespace AdventOfCode.Solutions.Year2018
                         var startingMove = scores[searchPos].startingMove;
 
                         // Get all possible moves in this spot
-                        foreach(var newPos in GetNeighbors(searchPos))
+                        foreach(var newPos in GetOpenNeighbors(searchPos))
                         {
                             // Shortcut...
                             // Don't skip if minDistance == searchScore so we can compare positions later
                             if (minDistance < searchScore)
                                 continue;
-                            
+
                             if (scores.ContainsKey(newPos) && scores[newPos].score < searchScore)
                             {
                                 // Shortcut only if score < searchScore
-                                // Or if score == searchScore AND the direction chosen from the start is "bad"
-                                if (scores[newPos].score < searchScore)
-                                    continue;
-
-                                if (scores[newPos].startingMove.y < startingMove.y)
-                                    continue;
-
-                                if (scores[newPos].startingMove.x < startingMove.x)
-                                    continue;
+                                // If it equals the score, we continue just in case it is added to positionScores
+                                continue;
                             }
 
                             // Update the move for state tracking
@@ -299,7 +300,7 @@ namespace AdventOfCode.Solutions.Year2018
                                 }
 
                                 // A good solution!
-                                positionScores.Add(new FoundAnswer(endpoint, searchScore, startingMove));
+                                positionScores.Add(new FoundAnswer(endpoint, (enemy.x, enemy.y), searchScore, startingMove));
                                 continue;
                             }
 
@@ -321,27 +322,27 @@ namespace AdventOfCode.Solutions.Year2018
 
                 // Hopefully we have moves now
                 // Find the lowest positionScore
-                // Tiebreaker: Reading order
+                // Tiebreaker: Reading order of various things
                 if (positionScores.Count > 0)
                 {
                     // First find all of the minimum moves
                     // Recalc to be safe
                     minDistance = positionScores.Min(answer => answer.score);
 
-                    var choices = positionScores.Where(answer => answer.score == minDistance).ToList();
+                    // All endpoints that fit this minimum distance, then find the first in reading order
+                    var endpoint = positionScores
+                        .Where(answer => answer.score == minDistance)
+                        .Select(answer => answer.endpoint)
+                        .ReadingOrder()
+                        .First();
 
                     // If we have multiple choices...
-                    // First, find the endpoint first in reading order
-                    var readingOrderEndpoint = choices.Select(answer => answer.endpoint).ReadingOrder().First();
-
-                    // Get the list of possible moves that end here and have the minimum score
-                    var possibleMoves = positionScores.Where(answer => answer.endpoint == readingOrderEndpoint && answer.score == minDistance).ToList();
-
-                    // Now, if we have multiple we will get the first response
-                    var move = possibleMoves.First().startingMove;
-
-                    if (possibleMoves.Count > 1)
-                        possibleMoves.Select(answer => answer.startingMove).ReadingOrder().First();
+                    // Find the startingMove to endppint first in Reading Order
+                    var move = positionScores
+                        .Where(answer => answer.endpoint == endpoint && answer.score == minDistance)
+                        .Select(answer => answer.startingMove)
+                        .ReadingOrder()
+                        .First();
 
                     unit.x = move.x;
                     unit.y = move.y;
@@ -363,7 +364,6 @@ namespace AdventOfCode.Solutions.Year2018
                 if (target != default)
                 {
                     target.HP -= unit.AttackPower;
-                    target.isAlive = (target.HP > 0);
                 }
             }
         }
@@ -422,7 +422,7 @@ namespace AdventOfCode.Solutions.Year2018
         /// <summary>
         /// Get possible neighbor positions
         /// </summary>
-        private IEnumerable<(int x, int y)> GetNeighbors((int x, int y) pos)
+        private IEnumerable<(int x, int y)> GetOpenNeighbors((int x, int y) pos)
         {
             foreach (var tPos in new (int x, int y)[] { (pos.x - 1, pos.y), (pos.x + 1, pos.y), (pos.x, pos.y - 1), (pos.x, pos.y + 1) })
                 if (grid.ContainsKey(tPos) && grid[tPos] == TileType.Open && !units.Any(unitSearch => unitSearch.isAlive && unitSearch.x == tPos.x && unitSearch.y == tPos.y))
@@ -432,9 +432,9 @@ namespace AdventOfCode.Solutions.Year2018
         /// <summary>
         /// Get any open spaces next to this unit
         /// </summary>
-        private IEnumerable<(int x, int y)> GetNeighbors(Unit unit)
+        private IEnumerable<(int x, int y)> GetOpenNeighbors(Unit unit)
         {
-            return GetNeighbors((unit.x, unit.y));
+            return GetOpenNeighbors((unit.x, unit.y));
         }
 
         /// <summary>
@@ -514,7 +514,7 @@ namespace AdventOfCode.Solutions.Year2018
             /// <summary>
             /// Is this unit alive?
             /// </summary>
-            public bool isAlive { get; set; } = true;
+            public bool isAlive { get => HP > 0; }
 
             /// <summary>
             /// Attack Power: 3
