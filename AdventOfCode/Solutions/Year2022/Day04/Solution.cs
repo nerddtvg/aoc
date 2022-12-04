@@ -12,7 +12,7 @@ namespace AdventOfCode.Solutions.Year2022
     class Day04 : ASolution
     {
 
-        public Day04() : base(04, 2022, "")
+        public Day04() : base(04, 2022, "Camp Cleanup")
         {
 
         }
@@ -24,6 +24,7 @@ namespace AdventOfCode.Solutions.Year2022
                 .Select(pair => new int[] { Int32.Parse(pair[0].Split('-')[0]), Int32.Parse(pair[0].Split('-')[1]), Int32.Parse(pair[1].Split('-')[0]), Int32.Parse(pair[1].Split('-')[1]) })
                 .ToArray();
 
+            // Complete overlap
             return pairs.Count(pair => (pair[0] >= pair[2] && pair[1] <= pair[3]) || (pair[2] >= pair[0] && pair[3] <= pair[1])).ToString();
         }
 
