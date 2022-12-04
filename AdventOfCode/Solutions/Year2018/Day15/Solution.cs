@@ -19,7 +19,7 @@ namespace AdventOfCode.Solutions.Year2018
 
         public int minDistance { get; set; } = int.MaxValue;
 
-        public const bool printDebug = false;
+        public const bool printDebug = true;
         public const bool printFinal = true;
 
         public Day15() : base(15, 2018, "Beverage Bandits")
@@ -150,6 +150,7 @@ namespace AdventOfCode.Solutions.Year2018
         {
             var outcome = PlayGame();
             return outcome.ToString();
+            // return "";
         }
 
         protected override string? SolvePartTwo()
@@ -273,17 +274,23 @@ namespace AdventOfCode.Solutions.Year2018
                             if (minDistance < searchScore)
                                 continue;
 
-                            if (scores.ContainsKey(newPos) && scores[newPos].score < searchScore)
-                            {
-                                // Shortcut only if score < searchScore
-                                // If it equals the score, we continue just in case it is added to positionScores
-                                continue;
-                            }
-
                             // Update the move for state tracking
                             if (searchScore == 1)
                             {
                                 startingMove = newPos;
+                            }
+
+                            if (scores.ContainsKey(newPos) && scores[newPos].score <= searchScore)
+                            {
+                                // Shortcut only if score < searchScore
+                                if (scores[newPos].score < searchScore) continue;
+
+                                // FOUND Bug: This was the issue I was having
+                                // When a square was searched more than once with the same searchScore, the last
+                                // startingMove overwrote the scores array. This checks against the tie breaker rules.
+                                // If it equals the score, we check against the reading order of the starting points
+                                if (new (int x, int y)[] { scores[newPos].startingMove, startingMove }.ReadingOrder().First() != startingMove)
+                                    continue;
                             }
 
                             // Save our spot
