@@ -29,6 +29,11 @@ move 1 from 1 to 2";
             RunInstructions(example);
             var output = GetTops();
             Debug.Assert(Debug.Equals(output, "CMZ"), $"Expected: CMZ\nActual: {output}");
+
+            ResetStacks(example);
+            RunInstructions(example, 2);
+            output = GetTops();
+            Debug.Assert(Debug.Equals(output, "MCD"), $"Expected: MCD\nActual: {output}");
         }
 
         private void ResetStacks(string input)
@@ -73,7 +78,7 @@ move 1 from 1 to 2";
             }
         }
 
-        private void PerformLine(string line)
+        private void PerformLine(string line, int part)
         {
             // Line in format: move 1 from 2 to 1
             var parser = new Regex("^move ([0-9]+) from ([0-9]+) to ([0-9]+)$");
@@ -98,19 +103,28 @@ move 1 from 1 to 2";
 
             // Move the items
             int taken = 0;
-            while(stacks[from].Count > 0 && taken < count)
-            {
-                stacks[to].Push(stacks[from].Pop());
-                taken++;
-            }
+
+            // Figure out the take
+            var take = stacks[from].Take(count).ToList();
+
+            // If this is part 2, reverse the order so it stays the same
+            if (part == 2)
+                take.Reverse();
+
+            // Actually remove the items
+            while(stacks[from].Count > 0 && taken++ < count)
+                stacks[from].Pop();
+
+            // Put them back on the new stack
+            take.ForEach(c => stacks[to].Push(c));
         }
 
-        private void RunInstructions(string input)
+        private void RunInstructions(string input, int part = 1)
         {
             // Stacks are in group 1
             // Instructions in group 2
             foreach(var line in input.SplitByBlankLine()[1])
-                PerformLine(line);
+                PerformLine(line, part);
         }
 
         private string GetTops()
@@ -130,7 +144,9 @@ move 1 from 1 to 2";
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            ResetStacks(Input);
+            RunInstructions(Input, 2);
+            return GetTops();
         }
     }
 }
