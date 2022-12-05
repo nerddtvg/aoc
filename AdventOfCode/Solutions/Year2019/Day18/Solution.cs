@@ -11,8 +11,7 @@ namespace AdventOfCode.Solutions.Year2019
         Wall,
         Passage,
         Door,
-        Key,
-        Entrance
+        Key
     }
 
     class DoorLockPos
@@ -20,36 +19,54 @@ namespace AdventOfCode.Solutions.Year2019
         public int x { get; set; }
         public int y { get; set; }
         public DoorKeyType type { get; set; }
-        public string value { get; set; } = string.Empty;
-        public bool locked { get; set; }
+        /// <summary>
+        /// What character is this door or key
+        /// </summary>
+        /// <value></value>
+        public char? value { get; set; }
+        /// <summary>
+        /// Notes if the door is unlocked and/or key collected
+        /// </summary>
+        /// <value></value>
+        public bool collected { get; set; }
     }
 
     class Day18 : ASolution
     {
-        List<DoorLockPos> map = new List<DoorLockPos>();
+        Dictionary<(int x, int y), DoorLockPos> map = new();
 
-        public Day18() : base(18, 2019, "")
+        public (int x, int y) start = (0, 0);
+
+        public Day18() : base(18, 2019, "Many-Worlds Interpretation")
+        {
+            ResetGrid();
+        }
+
+        private void ResetGrid()
         {
             int x = 0;
             int y = 0;
+
+            map = new();
 
             foreach (string line in Input.SplitByNewline())
             {
                 foreach (char loc in line.ToCharArray())
                 {
-                    map.Add(new DoorLockPos()
+                    if (loc == '@')
+                        start = (x, y);
+
+                    map.Add((x, y), new DoorLockPos()
                     {
-                        x = x,
-                        y = y,
-                        value = loc.ToString(),
+                        value = loc.ToString().ToUpperInvariant()[0],
                         type = loc switch
                         {
                             '#' => DoorKeyType.Wall,
                             '.' => DoorKeyType.Passage,
-                            '@' => DoorKeyType.Entrance,
+                            '@' => DoorKeyType.Passage,
                             _ => (65 <= (int)loc && (int)loc <= 90) ? DoorKeyType.Door : DoorKeyType.Key
                         },
-                        locked = (65 <= (int)loc && (int)loc <= 90) ? true : false
+                        collected = false
                     });
                     x++;
                 }
