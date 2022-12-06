@@ -43,7 +43,24 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string? SolvePartTwo()
         {
-            return null;
+            var boost = 1;
+
+            do
+            {
+                // Reset the game
+                var game = ReadGame(Input);
+
+                // Add our boost
+                game.Immune.ForEach(group => group.AttackPower += boost);
+
+                // Find the result
+                var result = PlayGame(game);
+
+                if (result > 0 && game.Immune.Any(grp => grp.IsActive))
+                    return result.ToString();
+
+                boost++;
+            } while (true);
         }
 
         private Game ReadGame(string input)
@@ -120,9 +137,18 @@ namespace AdventOfCode.Solutions.Year2018
                 // Get our targets
                 var attacks = SelectTargets(game);
 
+                // In Part 2, if no damage is done we are stuck in a loop
+                var damaged = false;
+
                 foreach (var attack in attacks)
                 {
+                    var beforeUnits = attack.Defender.UnitCount;
+
                     AttackUnits(attack.Attacker, attack.Defender);
+
+                    // Prevents a loop
+                    if (beforeUnits != attack.Defender.UnitCount)
+                        damaged = true;
 
                     if (cImmune() == 0 || cInfection() == 0)
                     {
@@ -130,6 +156,9 @@ namespace AdventOfCode.Solutions.Year2018
                         break;
                     }
                 }
+
+                if (!damaged)
+                    return -1;
             } while (inProgress);
 
             var survivors = (cImmune() > 0 ? game.Immune : game.Infection).Where(group => group.IsActive).ToList();
