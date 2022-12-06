@@ -49,21 +49,20 @@ namespace AdventOfCode.Solutions.Year2022
         {
             // We want to find the first instance where 4 characters do not repeat
             // And return the index+1 of the last character
-            var group = string.Empty;
             var offset = 0;
             var take = part == 1 ? 4 : 14;
             do
             {
                 // Get our next group of 4
-                group = line.Skip(offset++).Take(take).JoinAsString();
-
-                if (group.Length < take)
-                    break;
+                var group = line
+                    .Skip(offset++)
+                    .Take(take)
+                    .Distinct();
 
                 // Determine if we have unique letters
-                if (group.GroupBy(g => g).Count() == take)
+                if (group.Count() == take)
                     return offset + (take - 1);
-            } while (offset < line.Length);
+            } while (offset + take < line.Length);
 
             return 0;
         }
