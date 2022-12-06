@@ -30,8 +30,8 @@ namespace AdventOfCode.Solutions.Year2018
             // Check each example against the logic
             foreach(var example in examples)
             {
-                // var units = PlayGame(ReadGame(example.Key));
-                // Debug.Assert(Debug.Equals(units, example.Value), $"Expected: {example.Value}\nActual: {units}");
+                var units = PlayGame(ReadGame(example.Key));
+                Debug.Assert(Debug.Equals(units, example.Value), $"Expected: {example.Value}\nActual: {units}");
             }
         }
 
@@ -52,13 +52,13 @@ namespace AdventOfCode.Solutions.Year2018
 
             var groups = input.SplitByBlankLine(true);
 
-            game.Immune = groups[0].Skip(1).Select(line => ReadGroup(line)).ToList();
+            game.Immune = groups[0].Skip(1).Select(line => ReadGroup(line, true)).ToList();
             game.Infection = groups[1].Skip(1).Select(line => ReadGroup(line)).ToList();
 
             return game;
         }
 
-        private Group ReadGroup(string line)
+        private Group ReadGroup(string line, bool isImmune = false)
         {
             // Weakness and immunity may be in any order
             var pattern = new Regex(@"^(?<units>[0-9]+) units each with (?<hitpoints>[0-9]+) hit points (?<subquery>\(.+\) )?with .* attack that does (?<attackpower>[0-9]+) (?<attacktype>[a-z]+) damage at initiative (?<initiative>[0-9]+)$");
@@ -76,6 +76,8 @@ namespace AdventOfCode.Solutions.Year2018
                 AttackPower = Int32.Parse(match.Groups["attackpower"].Value),
                 AttackType = Enum.Parse<AttackType>(match.Groups["attacktype"].Value, true),
                 Initiative = Int32.Parse(match.Groups["initiative"].Value),
+
+                IsImmune = isImmune
             };
 
             if (match.Groups.ContainsKey("subquery") && match.Groups["subquery"].Value.Length > 0)
@@ -87,13 +89,17 @@ namespace AdventOfCode.Solutions.Year2018
                     group.Weakness = weaknesses
                         .Groups[1]
                         .Value
-                        .Split(',', options: StringSplitOptions.TrimEntries).Select(w => Enum.Parse<AttackType>(w, true)).ToArray();
+                        .Split(',', options: StringSplitOptions.TrimEntries)
+                        .Select(w => Enum.Parse<AttackType>(w, true))
+                        .ToArray();
 
                 if (immunity.Groups.Count > 1)
                     group.Immune = immunity
                         .Groups[1]
                         .Value
-                        .Split(',', options: StringSplitOptions.TrimEntries).Select(w => Enum.Parse<AttackType>(w, true)).ToArray();
+                        .Split(',', options: StringSplitOptions.TrimEntries)
+                        .Select(w => Enum.Parse<AttackType>(w, true))
+                        .ToArray();
             }
 
             return group;
@@ -114,15 +120,7 @@ namespace AdventOfCode.Solutions.Year2018
                 // Get our targets
                 var attacks = SelectTargets(game);
 
-                // Order by initiative descending
-                // Then attack
-                var attackOrder = attacks.OrderByDescending(attack => attack.Attacker.Initiative).ToList();
-
-                // For me:
-                if (game.Immune.Where(group => group.IsActive).Sum(group => group.UnitCount) == 14000 || game.Infection.Where(group => group.IsActive).Sum(group => group.UnitCount) == 14000)
-                    System.Diagnostics.Debugger.Break();
-
-                foreach (var attack in attackOrder)
+                foreach (var attack in attacks)
                 {
                     AttackUnits(attack.Attacker, attack.Defender);
 
@@ -171,7 +169,7 @@ namespace AdventOfCode.Solutions.Year2018
             ret.AddRange(SelectTargets(game.Infection.Where(group => group.IsActive).ToList(), game.Immune.Where(group => group.IsActive).ToList()));
             ret.AddRange(SelectTargets(game.Immune.Where(group => group.IsActive).ToList(), game.Infection.Where(group => group.IsActive).ToList()));
 
-            return ret.ToArray();
+            return ret.OrderByDescending(attack => attack.Attacker.Initiative).ToArray();
         }
 
         /// <summary>
@@ -183,7 +181,8 @@ namespace AdventOfCode.Solutions.Year2018
             // If a group is picked, remove it from the list
             var ret = new List<(Group Attacker, Group Defender)>();
 
-            foreach(var attacker in Attackers)
+            // Attackers choose in order of Effective Power descending
+            foreach(var attacker in Attackers.OrderByDescending(group => group.EffectivePower))
             {
                 var defender = ChooseDefender(attacker, Defenders);
 
@@ -224,8 +223,9 @@ namespace AdventOfCode.Solutions.Year2018
                 return default;
 
             return Defenders
-                // First calculate the damage possible for easier sorting
+                // First calculate the damage possible for easier sorting, ignore anyone we can't hit
                 .Select(defender => (defender, power: GetAttackPower(Attacker, defender)))
+                .Where(group => group.power > 0)
                 // Find the highest effective power
                 .OrderByDescending(group => group.power)
                 // Tie breaker: Defender with highest Effective Power
@@ -309,9 +309,14 @@ namespace AdventOfCode.Solutions.Year2018
             /// </summary>
             public AttackType[] Immune { get; set; } = Array.Empty<AttackType>();
 
+            /// <summary>
+            /// Are we Immune or Infection?
+            /// </summary>
+            public bool IsImmune { get; set; } = false;
+
             public override string ToString()
             {
-                return $"Units: {UnitCount}, HP: {UnitHitPoints}, EffectivePower: {EffectivePower}, Attack: {AttackType}";
+                return $"{(IsImmune ? "[Immune]" : "[Infection]")} Units: {UnitCount}, HP: {UnitHitPoints}, EffectivePower: {EffectivePower}, Attack: {AttackType}, Initiative: {Initiative}, Weak: [{string.Join(",",Weakness)}], Immune: [{string.Join(",", Immune)}]";
             }
         }
     }
