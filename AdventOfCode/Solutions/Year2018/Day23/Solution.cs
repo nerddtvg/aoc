@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 
 using System.Linq;
 
+using Microsoft.Z3;
+
 
 namespace AdventOfCode.Solutions.Year2018
 {
@@ -68,367 +70,54 @@ namespace AdventOfCode.Solutions.Year2018
 
         protected override string? SolvePartTwo()
         {
-            // Simply brute forcing this is not going to work
-            // We need some algoritm that gets us a small range to check
-            // This is not an algoritm or method I know, so I looked at the thread again
-            // https://old.reddit.com/r/adventofcode/comments/a8s17l/2018_day_23_solutions/ecfmpy0/
+            // I'm not familiar with any of this math or theorems
+            // I will be using a Z3 based solution from:
+            // https://www.reddit.com/r/adventofcode/comments/a8s17l/comment/ecdbux2/
 
-            Func<(Int64 x1, Int64 y1, Int64 z1, Int64 x2, Int64 y2, Int64 z2), NanoBot, bool> doesIntersect = (box, bot) =>
+            ArithExpr zabs(Context context, ArithExpr x) =>
+                (ArithExpr)context.MkITE(context.MkGe(x, context.MkInt(0)), x, context.MkMul(x, context.MkInt(-1)));
+
+            var z3Context = new Microsoft.Z3.Context();
+            (var x, var y, var z) = (z3Context.MkIntConst("x"), z3Context.MkIntConst("y"), z3Context.MkIntConst("z"));
+            var in_ranges = Enumerable.Range(0, this.bots.Count).Select(c => z3Context.MkIntConst($"in_range_{c}")).ToArray();
+            var range_count = z3Context.MkIntConst("sum");
+
+            var optimize = z3Context.MkOptimize();
+
+            for (int i = 0; i < this.bots.Count; i++)
             {
-                // Does the bot intersect?
-                Int64 d = 0;
-                Int64 boxhigh, boxlow;
-
-                boxlow = box.x1;
-                boxhigh = box.x2 - 1;
-                d += Math.Abs(bot.x - boxlow) + Math.Abs(bot.x - boxhigh);
-                d -= boxhigh - boxlow;
-
-                boxlow = box.y1;
-                boxhigh = box.y2 - 1;
-                d += Math.Abs(bot.y - boxlow) + Math.Abs(bot.y - boxhigh);
-                d -= boxhigh - boxlow;
-
-                boxlow = box.z1;
-                boxhigh = box.z2 - 1;
-                d += Math.Abs(bot.z - boxlow) + Math.Abs(bot.z - boxhigh);
-                d -= boxhigh - boxlow;
-
-                d /= 2;
-                return ((ulong)d) <= bot.r;
-            };
-
-            Func<(Int64 x1, Int64 y1, Int64 z1, Int64 x2, Int64 y2, Int64 z2), uint> sumIntersect = (box) =>
-            {
-                return (uint)this.bots.Count(bot => doesIntersect(box, bot));
-            };
-
-            var maxX = this.bots.Select(b => (long)Math.Abs(b.x) + (long)b.r).Max();
-            var maxY = this.bots.Select(b => (long)Math.Abs(b.y) + (long)b.r).Max();
-            var maxZ = this.bots.Select(b => (long)Math.Abs(b.z) + (long)b.r).Max();
-            var maxAbsCord = Math.Max(maxX, Math.Max(maxY, maxZ));
-
-            var boxSize = 1;
-            while (boxSize <= maxAbsCord)
-            {
-                boxSize *= 2;
-            }
-
-            var initalBox = (-boxSize, -boxSize, -boxSize, boxSize, boxSize, boxSize);
-
-            var comparer = new PqComparer();
-
-            var pq = new PriorityQueue<(Int64 x1, Int64 y1, Int64 z1, Int64 x2, Int64 y2, Int64 z2), (Int64 negReach, Int64 negSz, Int64 distToOrig)>(comparer);
-            pq.Enqueue(initalBox, (-1 * this.bots.LongCount(), -2 * boxSize, 3 * boxSize));
-
-            do
-            {
-                if (!pq.TryDequeue(out var box, out var priority))
-                {
-                    throw new Exception();
-                }
-
-                if (priority.negSz == -1)
-                {
-                    return (-1 * priority.negReach).ToString();
-                }
-
-                var newSz = priority.negSz / 2;
-
-                // Move one box in each direction: x, y, z
-                var newBox = (
-                    x1: box.x1,
-                    y1: box.y1,
-                    z1: box.z1,
-                    x2: box.x1 + newSz,
-                    y2: box.y1 + newSz,
-                    z2: box.z1 + newSz
+                optimize.Add(
+                    z3Context.MkEq(
+                        in_ranges[i],
+                        z3Context.MkITE(
+                            z3Context.MkLe(
+                                z3Context.MkAdd(
+                                    zabs(z3Context, z3Context.MkSub(x, z3Context.MkInt(this.bots[i].x))),
+                                    zabs(z3Context, z3Context.MkSub(y, z3Context.MkInt(this.bots[i].y))),
+                                    zabs(z3Context, z3Context.MkSub(z, z3Context.MkInt(this.bots[i].z)))
+                                ),
+                                z3Context.MkReal(this.bots[i].r)
+                            ),
+                            z3Context.MkInt(1),
+                            z3Context.MkInt(0)
+                        )
+                    )
                 );
-
-                var newReach = sumIntersect(newBox);
-                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
-
-                newBox = (
-                    x1: box.x1,
-                    y1: box.y1,
-                    z1: box.z1 + newSz,
-                    x2: box.x1 + newSz,
-                    y2: box.y1 + newSz,
-                    z2: box.z1 + (2 * newSz)
-                );
-
-                newReach = sumIntersect(newBox);
-                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
-
-                newBox = (
-                    x1: box.x1,
-                    y1: box.y1 + newSz,
-                    z1: box.z1,
-                    x2: box.x1 + newSz,
-                    y2: box.y1 + (2 * newSz),
-                    z2: box.z1 + newSz
-                );
-
-                newReach = sumIntersect(newBox);
-                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
-
-                newBox = (
-                    x1: box.x1,
-                    y1: box.y1 + newSz,
-                    z1: box.z1 + newSz,
-                    x2: box.x1 + newSz,
-                    y2: box.y1 + (2 * newSz),
-                    z2: box.z1 + (2 * newSz)
-                );
-
-                newReach = sumIntersect(newBox);
-                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
-
-                newBox = (
-                    x1: box.x1 + newSz,
-                    y1: box.y1,
-                    z1: box.z1,
-                    x2: box.x1 + (2 * newSz),
-                    y2: box.y1 + newSz,
-                    z2: box.z1 + newSz
-                );
-
-                newReach = sumIntersect(newBox);
-                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
-
-                newBox = (
-                    x1: box.x1 + newSz,
-                    y1: box.y1,
-                    z1: box.z1 + newSz,
-                    x2: box.x1 + (2 * newSz),
-                    y2: box.y1 + newSz,
-                    z2: box.z1 + (2 * newSz)
-                );
-
-                newReach = sumIntersect(newBox);
-                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
-
-                newBox = (
-                    x1: box.x1 + newSz,
-                    y1: box.y1 + newSz,
-                    z1: box.z1 + newSz,
-                    x2: box.x1 + (2 * newSz),
-                    y2: box.y1 + (2 * newSz),
-                    z2: box.z1 + (2 * newSz)
-                );
-
-                newReach = sumIntersect(newBox);
-                pq.Enqueue(newBox, (-1 * newReach, -1 * newSz, (Int64)Math.Min((newBox.x1, newBox.y1, newBox.z1).ManhattanDistance((0, 0, 0)), (newBox.x2, newBox.y2, newBox.z2).ManhattanDistance((0, 0, 0)))));
-            } while (pq.Count > 0);
-
-            return null;
-
-            // https://old.reddit.com/r/adventofcode/comments/a8s17l/comment/ecddus1/
-            /*
-            var xs = this.bots.Select(b => b.x).Append(0).ToList();
-            var ys = this.bots.Select(b => b.y).Append(0).ToList();
-            var zs = this.bots.Select(b => b.z).Append(0).ToList();
-
-            var dist = 1;
-            while (dist < (xs.Max() - xs.Min()) || dist < (ys.Max() - ys.Min()) || dist < (zs.Max() - zs.Min()))
-            {
-                dist *= 2;
             }
 
-            // Something about wrapping issues?
-            var ox = -1 * xs.Min();
-            var oy = -1 * ys.Min();
-            var oz = -1 * zs.Min();
+            // Add all of the in_ranges to see if the 1s add up to range_count
+            optimize.Add(z3Context.MkEq(range_count, z3Context.MkAdd(in_ranges)));
 
-            var span = 1;
-            while (span < this.bots.Count)
-            {
-                span *= 2;
-            }
+            var distance_from_zero = z3Context.MkIntConst("dist");
+            optimize.Add(z3Context.MkEq(distance_from_zero, z3Context.MkAdd(zabs(z3Context, x), zabs(z3Context, y), zabs(z3Context, z))));
 
-            var forced_check = 1;
-            var tried = new Dictionary<int, (ulong val, int count)>();
+            var h1 = optimize.MkMaximize(range_count);
+            var h2 = optimize.MkMinimize(distance_from_zero);
 
-            ulong best_val = 0;
-            int best_count = 0;
+            if (optimize.Check() != Status.SATISFIABLE)
+                throw new Exception();
 
-            while(true)
-            {
-                if (!tried.ContainsKey(forced_check))
-                {
-                    tried[forced_check] = Find(xs.ToArray(), ys.ToArray(), zs.ToArray(), dist, ox, oy, oz, forced_check);
-                }
-
-                (var val, var count) = tried[forced_check];
-
-                if (val == 0)
-                {
-                    // Go up a level
-                    if (span > 1)
-                    {
-                        span /= 2;
-                    }
-
-                    forced_check = Math.Max(1, forced_check - span);
-                }
-                else
-                {
-                    if (best_count == 0 || count > best_count)
-                    {
-                        best_count = count;
-                        best_val = val;
-                    }
-                    
-                    if (span == 1)
-                    {
-                        // We're done
-                        break;
-                    }
-
-                    forced_check += span;
-                }
-            }
-
-            return best_val.ToString();
-            */
-
-            // This gave 33000593 which was not correct
-            // https://old.reddit.com/r/adventofcode/comments/a8s17l/comment/ecdqzdg/
-            // This is a neat way of solving it using "simple" lines
-            /* var queue = new Queue<(ulong distance, int counter)>();
-
-            (Int64, Int64, Int64) origin = (0, 0, 0);
-
-            foreach(var bot in this.bots)
-            {
-                var d = origin.ManhattanDistance((bot.x, bot.y, bot.z));
-                queue.Enqueue((Math.Max(0, d - bot.r), 1));
-                queue.Enqueue((d + bot.r + 1, -1));
-            }
-
-            var count = 0;
-            var maxCount = 0;
-            ulong result = 0;
-
-            while(queue.Count > 0)
-            {
-                (var distance, var counter) = queue.Dequeue();
-                count += counter;
-
-                if (count > maxCount)
-                {
-                    result = distance;
-                    maxCount = count;
-                }
-            }
-
-            return result.ToString(); */
-        }
-
-        /*
-        private (UInt64 val, int count) Find(Int64[] xs, Int64[] ys, Int64[] zs, int dist, Int64 ox, Int64 oy, Int64 oz, int forced_count)
-        {
-            var at_target = new List<(Int64 x, Int64 y, Int64 z, int count, UInt64 dist)>();
-
-            for (Int64 x = xs.Min(); x <= xs.Max() + 1; x += dist)
-            {
-                for (Int64 y = ys.Min(); y <= ys.Max() + 1; y += dist)
-                {
-                    for (Int64 z = zs.Min(); z <= zs.Max() + 1; z += dist)
-                    {
-                        var count = 0;
-                        foreach(var bot in this.bots)
-                        {
-                            if (dist == 1)
-                            {
-                                if (bot.IsInRange((x, y, z)))
-                                {
-                                    count++;
-                                }
-                            }
-                            else
-                            {
-                                var calc = Math.Abs((ox + x) - (ox + bot.x));
-                                calc += Math.Abs((oy + y) - (oy + bot.y));
-                                calc += Math.Abs((oz + z) - (oz + bot.z));
-
-                                if ((calc / dist - 3) <= (Int64) bot.r)
-                                {
-                                    count++;
-                                }
-                            }
-                        }
-
-                        if (count >= forced_count)
-                        {
-                            at_target.Add((x, y, z, count, (ulong) (Math.Abs(x) + Math.Abs(y) + Math.Abs(z))));
-                        }
-                    }
-                }
-            }
-
-            while(at_target.Count > 0)
-            {
-                (Int64 x, Int64 y, Int64 z, int count, UInt64 dist)? best = null;
-                var best_i = -1;
-
-                // Find the best candidate (for now)
-                for (int i = 0; i < at_target.Count; i++)
-                {
-                    if (best_i < 0 || (best.HasValue && at_target[i].dist < best.Value.dist))
-                    {
-                        best = at_target[i];
-                        best_i = i;
-                    }
-
-                    if (!best.HasValue)
-                        break;
-
-                    if (dist == 1)
-                    {
-                        return (best.Value.dist, best.Value.count);
-                    }
-                    else
-                    {
-                        xs = new Int64[] { best.Value.x, best.Value.x + (dist / 2) };
-                        ys = new Int64[] { best.Value.y, best.Value.y + (dist / 2) };
-                        zs = new Int64[] { best.Value.z, best.Value.z + (dist / 2) };
-                        (var a, var b) = Find(xs, ys, zs, dist / 2, ox, oy, oz, forced_count);
-
-                        if (a == 0)
-                        {
-                            at_target.RemoveAt(best_i);
-                        }
-                        else
-                        {
-                            return (a, b);
-                        }
-                    }
-                }
-            }
-
-            return (0, 0);
-        }
-        */
-    }
-
-    public class PqComparer : IComparer<(long, long, long)>
-    {
-        public int Compare((long, long, long) a, (long, long, long) b)
-        {
-            var comparer = Comparer<long>.Default;
-
-            var ca = comparer.Compare(a.Item1, b.Item1);
-
-            if (ca != 0)
-                return ca;
-
-            ca = comparer.Compare(a.Item2, b.Item2);
-
-            if (ca != 0)
-                return ca;
-
-            return comparer.Compare(a.Item3, b.Item3);
+            return h2.Lower.ToString();
         }
     }
 }
