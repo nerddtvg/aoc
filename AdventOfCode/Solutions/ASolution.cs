@@ -12,14 +12,23 @@ namespace AdventOfCode.Solutions
     abstract class ASolution
     {
 
-        Lazy<string?> _input, _part1, _part2;
+        Lazy<string?> _input;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        Lazy<string?> _part1, _part2;
 
         public int Day { get; }
         public int Year { get; }
         public string Title { get; }
         public string DebugInput { get; set; } = string.Empty;
         public string Input => !string.IsNullOrEmpty(DebugInput) ? DebugInput : (string.IsNullOrEmpty(_input.Value) ? string.Empty : _input.Value);
+
+        // Hiding these from the debugger
+        // If a debug session is paused, this will inadvertantly initialize the solutions
+        // and that may be detrimental to testing
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public string Part1 => string.IsNullOrEmpty(_part1.Value) ? string.Empty : _part1.Value;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public string Part2 => string.IsNullOrEmpty(_part2.Value) ? string.Empty : _part2.Value;
 
         private protected ASolution(int day, int year, string title)
