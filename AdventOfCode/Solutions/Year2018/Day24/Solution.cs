@@ -11,8 +11,6 @@ namespace AdventOfCode.Solutions.Year2018
 
     class Day24 : ASolution
     {
-        private Game game = new();
-
         public Day24() : base(24, 2018, "Immune System Simulator 20XX")
         {
             var examples = new Dictionary<string, int>()
@@ -106,20 +104,31 @@ namespace AdventOfCode.Solutions.Year2018
         /// </summary>
         private int PlayGame(Game game)
         {
-            while(game.Immune.Count(group => group.IsActive) > 0 && game.Infection.Count(group => group.IsActive) > 0)
+            // We reuse these a lot
+            var inProgress = true;
+            var cImmune = () => game.Immune.Count(group => group.IsActive);
+            var cInfection = () => game.Infection.Count(group => group.IsActive);
+
+            do
             {
                 // Get our targets
                 var attacks = SelectTargets(game);
 
                 // Order by initiative descending
                 // Then attack
-                attacks
-                    .OrderByDescending(attack => attack.Attacker.Initiative)
-                    .ToList()
-                    .ForEach(group => AttackUnits(group.Attacker, group.Defender));
-            }
+                foreach (var attack in attacks.OrderByDescending(attack => attack.Attacker.Initiative))
+                {
+                    AttackUnits(attack.Attacker, attack.Defender);
 
-            var survivors = game.Immune.Count(group => group.IsActive) > 0 ? game.Immune : game.Infection;
+                    if (cImmune() == 0 || cInfection() == 0)
+                    {
+                        inProgress = false;
+                        break;
+                    }
+                }
+            } while (inProgress);
+
+            var survivors = (cImmune() > 0 ? game.Immune : game.Infection).Where(group => group.IsActive).ToList();
 
             return survivors.Sum(s => s.UnitCount);
         }
@@ -130,7 +139,8 @@ namespace AdventOfCode.Solutions.Year2018
         private void AttackUnits(Group Attacker, Group Defender)
         {
             // If this group is out of commission, do nothing
-            if (!Attacker.IsActive || !Defender.IsActive) return;
+            if (!Attacker.IsActive || !Defender.IsActive)
+                return;
 
             var attackPower = GetAttackPower(Attacker, Defender);
 
@@ -142,7 +152,7 @@ namespace AdventOfCode.Solutions.Year2018
 
             // Remove those units from service
             Defender.UnitCount -= unitsKilled;
-
+            Defender.UnitCount = Math.Max(Defender.UnitCount, 0);
         }
 
         /// <summary>
