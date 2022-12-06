@@ -30,8 +30,8 @@ namespace AdventOfCode.Solutions.Year2018
             // Check each example against the logic
             foreach(var example in examples)
             {
-                var units = PlayGame(ReadGame(example.Key));
-                Debug.Assert(Debug.Equals(units, example.Value), $"Expected: {example.Value}\nActual: {units}");
+                // var units = PlayGame(ReadGame(example.Key));
+                // Debug.Assert(Debug.Equals(units, example.Value), $"Expected: {example.Value}\nActual: {units}");
             }
         }
 
@@ -116,7 +116,13 @@ namespace AdventOfCode.Solutions.Year2018
 
                 // Order by initiative descending
                 // Then attack
-                foreach (var attack in attacks.OrderByDescending(attack => attack.Attacker.Initiative))
+                var attackOrder = attacks.OrderByDescending(attack => attack.Attacker.Initiative).ToList();
+
+                // For me:
+                if (game.Immune.Where(group => group.IsActive).Sum(group => group.UnitCount) == 14000 || game.Infection.Where(group => group.IsActive).Sum(group => group.UnitCount) == 14000)
+                    System.Diagnostics.Debugger.Break();
+
+                foreach (var attack in attackOrder)
                 {
                     AttackUnits(attack.Attacker, attack.Defender);
 
@@ -143,9 +149,6 @@ namespace AdventOfCode.Solutions.Year2018
                 return;
 
             var attackPower = GetAttackPower(Attacker, Defender);
-
-            // Immune, do nothing
-            if (attackPower == 0) return;
 
             // Figure out how many _whole_ units this kills using integer division, no partial units
             var unitsKilled = attackPower / Defender.UnitHitPoints;
@@ -305,7 +308,11 @@ namespace AdventOfCode.Solutions.Year2018
             /// This group's immunities
             /// </summary>
             public AttackType[] Immune { get; set; } = Array.Empty<AttackType>();
+
+            public override string ToString()
+            {
+                return $"Units: {UnitCount}, HP: {UnitHitPoints}, EffectivePower: {EffectivePower}, Attack: {AttackType}";
+            }
         }
     }
 }
-
