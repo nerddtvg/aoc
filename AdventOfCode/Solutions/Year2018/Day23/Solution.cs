@@ -74,27 +74,39 @@ namespace AdventOfCode.Solutions.Year2018
             // I will be using a Z3 based solution from:
             // https://www.reddit.com/r/adventofcode/comments/a8s17l/comment/ecdbux2/
 
-            ArithExpr zabs(Context context, ArithExpr x) =>
-                (ArithExpr)context.MkITE(context.MkGe(x, context.MkInt(0)), x, context.MkMul(x, context.MkInt(-1)));
+            // Helper because Z3 .NET doesn't expose an easy Abs function for us
+            ArithExpr zabs(ArithExpr x) =>
+                (ArithExpr)x.Context.MkITE(x.Context.MkGe(x, x.Context.MkInt(0)), x, x.Context.MkMul(x, x.Context.MkInt(-1)));
 
+            // Create the z3Context we use to create objects
             var z3Context = new Microsoft.Z3.Context();
+
+            // Define the integer variables that will be used during processing
             (var x, var y, var z) = (z3Context.MkIntConst("x"), z3Context.MkIntConst("y"), z3Context.MkIntConst("z"));
+
+            // An array of booleans (1 or 0) that will determine if a specific bot is in range
             var in_ranges = Enumerable.Range(0, this.bots.Count).Select(c => z3Context.MkIntConst($"in_range_{c}")).ToArray();
+
+            // A total summation of bots in range
             var range_count = z3Context.MkIntConst("sum");
 
+            // The optimizer / solver instance
             var optimize = z3Context.MkOptimize();
 
+            // For each bot...
             for (int i = 0; i < this.bots.Count; i++)
             {
+                // Determine if the bot is in range of the new x, y, z
+                // If so, set in_ranges[i] to 1
                 optimize.Add(
                     z3Context.MkEq(
                         in_ranges[i],
                         z3Context.MkITE(
                             z3Context.MkLe(
                                 z3Context.MkAdd(
-                                    zabs(z3Context, z3Context.MkSub(x, z3Context.MkInt(this.bots[i].x))),
-                                    zabs(z3Context, z3Context.MkSub(y, z3Context.MkInt(this.bots[i].y))),
-                                    zabs(z3Context, z3Context.MkSub(z, z3Context.MkInt(this.bots[i].z)))
+                                    zabs(z3Context.MkSub(x, z3Context.MkInt(this.bots[i].x))),
+                                    zabs(z3Context.MkSub(y, z3Context.MkInt(this.bots[i].y))),
+                                    zabs(z3Context.MkSub(z, z3Context.MkInt(this.bots[i].z)))
                                 ),
                                 z3Context.MkReal(this.bots[i].r)
                             ),
@@ -105,20 +117,33 @@ namespace AdventOfCode.Solutions.Year2018
                 );
             }
 
-            // Add all of the in_ranges to see if the 1s add up to range_count
+            // range_count is the total of in_ranges[1] (1 if in range, 0 otherwise)
+            // So this tells us the maximum number of bots in range
             optimize.Add(z3Context.MkEq(range_count, z3Context.MkAdd(in_ranges)));
 
+            // Determine our distance from origin (0, 0, 0)
             var distance_from_zero = z3Context.MkIntConst("dist");
-            optimize.Add(z3Context.MkEq(distance_from_zero, z3Context.MkAdd(zabs(z3Context, x), zabs(z3Context, y), zabs(z3Context, z))));
+            optimize.Add(z3Context.MkEq(distance_from_zero, z3Context.MkAdd(zabs(x), zabs(y), zabs(z))));
 
+            // We want the highest number of bots in range ...
             var h1 = optimize.MkMaximize(range_count);
+
+            // ... with the lowest distance
             var h2 = optimize.MkMinimize(distance_from_zero);
 
             if (optimize.Check() != Status.SATISFIABLE)
                 throw new Exception();
 
-            return h2.Lower.ToString();
+            // Debug output:
+            var xVal = optimize.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "x").Value;
+            var yVal = optimize.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "y").Value;
+            var zVal = optimize.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "z").Value;
+            var dist = h2.Lower;
+            Console.WriteLine($"Position: ({xVal},{yVal},{zVal})");
+            Console.WriteLine($"Distance: {dist}");
+            Console.WriteLine($"In Range: {h1.Upper}");
+
+            return dist.ToString();
         }
     }
 }
-
