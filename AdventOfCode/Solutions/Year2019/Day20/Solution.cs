@@ -129,6 +129,17 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string SolvePartTwo()
         {
+            // Find our starting and ending points
+            var start = graph.Vertices.First(v => v.Value == "AA");
+            var end = graph.Vertices.First(v => v.Value == "ZZ");
+
+            // Since we will have dynamic edge costs depending on the depth (not just the edge itself)
+            // we are using BFS instead
+            var bfs = new QuikGraph.Algorithms.Search.BreadthFirstSearchAlgorithm<GraphNode, Edge<GraphNode>>(graph);
+            bfs.SetRootVertex(start);
+
+            bfs.Compute();
+
             return string.Empty;
         }
 
