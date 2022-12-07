@@ -84,7 +84,23 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Get our root
+            var root = directories.First(d => d.Name == "/");
+
+            // Max size
+            var maxSize = 70000000;
+            var currentUsedSize = root.Size;
+            var currentFreeSize = maxSize - currentUsedSize;
+            var desiredFreeSize = 30000000;
+            var neededSize = desiredFreeSize - currentFreeSize;
+
+            // Find the directory with the smallest size bigger than desired
+            return directories
+                .Where(d => d.Size >= neededSize)
+                .OrderBy(d => d.Size)
+                .First()
+                .Size
+                .ToString();
         }
 
         public struct FileNode
