@@ -111,6 +111,17 @@ namespace AdventOfCode.Solutions
         }
 
         /// <summary>
+        /// Get the Manhatten Distance between two (x, y, z, t) points
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y, z, t) values</param>
+        /// <param name="b">A tuple of integer (x, y, z, t) values</param>
+        /// <returns>An <see cref="System.Int32"/> distance</returns>
+        public static uint ManhattanDistance(this (int x, int y, int z, int t) a, (int x, int y, int z, int t) b)
+        {
+            return (uint)Math.Abs(a.x - b.x) + (uint)Math.Abs(a.y - b.y) + (uint)Math.Abs(a.z - b.z) + (uint)Math.Abs(a.t - b.t);
+        }
+
+        /// <summary>
         /// Get the Manhatten Distance between two (x, y, z) points
         /// </summary>
         /// <param name="a">A tuple of integer (x, y, z) values</param>
