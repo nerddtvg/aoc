@@ -76,11 +76,7 @@ namespace AdventOfCode.Solutions.Year2019
                         {
                             vertex.Type = NodeType.Portal;
                             vertex.Value = portalValue;
-                            vertex.Index = 1;
-
-                            // Did we find the second?
-                            if (vertexes.Any(v => v.Value == portalValue))
-                                vertex.Index = 2;
+                            vertex.Index = y == 2 || y == maxY - 2 || x == 2 || x == maxX - 2 ? 1 : 2;
                         }
 
                         // Add to the list
