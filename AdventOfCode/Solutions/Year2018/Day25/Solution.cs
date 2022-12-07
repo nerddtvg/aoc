@@ -6,9 +6,10 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Diagnostics;
 
+using QuikGraph;
+
 namespace AdventOfCode.Solutions.Year2018
 {
-
     class Day25 : ASolution
     {
 
@@ -84,39 +85,20 @@ namespace AdventOfCode.Solutions.Year2018
                 .Select(pt => (pt[0], pt[1], pt[2], pt[3]))
                 .ToList();
 
-            var point = stars[0];
-            var constellations = new List<List<(int x, int y, int z, int t)>>()
-            {
-                new() { stars[0] }
-            };
+            // Doing this with QuikGraph instead
+            var edges = new List<Edge<(int x, int y, int z, int t)>>();
+            foreach(var star in stars)
+                foreach(var star2 in stars)
+                    if (star.ManhattanDistance(star2) <= 3)
+                        edges.Add(new Edge<(int x, int y, int z, int t)>(star, star2));
 
-            for (int i = 1; i < stars.Count; i++)
-            {
-                var thisPoint = stars[i];
+            // Convert this to a graph
+            var graph = edges.ToUndirectedGraph<(int x, int y, int z, int t), Edge<(int x, int y, int z, int t)>>();
 
-                // Check if we make a chain
-                if (point.ManhattanDistance(thisPoint) <= 3)
-                {
-                    // Save in case we need distance later
-                    constellations.Last().Add(thisPoint);
-                }
-                else
-                {
-                    if (constellations.Last().Last().ManhattanDistance(thisPoint) <= 3)
-                    {
-                        constellations.Last().Add(thisPoint);
-                        continue;
-                    }
-
-                    // New!
-                    constellations.Add(new() { thisPoint });
-
-                    // Save the old point
-                    point = thisPoint;
-                }
-            }
-
-            return constellations.Count(c => c.Count > 1);
+            // Calculate the clusters
+            var connections = new QuikGraph.Algorithms.ConnectedComponents.ConnectedComponentsAlgorithm<(int x, int y, int z, int t), Edge<(int x, int y, int z, int t)>>(graph);
+            connections.Compute();
+            return connections.ComponentCount;
         }
 
         protected override string? SolvePartOne()

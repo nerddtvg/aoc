@@ -20,6 +20,7 @@
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="Microsoft.Z3" Version="4.11.2" />
+    <PackageReference Include="QuikGraph" Version="2.5.0" />
   </ItemGroup>
 
 </Project>
