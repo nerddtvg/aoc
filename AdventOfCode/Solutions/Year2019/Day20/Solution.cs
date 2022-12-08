@@ -12,13 +12,12 @@ namespace AdventOfCode.Solutions.Year2019
 
     class Day20 : ASolution
     {
-        private IVertexAndEdgeListGraph<GraphNode, Edge<GraphNode>> graph = new QuikGraph.AdjacencyGraph<GraphNode, Edge<GraphNode>>();
         public Day20() : base(20, 2019, "Donut Maze")
         {
-            ResetGraph(Input);
+            
         }
 
-        private void ResetGraph(string input)
+        private BidirectionalGraph<GraphNode, Edge<GraphNode>> ResetGraph(string input, int depth = 0)
         {
             // Get a direct [y][x] grid
             var grid = input.SplitByNewline()
@@ -44,7 +43,8 @@ namespace AdventOfCode.Solutions.Year2019
                         {
                             Type = NodeType.Open,
                             x = x,
-                            y = y
+                            y = y,
+                            depth = depth
                         };
 
                         // First, identify if this is a portal or not
@@ -72,7 +72,8 @@ namespace AdventOfCode.Solutions.Year2019
                         }
 
                         // We found a portal!
-                        if (!string.IsNullOrEmpty(portalValue))
+                        // If depth > 1, then AA and ZZ do not exist
+                        if (!string.IsNullOrEmpty(portalValue) && (depth <= 1 || (portalValue != "AA" && portalValue != "ZZ")))
                         {
                             vertex.Type = NodeType.Portal;
                             vertex.Value = portalValue;
@@ -99,19 +100,22 @@ namespace AdventOfCode.Solutions.Year2019
                 }
             }
 
-            // Add edges between portals
-            foreach(var portal2 in vertexes.Where(v => v.Type == NodeType.Portal && v.Index == 2))
-            {
-                edges.Add(new Edge<GraphNode>(portal2, vertexes.First(v => v.Index == 1 && v.Value == portal2.Value)));
-                edges.Add(new(edges.Last().Target, edges.Last().Source));
-            }
+            // Add edges between portals for part 1 (depth == 0)
+            if (depth == 0)
+                foreach(var portal2 in vertexes.Where(v => v.Type == NodeType.Portal && v.Index == 2))
+                {
+                    edges.Add(new Edge<GraphNode>(portal2, vertexes.First(v => v.Index == 1 && v.Value == portal2.Value)));
+                    edges.Add(new(edges.Last().Target, edges.Last().Source));
+                }
 
             // We have a list of edges and vertexes
-            graph = edges.ToBidirectionalGraph<GraphNode, Edge<GraphNode>>();
+            return edges.ToBidirectionalGraph<GraphNode, Edge<GraphNode>>();
         }
 
         protected override string SolvePartOne()
         {
+            var graph = ResetGraph(Input);
+
             // Find our starting and ending points
             var start = graph.Vertices.First(v => v.Value == "AA");
             var end = graph.Vertices.First(v => v.Value == "ZZ");
@@ -129,16 +133,68 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string SolvePartTwo()
         {
+            // To simply cheat by using QuikGraph's search functions instead of writing our own,
+            // we will layer many graphs on top of each other.
+            var graph = ResetGraph(Input, 1);
+
+            // Remove outside portals in top-level graph
+            graph.Vertices
+                .Where(v => v.Type == NodeType.Portal && v.Index == 1 && v.depth == 1 && v.Value != "AA" && v.Value != "ZZ")
+                .ToList()
+                .ForEach(v =>
+                {
+                    v.Value = string.Empty;
+                    v.Type = NodeType.Open;
+                });
+
+            int maxDepth = 40;
+
+            for (int i = 2; i <= maxDepth; i++)
+            {
+                // Get a fresh sub-map with the given depth
+                var tGraph = ResetGraph(Input, i);
+
+                // Add to the overall graph
+                graph.AddVerticesAndEdgeRange(tGraph.Edges);
+
+                // Link the two layers together
+                // For every tGraph vertex with index == 1, find the corresponding index == 2
+                tGraph.Vertices
+                    .Where(tV => tV.Index == 1)
+                    .ToList()
+                    .ForEach(tV =>
+                    {
+                        var v = graph.Vertices.FirstOrDefault(v1 => v1.Type == NodeType.Portal && v1.depth == i - 1 && v1.Index == 2 && v1.Value == tV.Value);
+
+                        if (v != default)
+                        {
+                            graph.AddEdge(new Edge<GraphNode>(tV, v));
+                            graph.AddEdge(new Edge<GraphNode>(v, tV));
+                        }
+                    });
+            }
+
+            // Remove inside portals in lowest-level graph
+            graph.Vertices
+                .Where(v => v.Type == NodeType.Portal && v.Index == 2 && v.depth == maxDepth)
+                .ToList()
+                .ForEach(v =>
+                {
+                    v.Value = string.Empty;
+                    v.Type = NodeType.Open;
+                });
+
             // Find our starting and ending points
             var start = graph.Vertices.First(v => v.Value == "AA");
             var end = graph.Vertices.First(v => v.Value == "ZZ");
 
-            // Since we will have dynamic edge costs depending on the depth (not just the edge itself)
-            // we are using BFS instead
-            var bfs = new QuikGraph.Algorithms.Search.BreadthFirstSearchAlgorithm<GraphNode, Edge<GraphNode>>(graph);
-            bfs.SetRootVertex(start);
+            // Initialize Dijkstra
+            var tryPaths = graph.ShortestPathsDijkstra(edge => 1, start);
 
-            bfs.Compute();
+            if (tryPaths(end, out IEnumerable<Edge<GraphNode>> path))
+            {
+                return path.Count().ToString();
+            }
 
             return string.Empty;
         }
@@ -160,6 +216,7 @@ namespace AdventOfCode.Solutions.Year2019
 
             public int x { get; set; }
             public int y { get; set; }
+            public int depth { get; set; } = 0;
 
             public override string ToString()
             {
