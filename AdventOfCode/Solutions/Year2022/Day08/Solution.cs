@@ -26,6 +26,21 @@ namespace AdventOfCode.Solutions.Year2022
             return trees.Select(line => line[x]).ToArray();
         }
 
+        private int CountVisible(int[] trees, int height)
+        {
+            int visible = 0;
+
+            for (int i = 0; i < trees.Length; i++)
+            {
+                visible++;
+
+                if (trees[i] >= height)
+                    break;
+            }
+
+            return visible;
+        }
+
         private bool IsVisible(int[][] trees, int x, int y)
         {
             // Determine if the tree at x,y is visible
@@ -63,7 +78,32 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            int maxScore = 0;
+
+            for (int y = 1; y < trees.Length - 1; y++)
+            {
+                for (int x = 1; x < trees[0].Length - 1; x++)
+                {
+                    // From position x,y, look up, down, left, and right
+                    // to find how many trees we can see
+                    int score =
+                        // Left (reverse to go backwards)
+                        CountVisible(trees[y].Take(x).Reverse().ToArray(), trees[y][x])
+                        *
+                        // Right
+                        CountVisible(trees[y].Skip(x + 1).ToArray(), trees[y][x])
+                        *
+                        // Up (reverse to go backwards)
+                        CountVisible(GetCol(trees, x).Take(y).Reverse().ToArray(), trees[y][x])
+                        *
+                        // Right
+                        CountVisible(GetCol(trees, x).Skip(y + 1).ToArray(), trees[y][x]);
+
+                    maxScore = int.Max(maxScore, score);
+                }
+            }
+
+            return maxScore.ToString();
         }
     }
 }
