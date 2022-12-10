@@ -43,9 +43,6 @@ namespace AdventOfCode.Solutions.Year2022
 
         public HashSet<(int x, int y)> visited = new();
 
-        public (int x, int y) head = (0, 0);
-        public (int x, int y) tail = (0, 0);
-
         public Day09() : base(09, 2022, "Rope Bridge")
         {
 
@@ -53,15 +50,12 @@ namespace AdventOfCode.Solutions.Year2022
 
         public void ResetGame()
         {
-            head = (0, 0);
-            tail = (0, 0);
-
             // The tail visits the start
             visited.Clear();
-            visited.Add(tail);
+            visited.Add((0, 0));
         }
 
-        private void ProcessLine(string line)
+        private void ProcessLine(string line, List<(int x, int y)> knots)
         {
             // D ##, U ##, L ##, R ##
             var inputs = line.Split(" ", 2, StringSplitOptions.TrimEntries);
@@ -75,79 +69,88 @@ namespace AdventOfCode.Solutions.Year2022
             // Add tail pos to hashtset
             for (int i = 0; i < distance; i++)
             {
-                head = head.Add(move);
+                knots[0] = knots[0].Add(move);
 
-                // If we are "touching", then we don't move
-                if (
-                    head.ManhattanDistance(tail) <= 1
-                    ||
-                    head == tail.Add(Moves[Direction.UL])
-                    ||
-                    head == tail.Add(Moves[Direction.UR])
-                    ||
-                    head == tail.Add(Moves[Direction.DL])
-                    ||
-                    head == tail.Add(Moves[Direction.DR])
-                )
-                    continue;
+                for (int q = 1; q < knots.Count; q++)
+                {
+                    // If we are "touching", then we don't move
+                    if (
+                        knots[q - 1].ManhattanDistance(knots[q]) <= 1
+                        ||
+                        knots[q - 1] == knots[q].Add(Moves[Direction.UL])
+                        ||
+                        knots[q - 1] == knots[q].Add(Moves[Direction.UR])
+                        ||
+                        knots[q - 1] == knots[q].Add(Moves[Direction.DL])
+                        ||
+                        knots[q - 1] == knots[q].Add(Moves[Direction.DR])
+                    )
+                        continue;
 
-                // If we are the same x or same y, then we move easily
-                if (head.x == tail.x)
-                {
-                    if (head.y > tail.y)
-                        tail = tail.Add(Moves[Direction.D]);
-                    else
-                        tail = tail.Add(Moves[Direction.U]);
-                }
-                else if (head.y == tail.y)
-                {
-                    if (head.x > tail.x)
-                        tail = tail.Add(Moves[Direction.R]);
-                    else
-                        tail = tail.Add(Moves[Direction.L]);
-                }
-                else
-                {
-                    // Different row and column
-                    // "the tail always moves one step diagonally to keep up"
-                    if (head.x < tail.x)
+                    // If we are the same x or same y, then we move easily
+                    if (knots[q - 1].x == knots[q].x)
                     {
-                        if (head.y < tail.y)
-                            tail = tail.Add(Moves[Direction.UL]);
+                        if (knots[q - 1].y > knots[q].y)
+                            knots[q] = knots[q].Add(Moves[Direction.D]);
                         else
-                            tail = tail.Add(Moves[Direction.DL]);
+                            knots[q] = knots[q].Add(Moves[Direction.U]);
+                    }
+                    else if (knots[q - 1].y == knots[q].y)
+                    {
+                        if (knots[q - 1].x > knots[q].x)
+                            knots[q] = knots[q].Add(Moves[Direction.R]);
+                        else
+                            knots[q] = knots[q].Add(Moves[Direction.L]);
                     }
                     else
                     {
-                        if (head.y < tail.y)
-                            tail = tail.Add(Moves[Direction.UR]);
+                        // Different row and column
+                        // "the tail always moves one step diagonally to keep up"
+                        if (knots[q - 1].x < knots[q].x)
+                        {
+                            if (knots[q - 1].y < knots[q].y)
+                                knots[q] = knots[q].Add(Moves[Direction.UL]);
+                            else
+                                knots[q] = knots[q].Add(Moves[Direction.DL]);
+                        }
                         else
-                            tail = tail.Add(Moves[Direction.DR]);
+                        {
+                            if (knots[q - 1].y < knots[q].y)
+                                knots[q] = knots[q].Add(Moves[Direction.UR]);
+                            else
+                                knots[q] = knots[q].Add(Moves[Direction.DR]);
+                        }
                     }
                 }
 
                 // Add to the hashset
-                visited.Add(tail);
+                visited.Add(knots.Last());
             }
         }
 
-        public void RunGame(string input)
+        public void RunGame(string input, int count = 2)
         {
             ResetGame();
 
+            // Generate a list of knots to use
+            var knots = Enumerable.Repeat<(int x, int y)>((0, 0), count).ToList();
+
             foreach(var line in input.SplitByNewline())
-                ProcessLine(line);
+                ProcessLine(line, knots);
         }
 
         protected override string? SolvePartOne()
         {
+            return null;
             RunGame(Input);
             return visited.Count.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Head + 9 knots behind = 10 knots
+            RunGame(Input, 10);
+            return visited.Count.ToString();
         }
     }
 }
