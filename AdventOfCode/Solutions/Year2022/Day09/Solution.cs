@@ -48,7 +48,7 @@ namespace AdventOfCode.Solutions.Year2022
 
         public Day09() : base(09, 2022, "Rope Bridge")
         {
-            
+
         }
 
         public void ResetGame()
@@ -79,7 +79,7 @@ namespace AdventOfCode.Solutions.Year2022
 
                 // If we are "touching", then we don't move
                 if (
-                    head.ManhattanDistance(tail) == 1
+                    head.ManhattanDistance(tail) <= 1
                     ||
                     head == tail.Add(Moves[Direction.UL])
                     ||
@@ -96,14 +96,14 @@ namespace AdventOfCode.Solutions.Year2022
                 {
                     if (head.y > tail.y)
                         tail = tail.Add(Moves[Direction.D]);
-                    else if (head.y < tail.y)
+                    else
                         tail = tail.Add(Moves[Direction.U]);
                 }
                 else if (head.y == tail.y)
                 {
                     if (head.x > tail.x)
                         tail = tail.Add(Moves[Direction.R]);
-                    else if (head.x < tail.x)
+                    else
                         tail = tail.Add(Moves[Direction.L]);
                 }
                 else
