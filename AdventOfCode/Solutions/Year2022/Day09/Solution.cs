@@ -141,7 +141,6 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartOne()
         {
-            return null;
             RunGame(Input);
             return visited.Count.ToString();
         }
