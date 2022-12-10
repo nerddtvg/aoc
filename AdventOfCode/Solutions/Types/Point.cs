@@ -203,7 +203,9 @@ public readonly struct Point<T> where T : INumber<T>
     /// </summary>
     public override int GetHashCode()
     {
-        return base.GetHashCode();
+        // Our string is simply our coordinates which works better than getting
+        // the Hash Code of the array.
+        return ToString().GetHashCode();
     }
 
     /// <summary>
@@ -318,5 +320,13 @@ public readonly struct Point<T> where T : INumber<T>
         }
 
         throw new ArgumentException("Specified character index must be A-Z or a-z.", nameof(c));
+    }
+
+    /// <summary>
+    /// Handling displaying this data
+    /// </summary>
+    public override string ToString()
+    {
+        return $"({string.Join(", ", coordinates.Select(c => c.ToString()))})";
     }
 }
