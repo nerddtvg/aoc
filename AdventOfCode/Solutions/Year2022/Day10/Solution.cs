@@ -17,6 +17,10 @@ namespace AdventOfCode.Solutions.Year2022
 
         private int signalStrength = 0;
 
+        private char[] output = Enumerable.Repeat('.', (width * height)).ToArray();
+        private const int width = 40;
+        private const int height = 6;
+
         public Day10() : base(10, 2022, "Cathode-Ray Tube")
         {
             
@@ -31,11 +35,20 @@ namespace AdventOfCode.Solutions.Year2022
 
         private void CheckSignalStrength()
         {
+            Console.WriteLine($"{cycle}: {register}");
             // If this is a signal strength location, add it
             if (cycle <= 220 && (cycle - 20) % 40 == 0)
             {
                 signalStrength += cycle * register;
             }
+
+            // Process our output here
+            // Sprite is 3-wide centered at register location
+            // If register-1, register, register+1 == cycle then draw it
+            var xPos = (cycle - 1) % width;
+            if (register - 1 <= xPos && xPos <= register + 1)
+                // Change from 1 based to 0 based
+                output[cycle - 1] = '#';
         }
 
         private void ProcessInstruction(string line)
@@ -66,7 +79,10 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            for (int i = 0; i < output.Length / width; i++)
+                Console.WriteLine(output.Skip(i * width).Take(width).JoinAsString());
+
+            return "Printed Answer";
         }
     }
 }
