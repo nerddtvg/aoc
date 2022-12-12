@@ -26,8 +26,8 @@ namespace AdventOfCode.Solutions.Year2022
                 abdefghi";
 
             var graph = ReadGraph(example);
-            var path = GetShortestPath(graph);
-            Debug.Assert(Debug.Equals(path.Count, 31), $"Expected: 31\nActual: {path.Count}");
+            var path = GetShortestPath(graph, graph.Vertices.First(pt => pt.start));
+            Debug.Assert(Debug.Equals(path, 31), $"Expected: 31\nActual: {path}");
         }
 
         private BidirectionalGraph<MapPoint, Edge<MapPoint>> ReadGraph(string input)
@@ -89,39 +89,42 @@ namespace AdventOfCode.Solutions.Year2022
                 y++;
             }
 
-            // We could only do edges.ToUndirectedGraph()
-            // but this also includes any unconnected vertices
-            var graph = edges.ToBidirectionalGraph<MapPoint, Edge<MapPoint>>();
-            graph.AddVertexRange(map);
-
-            return graph;
+            return edges.ToBidirectionalGraph<MapPoint, Edge<MapPoint>>();
         }
 
-        private List<Edge<MapPoint>> GetShortestPath(BidirectionalGraph<MapPoint, Edge<MapPoint>> graph)
+        private int GetShortestPath(BidirectionalGraph<MapPoint, Edge<MapPoint>> graph, MapPoint start)
         {
             // Use one of the glorious shortest-path algorithms
             // Our algorithm starting from Start
             // All edges have a weight of one
-            var getPaths = graph.ShortestPathsDijkstra(edge => 1, graph.Vertices.First(pt => pt.start));
+            var getPaths = graph.ShortestPathsDijkstra(edge => 1, start);
 
             if (getPaths(graph.Vertices.First(pt => pt.finish), out IEnumerable<Edge<MapPoint>> path))
             {
-                return path.ToList();
+                return path.Count();
             }
 
-            return new();
+            return Int32.MaxValue;
         }
 
         protected override string? SolvePartOne()
         {
             var graph = ReadGraph(Input);
-            var path = GetShortestPath(graph);
-            return path.Count.ToString();
+            return GetShortestPath(graph, graph.Vertices.First(pt => pt.start)).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Part 2 is to start at every 'a' value and find the shortest path to 'E'
+            int min = Int32.MaxValue;
+
+            var graph = ReadGraph(Input);
+            foreach (var start in graph.Vertices.Where(pt => pt.value == 'a'))
+            {
+                min = Math.Min(min, GetShortestPath(graph, start));
+            }
+
+            return min.ToString();
         }
 
         /// <summary>
