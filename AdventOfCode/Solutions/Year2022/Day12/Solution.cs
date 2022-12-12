@@ -19,15 +19,7 @@ namespace AdventOfCode.Solutions.Year2022
 
         public Day12() : base(12, 2022, "Hill Climbing Algorithm")
         {
-            var example = @"Sabqponm
-                abcryxxl
-                accszExk
-                acctuvwj
-                abdefghi";
-
-            var graph = ReadGraph(example);
-            var path = GetShortestPath(graph, graph.Vertices.First(pt => pt.start));
-            Debug.Assert(Debug.Equals(path, 31), $"Expected: 31\nActual: {path}");
+            
         }
 
         private BidirectionalGraph<MapPoint, Edge<MapPoint>> ReadGraph(string input)
@@ -92,25 +84,18 @@ namespace AdventOfCode.Solutions.Year2022
             return edges.ToBidirectionalGraph<MapPoint, Edge<MapPoint>>();
         }
 
-        private int GetShortestPath(BidirectionalGraph<MapPoint, Edge<MapPoint>> graph, MapPoint start)
-        {
-            // Use one of the glorious shortest-path algorithms
-            // Our algorithm starting from Start
-            // All edges have a weight of one
-            var getPaths = graph.ShortestPathsDijkstra(edge => 1, start);
-
-            if (getPaths(graph.Vertices.First(pt => pt.finish), out IEnumerable<Edge<MapPoint>> path))
-            {
-                return path.Count();
-            }
-
-            return Int32.MaxValue;
-        }
-
         protected override string? SolvePartOne()
         {
             var graph = ReadGraph(Input);
-            return GetShortestPath(graph, graph.Vertices.First(pt => pt.start)).ToString();
+
+            // Use one of the glorious shortest-path algorithms
+            // Our algorithm starting from Start
+            var getPaths = graph.TreeBreadthFirstSearch(graph.Vertices.First(pt => pt.start));
+
+            if (getPaths(graph.Vertices.First(pt => pt.finish), out IEnumerable<Edge<MapPoint>> path))
+                return path.Count().ToString();
+
+            return null;
         }
 
         protected override string? SolvePartTwo()
@@ -119,9 +104,13 @@ namespace AdventOfCode.Solutions.Year2022
             int min = Int32.MaxValue;
 
             var graph = ReadGraph(Input);
+            var end = graph.Vertices.First(pt => pt.finish);
+
             foreach (var start in graph.Vertices.Where(pt => pt.value == 'a'))
             {
-                min = Math.Min(min, GetShortestPath(graph, start));
+                var search = graph.TreeBreadthFirstSearch(start);
+                if (search(end, out IEnumerable<Edge<MapPoint>> path))
+                    min = Math.Min(min, path.Count());
             }
 
             return min.ToString();
