@@ -29,7 +29,7 @@ namespace AdventOfCode.Solutions.Year2022
                 .ToArray();
         }
 
-        public void ProcessMonkey(Monkey monkey)
+        public void ProcessMonkey(Monkey monkey, int part = 1)
         {
             // Add our item count to inspected
             monkey.inspected += monkey.items.Count;
@@ -46,7 +46,8 @@ namespace AdventOfCode.Solutions.Year2022
                 item = monkey.operation(item);
 
                 // Drop relief
-                item /= 3;
+                if (part > 2)
+                    item /= 3;
 
                 var result = (item % monkey.testDivisor) == 0;
 
@@ -82,11 +83,12 @@ namespace AdventOfCode.Solutions.Year2022
         {
             // Let's run this another 480 times (total 500)
             // and see if we can find a pattern
-            for (int i = 20; i < 10000; i++)
+            ReadMonkeys(Input);
+            for (int i = 0; i < 10000; i++)
             {
                 for (int m = 0; m < monkeys.Length; m++)
                 {
-                    ProcessMonkey(monkeys[m]);
+                    ProcessMonkey(monkeys[m], 2);
                 }
             }
 
