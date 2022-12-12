@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using System.Linq;
-
+using System.Numerics;
 
 namespace AdventOfCode.Solutions.Year2022
 {
@@ -13,6 +13,8 @@ namespace AdventOfCode.Solutions.Year2022
     {
         public Monkey[] monkeys = new Monkey[10];
 
+        public List<int[]> states = new();
+
         public Day11() : base(11, 2022, "Monkey in the Middle")
         {
 
@@ -20,6 +22,8 @@ namespace AdventOfCode.Solutions.Year2022
 
         public void ReadMonkeys(string input)
         {
+            states = new();
+
             monkeys = input.SplitByBlankLine()
                 .Select(grp => ReadMonkey(grp))
                 .ToArray();
@@ -70,13 +74,33 @@ namespace AdventOfCode.Solutions.Year2022
                 .Take(2)
                 .Select(m => m.inspected)
                 // Multiply them together
-                .Aggregate(1, (x, y) => x * y)
+                .Aggregate(BigInteger.One, (x, y) => x * y)
                 .ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Let's run this another 480 times (total 500)
+            // and see if we can find a pattern
+            for (int i = 20; i < 10000; i++)
+            {
+                for (int m = 0; m < monkeys.Length; m++)
+                {
+                    ProcessMonkey(monkeys[m]);
+                }
+            }
+
+            monkeys.ToList()
+                .ForEach(m => Console.WriteLine($"{m.inspected}"));
+
+            return monkeys
+                // Get the two highest inspected items
+                .OrderByDescending(m => m.inspected)
+                .Take(2)
+                .Select(m => m.inspected)
+                // Multiply them together
+                .Aggregate(BigInteger.One, (x, y) => x * y)
+                .ToString();
         }
 
         private Monkey ReadMonkey(string[] lines)
@@ -95,7 +119,7 @@ namespace AdventOfCode.Solutions.Year2022
             lines[1].Split(':', 2, StringSplitOptions.TrimEntries)
                 .Skip(1)
                 .SelectMany(c => c.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-                .Select(c => Int32.Parse(c))
+                .Select(c => BigInteger.Parse(c))
                 .ToList()
                 .ForEach(c => monkey.items.Enqueue(c));
 
@@ -127,12 +151,12 @@ namespace AdventOfCode.Solutions.Year2022
 
         public class Monkey
         {
-            public Queue<int> items { get; set; } = new();
-            public Func<int, int> operation { get; set; } = old => 0;
+            public Queue<BigInteger> items { get; set; } = new();
+            public Func<BigInteger, BigInteger> operation { get; set; } = old => 0;
             public int testDivisor { get; set; } = 1;
             public int trueMonkey { get; set; } = 0;
             public int falseMonkey { get; set; } = 0;
-            public int inspected { get; set; } = 0;
+            public BigInteger inspected { get; set; } = 0;
         }
     }
 }
