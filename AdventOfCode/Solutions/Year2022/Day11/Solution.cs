@@ -46,8 +46,15 @@ namespace AdventOfCode.Solutions.Year2022
                 item = monkey.operation(item);
 
                 // Drop relief
-                if (part > 2)
+                if (part == 1)
+                {
                     item /= 3;
+                }
+                else
+                {
+                    // Part 2: Use LCM of the divisors (value of Part)
+                    item = item % part;
+                }
 
                 var result = (item % monkey.testDivisor) == 0;
 
@@ -81,6 +88,9 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartTwo()
         {
+            // Figure out the LCM
+            var lcm = (int)Utilities.FindLCM(monkeys.Select(m => (double)m.testDivisor).ToArray());
+
             // Let's run this another 480 times (total 500)
             // and see if we can find a pattern
             ReadMonkeys(Input);
@@ -88,12 +98,9 @@ namespace AdventOfCode.Solutions.Year2022
             {
                 for (int m = 0; m < monkeys.Length; m++)
                 {
-                    ProcessMonkey(monkeys[m], 2);
+                    ProcessMonkey(monkeys[m], lcm);
                 }
             }
-
-            monkeys.ToList()
-                .ForEach(m => Console.WriteLine($"{m.inspected}"));
 
             return monkeys
                 // Get the two highest inspected items
