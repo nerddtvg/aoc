@@ -76,12 +76,12 @@ namespace AdventOfCode.Solutions.Year2022
             }
         }
 
-        private JsonNode ParseLine(string line)
+        private static JsonNode ParseLine(string line)
         {
             return JsonArray.Parse(line) ?? throw new Exception();
         }
 
-        private void ConvertToArray(JsonNode? parent, int index)
+        private static void ConvertToArray(JsonNode? parent, int index)
         {
             if (parent == default)
                 throw new Exception();
@@ -101,7 +101,7 @@ namespace AdventOfCode.Solutions.Year2022
             }
         }
 
-        private int GetIndex(JsonNode child)
+        private static int GetIndex(JsonNode child)
         {
             if (child.Parent is JsonArray parent)
                 for (int i = 0; i < parent.Count; i++)
@@ -115,7 +115,7 @@ namespace AdventOfCode.Solutions.Year2022
         /// Determine if "left" <paramref name="a" /> is in the right order with "right" <paramref name="b" />
         /// </summary>
         /// <returns><c>true</c> if ordered correctlly; otherwise, <c>false</c></returns>
-        private bool? CompareOrder(JsonNode a, JsonNode b)
+        public static bool? CompareOrder(JsonNode a, JsonNode b)
         {
             if (a is JsonValue valueA && b is JsonValue valueB)
             {
@@ -206,7 +206,54 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Add two packets to the Input:
+            // [[2]]
+            // [[6]]
+            // Order all packets together
+            // Find indices of the two packets
+            // Multiply the sum
+            var input = Input.SplitByNewline(true)
+                .Append("[[2]]")
+                .Append("[[6]]")
+                .Select(item => ParseLine(item))
+                .OrderBy(item => item, new OrderItems())
+                .ToArray();
+
+            // Getting our indices!
+            var returnValue = 1;
+
+            var pattern = new Regex(@"^\[+(2|6)\]+$");
+
+            for(var i = 0; i < input.Length; i++)
+            {
+                // These could have been extended, so match any number of brackets
+                if (pattern.IsMatch(input[i].ToJsonString()))
+                    returnValue *= (i + 1);
+            }
+
+            return returnValue.ToString();
+        }
+
+        private class OrderItems : IComparer<JsonNode>
+        {
+            int IComparer<JsonNode>.Compare(JsonNode? a, JsonNode? b)
+            {
+                if (a == default || b == default)
+                    throw new Exception();
+
+                var result = Day13.CompareOrder(a, b);
+
+                // Equal somehow
+                if (!result.HasValue)
+                    return 0;
+
+                // In order, so a<b
+                if (result.Value)
+                    return -1;
+
+                // Out of order
+                return 1;
+            }
         }
     }
 }
