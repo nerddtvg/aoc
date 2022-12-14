@@ -52,14 +52,14 @@ namespace AdventOfCode.Solutions.Year2019
 
     class Day18 : ASolution
     {
-        Dictionary<(int x, int y), DoorLockPos> map = new();
+        char[][] map = Array.Empty<char[]>();
 
         public (int x, int y) start = (0, 0);
 
-        public static int minDistance = int.MaxValue;
+        public int minDistance = int.MaxValue;
 
-        UndirectedGraph<DoorLockPos, Edge<DoorLockPos>> graph = default!;
-        UndirectedGraph<DoorLockPos, DoorLockPosEdge> subGraph = default!;
+        public int keyCount = 0;
+
 
         public Day18() : base(18, 2019, "Many-Worlds Interpretation")
         {
@@ -121,103 +121,116 @@ namespace AdventOfCode.Solutions.Year2019
 
         private void ResetGrid(string input)
         {
-            int x = 0;
-            int y = 0;
-            minDistance = Int32.MaxValue;
-            start = (0, 0);
+            map = input.SplitByNewline(true)
+                .Select(line => line.ToCharArray())
+                .ToArray();
 
-            map = new();
-            var edges = new List<Edge<DoorLockPos>>();
-
-            foreach (string line in input.SplitByNewline(true))
-            {
-                foreach (char loc in line.ToCharArray())
-                {
-                    if (loc == '@')
+            // Find the start
+            start = (-1, -1);
+            for (int y = 0; start.x == -1 && y < map.Length; y++)
+                for (int x = 0; start.x == -1 && x < map[y].Length; x++)
+                    if (map[y][x] == '@')
                         start = (x, y);
 
-                    if (loc != '#')
-                    {
-                        map.Add((x, y), new DoorLockPos()
-                        {
-                            value = loc.ToString().ToUpperInvariant()[0],
-                            type = loc switch
-                            {
-                                '#' => DoorKeyType.Wall,
-                                '.' => DoorKeyType.Passage,
-                                '@' => DoorKeyType.Start,
-                                _ => (65 <= (int)loc && (int)loc <= 90) ? DoorKeyType.Door : DoorKeyType.Key
-                            },
-                            collected = false,
-                            x = x,
-                            y = y
-                        });
+            keyCount = map.Sum(line => line.Count(c => 97 <= c && c <= 122));
+        }
 
-                        // Look up and left for edges
-                        if (map.ContainsKey((x, y - 1)))
-                        {
-                            edges.Add(new(map[(x, y - 1)], map[(x, y)]));
-                        }
+        public char? GetGrid((int x, int y) pos)
+        {
+            if (pos.x < 0 || pos.x >= map[0].Length)
+                return null;
 
-                        if (map.ContainsKey((x - 1, y)))
-                        {
-                            edges.Add(new(map[(x - 1, y)], map[(x, y)]));
-                        }
-                    }
+            if (pos.y < 0 || pos.y >= map.Length)
+                return null;
 
-                    x++;
-                }
+            return map[pos.x][pos.y];
+        }
 
-                y++;
-                x = 0;
-            }
-
-            graph = edges.ToUndirectedGraph<DoorLockPos, Edge<DoorLockPos>>();
-
-            // We're going to create a new graph that is connecting only keys, doors, and the start
-            // Go through every permutation of these combos
-            var groups = graph.Vertices
-                .Where(v => new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
-                .GetAllCombos(2)
-                // Pre-process the combos
-                .Select(combo => combo.ToArray())
-                .GroupBy(combo => combo[0])
-                .ToList();
-
-            // New edges
-            var edges2 = new List<DoorLockPosEdge>();
-
-            var tryGetPath = new QuikGraph.Algorithms.ShortestPath.UndirectedDijkstraShortestPathAlgorithm<DoorLockPos, Edge<DoorLockPos>>(graph, edge => 1);
-            tryGetPath.Compute();
-
-            // Go through each group (Key is the start, then a list of destinations)
-            foreach (var group in groups)
+        private IEnumerable<(int x, int y)> GetMoves((int x, int y) pos, char[] keys)
+        {
+            foreach(var move in new (int x, int y)[] { (-1, -1), (-1, 1), (1, -1), (1, 1) })
             {
-                tryGetPath.SetRootVertex(group.Key);
+                var newPos = pos.Add(move);
+                var newChar = GetGrid(newPos);
 
-                foreach (var destination in group.Select(grp => grp[1]))
+                if (newChar != null)
                 {
-                    if (tryGetPath.TryGetDistance(destination, out double distance))
+                    // Found a possible opening, door, or key
+                    if (newChar != '#')
                     {
-                        // Found a path!
-                        edges2.Add(new(group.Key, destination, (int)distance));
+                        // If this is a door, make sure we have the corresponding key
+                        if (65 <= newChar && newChar <= 90)
+                        {
+                            if (keys.Any(c => c == newChar + 32))
+                                yield return newPos;
+                            continue;
+                        }
+
+                        // Otherwise it's a key or an opening
+                        yield return newPos;
                     }
                 }
             }
+        }
 
-            // New Graph
-            subGraph = edges2.ToUndirectedGraph<DoorLockPos, DoorLockPosEdge>();
+        /// <summary>
+        /// Provide the shortest path from pos to the rest of the keys
+        /// </summary>
+        /// <param name="pos">Current position</param>
+        /// <param name="keys">Currently collected keys</param>
+        /// <param name="path">Array of current path</param>
+        public IEnumerable<IEnumerable<char>> GetShortestPath((int x, int y) pos, char[] keys, (int x, int y)[] path, int depth = 0)
+        {
+            var moves = GetMoves(pos, keys)
+                // Exclude visited locations
+                .Where(m => !path.Contains(m))
+                .ToArray();
+
+            // Maybe we're too far in
+            if (++depth > minDistance)
+                yield break;
+
+            // Each move has to be valid
+            // Either it's another key, opening, or door that is unlocked
+            foreach(var move in moves)
+            {
+                // Duplicate keys and paths
+                var newKeys = keys.Clone();
+                var newPath = path.Clone();
+
+                // If this move is a key and we don't have it, pick it up and start fresh!
+                var newChar = GetGrid(move);
+                if (97 <= newChar && newChar <= 122 && !keys.Any(c => c == newChar.Value))
+                {
+                    keys = keys.Union(new char[] { newChar.Value }).ToArray();
+                    path = Array.Empty<(int x, int y)>();
+
+                    minDistance = Math.Min(minDistance, depth);
+
+                    // If this is all of the keys, return our result instead
+                    if (keys.Length == keyCount)
+                    {
+                        yield return keys;
+                        continue;
+                    }
+                }
+
+                foreach(var result in GetShortestPath(move, keys, path, depth))
+                {
+                    yield return result;
+                }
+            }
         }
 
         protected override string? SolvePartOne()
         {
             ResetGrid(Input);
 
-            // Our own BFS using the prebuilt graph
-            // Start at "start" and collect keys into new states as we go
-            minDistance = int.MaxValue;
+            var paths = GetShortestPath(start, Array.Empty<char>(), new (int x, int y)[] { start })
+                .Select(p => p.ToList())
+                .ToList();
 
-            return null;
+            return paths.FirstOrDefault()?.JoinAsString() ?? string.Empty;
         }
 
         protected override string? SolvePartTwo()
