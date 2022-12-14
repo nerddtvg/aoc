@@ -30,7 +30,8 @@ namespace AdventOfCode.Solutions.Year2019
                 // Taking the electromagnnet prevents movement
                 // Room 4 has doors north (room 3)
                 "south",
-                "take hologram",
+            // "take hologram",     //  Too heavy on its own
+            #region
                 // Back to room 3
                 "north",
                 // Back to room 2
@@ -39,15 +40,21 @@ namespace AdventOfCode.Solutions.Year2019
                 "west",
                 // Room 1 to Room 5 has doors north (room 1), east, and west
                 "south",
-                "take mouse",
+                #endregion
+            "take mouse",
+            #region
                 // Room 6 has doors west (room 5)
                 "east",
-                "take shell",
+                #endregion
+            // "take shell",
+            #region
                 // Back to room 5
                 "west",
                 // Room 6 has doors east (room 5)
                 "west",
-                "take whirled peas",
+                #endregion
+            // "take whirled peas",
+            #region
                 // Back to room 5
                 "east",
                 // Back to room 1
@@ -56,7 +63,9 @@ namespace AdventOfCode.Solutions.Year2019
                 "west",
                 // Room 7 to Room 8 has doors east (room 7), south, and west
                 "west",
-                "take antenna",
+                #endregion
+            "take antenna",
+            #region
                 // Room 8 to Room 9 has doors east (room 8) and south
                 "west",
                 // "take photons", // Eaten by a Grue
@@ -74,7 +83,9 @@ namespace AdventOfCode.Solutions.Year2019
                 "east",
                 // Room 8 to Room 12 has doors north (Room 8)
                 "south",
-                "take spool of cat6",
+                #endregion
+            // "take spool of cat6",    //  Too heavy on its own
+            #region
                 // Back to room 8
                 "north",
                 // Back to room 7
@@ -84,9 +95,12 @@ namespace AdventOfCode.Solutions.Year2019
                 // "take molten lava",
                 // Room 13 to Room 14 has rooms south (Room 13) and west
                 "north",
+                // "take infinite loop",
                 // Room 14 to Room 15 has rooms east (Room 14)
                 "west",
-                "take semiconductor",
+                #endregion
+            "take semiconductor",
+            #region
                 // Back to room 14
                 "east",
                 // Back to room 13
@@ -99,7 +113,9 @@ namespace AdventOfCode.Solutions.Year2019
                 "south",
                 // Room 16 to Room 18 has doors north (Room 16)
                 "south",
-                "take hypercube",
+                #endregion
+            "take hypercube",
+            #region
                 // Back to Room 16
                 "north",
                 // Back to Room 13
@@ -110,36 +126,10 @@ namespace AdventOfCode.Solutions.Year2019
                 "east",
                 // Room 1 to 7 to 8 to 9 to 10
                 "west", "west", "west", "south", "south",
-                // Move into droid space
-                "south",
-                // Ejected for being too heavy
-                "drop hypercube",
-                "drop shell",
-                "drop whirled peas",
-                "drop spool of cat6",
-                "drop mouse",
-                "drop antenna",
-                "drop hologram",
-                // Too light now
-                "south",
-                "take antenna",
-                "take mouse",
-                "take shell",
-                // Too heavy with the shell
-                "south",
-                "drop shell",
-                // "take whirled peas",
-                // "take hypercube",
-                // "take spool of cat6",
-                // "take hologram",
-                "drop semiconductor",
-                "take whirled peas",
-                // "take hologram",
-                // "take shell",
-                "take hypercube",
-                "take semiconductor",
-                "south",
                 "inv",
+                // Move into droid space
+                "south"
+                #endregion
             };
 
             foreach (var instruction in inputs)
