@@ -55,6 +55,9 @@ namespace AdventOfCode.Solutions.Year2022
             // down-right
             // settled
 
+            if (grid[pos.y][pos.x] == 'o')
+                return false;
+
             var newPos = pos.Add((0, 1));
 
             if (newPos.Item2 >= grid.Length) return false;
@@ -114,7 +117,34 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Find the lowest '#' and change the end of the grid to that +2
+            int maxY = grid.Length;
+            for (int i = grid.Length - 1; i > 0; i--)
+            {
+                if (grid[i].Any(c => c == '#'))
+                {
+                    maxY = i;
+                    break;
+                }
+            }
+
+            grid = grid
+                .Take(maxY + 2)
+                // Add a wall
+                .Append(Enumerable.Range(0, grid[0].Length).Select(c => '#').ToArray())
+                .ToArray();
+
+            // Run until we get false (indicating we have fallen outside the grid)
+            while (ProcessSand(start))
+            {
+                // Look pretty here
+            }
+
+            Console.WriteLine();
+
+            PrintGrid();
+
+            return grid.Sum(line => line.Count(c => c == 'o')).ToString();
         }
     }
 }
