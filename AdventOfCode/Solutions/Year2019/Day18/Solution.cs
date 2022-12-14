@@ -59,6 +59,7 @@ namespace AdventOfCode.Solutions.Year2019
         public static int minDistance = int.MaxValue;
 
         UndirectedGraph<DoorLockPos, Edge<DoorLockPos>> graph = default!;
+        UndirectedGraph<DoorLockPos, DoorLockPosEdge> subGraph = default!;
 
         public Day18() : base(18, 2019, "Many-Worlds Interpretation")
         {
@@ -172,11 +173,6 @@ namespace AdventOfCode.Solutions.Year2019
             }
 
             graph = edges.ToUndirectedGraph<DoorLockPos, Edge<DoorLockPos>>();
-        }
-
-        protected override string? SolvePartOne()
-        {
-            ResetGrid(Input);
 
             // We're going to create a new graph that is connecting only keys, doors, and the start
             // Go through every permutation of these combos
@@ -189,28 +185,37 @@ namespace AdventOfCode.Solutions.Year2019
                 .ToList();
 
             // New edges
-            var edges = new List<DoorLockPosEdge>();
+            var edges2 = new List<DoorLockPosEdge>();
 
             var tryGetPath = new QuikGraph.Algorithms.ShortestPath.UndirectedDijkstraShortestPathAlgorithm<DoorLockPos, Edge<DoorLockPos>>(graph, edge => 1);
             tryGetPath.Compute();
 
             // Go through each group (Key is the start, then a list of destinations)
-            foreach(var group in groups)
+            foreach (var group in groups)
             {
                 tryGetPath.SetRootVertex(group.Key);
 
-                foreach(var destination in group.Select(grp => grp[1]))
+                foreach (var destination in group.Select(grp => grp[1]))
                 {
                     if (tryGetPath.TryGetDistance(destination, out double distance))
                     {
                         // Found a path!
-                        edges.Add(new(group.Key, destination, (int)distance));
+                        edges2.Add(new(group.Key, destination, (int)distance));
                     }
                 }
             }
 
             // New Graph
-            var graph2 = edges.ToUndirectedGraph<DoorLockPos, DoorLockPosEdge>();
+            subGraph = edges2.ToUndirectedGraph<DoorLockPos, DoorLockPosEdge>();
+        }
+
+        protected override string? SolvePartOne()
+        {
+            ResetGrid(Input);
+
+            // Our own BFS using the prebuilt graph
+            // Start at "start" and collect keys into new states as we go
+            minDistance = int.MaxValue;
 
             return null;
         }
