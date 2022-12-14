@@ -183,7 +183,6 @@ namespace AdventOfCode.Solutions.Year2019 {
                         // long in = Read-Host -Prompt 'Provide an integer input: '
                         // We no longer read the input, we will return and wait
                         this.State = State.Waiting;
-                        this.position -= 2;
                         return false;
                         
                         // Don't increment our position because we will start back here
