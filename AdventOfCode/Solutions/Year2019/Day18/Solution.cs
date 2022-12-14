@@ -16,7 +16,8 @@ namespace AdventOfCode.Solutions.Year2019
         Wall,
         Passage,
         Door,
-        Key
+        Key,
+        Start
     }
 
     /// <summary>
@@ -39,6 +40,16 @@ namespace AdventOfCode.Solutions.Year2019
         public bool collected { get; set; }
     }
 
+    class DoorLockPosEdge : Edge<DoorLockPos>
+    {
+        public int cost;
+
+        public DoorLockPosEdge(DoorLockPos source, DoorLockPos target, int cost) : base(source, target)
+        {
+            this.cost = cost;
+        }
+    }
+
     class Day18 : ASolution
     {
         Dictionary<(int x, int y), DoorLockPos> map = new();
@@ -47,7 +58,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         public static int minDistance = int.MaxValue;
 
-        AdjacencyGraph<DoorLockPos, Edge<DoorLockPos>> graph = default!;
+        UndirectedGraph<DoorLockPos, Edge<DoorLockPos>> graph = default!;
 
         public Day18() : base(18, 2019, "Many-Worlds Interpretation")
         {
@@ -133,7 +144,7 @@ namespace AdventOfCode.Solutions.Year2019
                             {
                                 '#' => DoorKeyType.Wall,
                                 '.' => DoorKeyType.Passage,
-                                '@' => DoorKeyType.Passage,
+                                '@' => DoorKeyType.Start,
                                 _ => (65 <= (int)loc && (int)loc <= 90) ? DoorKeyType.Door : DoorKeyType.Key
                             },
                             collected = false,
@@ -160,27 +171,46 @@ namespace AdventOfCode.Solutions.Year2019
                 x = 0;
             }
 
-            graph = edges.ToAdjacencyGraph<DoorLockPos, Edge<DoorLockPos>>();
+            graph = edges.ToUndirectedGraph<DoorLockPos, Edge<DoorLockPos>>();
         }
 
         protected override string? SolvePartOne()
         {
             ResetGrid(Input);
-            
-            IEnumerable<Edge<DoorLockPos>> Filter(IEnumerable<Edge<DoorLockPos>> edges)
+
+            // We're going to create a new graph that is connecting only keys, doors, and the start
+            // Go through every permutation of these combos
+            var groups = graph.Vertices
+                .Where(v => new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
+                .GetAllCombos(2)
+                // Pre-process the combos
+                .Select(combo => combo.ToArray())
+                .GroupBy(combo => combo[0])
+                .ToList();
+
+            // New edges
+            var edges = new List<DoorLockPosEdge>();
+
+            var tryGetPath = new QuikGraph.Algorithms.ShortestPath.UndirectedDijkstraShortestPathAlgorithm<DoorLockPos, Edge<DoorLockPos>>(graph, edge => 1);
+            tryGetPath.Compute();
+
+            // Go through each group (Key is the start, then a list of destinations)
+            foreach(var group in groups)
             {
-                foreach(var edge in edges)
-                    yield return edge;
+                tryGetPath.SetRootVertex(group.Key);
+
+                foreach(var destination in group.Select(grp => grp[1]))
+                {
+                    if (tryGetPath.TryGetDistance(destination, out double distance))
+                    {
+                        // Found a path!
+                        edges.Add(new(group.Key, destination, (int)distance));
+                    }
+                }
             }
 
-            var dfs = new DepthFirstSearchAlgorithm<DoorLockPos, Edge<DoorLockPos>>(
-                null,
-                graph,
-                new Dictionary<DoorLockPos, GraphColor>(),
-                Filter
-            );
-
-            dfs.Compute();
+            // New Graph
+            var graph2 = edges.ToUndirectedGraph<DoorLockPos, DoorLockPosEdge>();
 
             return null;
         }
