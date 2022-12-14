@@ -37,18 +37,79 @@ namespace AdventOfCode.Solutions.Year2022
                     })
                     .ToArray();
 
-                for (int i = 0; i < points.Length - 2; i++)
+                for (int i = 0; i < points.Length - 1; i++)
                 {
                     // Draw from points[i] to points[i+1]
-                    points[i].GetPointsBetweenInclusive(points[i + 1]).ToList()
-                        .ForEach(pt => grid[pt.Item2][pt.Item1] = '#');
+                    var p = points[i].GetPointsBetweenInclusive(points[i + 1]).ToList();
+
+                    p.ForEach(pt => grid[pt.Item2][pt.Item1] = '#');
                 }
             }
         }
 
+        bool ProcessSand((int x, int y) pos)
+        {
+            // Start at pos and attempt to move:
+            // down
+            // down-left
+            // down-right
+            // settled
+
+            var newPos = pos.Add((0, 1));
+
+            if (newPos.Item2 >= grid.Length) return false;
+
+            if (grid[newPos.Item2][newPos.Item1] == '.')
+            {
+                // Found a direction
+                return ProcessSand(newPos);
+            }
+
+            // No go, try down-left
+            newPos = pos.Add((-1, 1));
+
+            if (newPos.Item1 < 0) return false;
+
+            if (grid[newPos.Item2][newPos.Item1] == '.')
+            {
+                // Found a direction
+                return ProcessSand(newPos);
+            }
+
+            // No go, try down-right
+            newPos = pos.Add((1, 1));
+
+            if (newPos.Item1 >= grid[0].Length) return false;
+
+            if (grid[newPos.Item2][newPos.Item1] == '.')
+            {
+                // Found a direction
+                return ProcessSand(newPos);
+            }
+
+            // Settled
+            grid[pos.y][pos.x] = 'o';
+
+            return true;
+        }
+
+        private void PrintGrid()
+        {
+            foreach(var line in grid)
+                Console.WriteLine(line.JoinAsString());
+        }
+
         protected override string? SolvePartOne()
         {
-            return string.Empty;
+            // Run until we get false (indicating we have fallen outside the grid)
+            while(ProcessSand(start))
+            {
+                // Look pretty here
+            }
+
+            PrintGrid();
+
+            return grid.Sum(line => line.Count(c => c == 'o')).ToString();
         }
 
         protected override string? SolvePartTwo()
