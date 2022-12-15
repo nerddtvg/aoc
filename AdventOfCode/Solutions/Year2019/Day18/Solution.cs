@@ -60,6 +60,15 @@ namespace AdventOfCode.Solutions.Year2019
 
         public int keyCount = 0;
 
+        PriorityQueue<State, int> queue = new();
+
+        public struct State
+        {
+            public (int x, int y) pos;
+            public char[] keys;
+            public (int x, int y)[] path;
+            public int depth;
+        }
 
         public Day18() : base(18, 2019, "Many-Worlds Interpretation")
         {
@@ -139,6 +148,8 @@ namespace AdventOfCode.Solutions.Year2019
                         start = (x, y);
 
             keyCount = map.Sum(line => line.Count(c => 97 <= c && c <= 122));
+
+            queue.Clear();
         }
 
         public char? GetGrid((int x, int y) pos)
@@ -179,14 +190,44 @@ namespace AdventOfCode.Solutions.Year2019
             }
         }
 
+        public List<List<char>> GetPaths()
+        {
+            // Loop through the queue from an initial state
+            queue.Enqueue(new()
+            {
+                pos = start,
+                keys = Array.Empty<char>(),
+                path = new (int x, int y)[] { start },
+                depth = 0
+            }, keyCount);
+
+            var retList = new List<List<char>>();
+
+            while (queue.Count > 0)
+            {
+                var state = queue.Dequeue();
+                foreach(var path in GetShortestPath(state))
+                {
+                    retList.Add(path.ToList());
+                }
+            }
+
+            return retList;
+        }
+
         /// <summary>
         /// Provide the shortest path from pos to the rest of the keys
         /// </summary>
         /// <param name="pos">Current position</param>
         /// <param name="keys">Currently collected keys</param>
         /// <param name="path">Array of current path</param>
-        public IEnumerable<IEnumerable<char>> GetShortestPath((int x, int y) pos, char[] keys, (int x, int y)[] path, int depth = 0)
+        public IEnumerable<IEnumerable<char>> GetShortestPath(State state)
         {
+            (int x, int y) pos = state.pos;
+            char[] keys = state.keys;
+            (int x, int y)[] path = state.path;
+            int depth = state.depth;
+
             var moves = GetMoves(pos, keys)
                 // Exclude visited locations
                 .Where(m => !path.Contains(m))
@@ -225,10 +266,13 @@ namespace AdventOfCode.Solutions.Year2019
                     }
                 }
 
-                foreach(var result in GetShortestPath(move, newKeys, newPath, depth))
+                queue.Enqueue(new()
                 {
-                    yield return result;
-                }
+                    pos = move,
+                    keys = newKeys,
+                    path = newPath,
+                    depth = depth
+                }, keyCount - keys.Length);
             }
         }
 
@@ -236,9 +280,7 @@ namespace AdventOfCode.Solutions.Year2019
         {
             ResetGrid(Input);
 
-            var paths = GetShortestPath(start, Array.Empty<char>(), new (int x, int y)[] { start })
-                .Select(p => p.ToList())
-                .ToList();
+            var paths = GetPaths();
 
             return paths.FirstOrDefault()?.JoinAsString() ?? string.Empty;
         }
