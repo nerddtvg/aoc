@@ -140,9 +140,9 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3";
 
             // Limit x and y values per Part 2 rules
             optimize.Add(z3Context.MkGe(x, z3Context.MkInt(0)));
-            optimize.Add(z3Context.MkGe(x, z3Context.MkInt(0)));
-            optimize.Add(z3Context.MkGe(y, z3Context.MkInt(4000000)));
-            optimize.Add(z3Context.MkGe(y, z3Context.MkInt(4000000)));
+            optimize.Add(z3Context.MkGe(y, z3Context.MkInt(0)));
+            optimize.Add(z3Context.MkLe(x, z3Context.MkInt(4000000)));
+            optimize.Add(z3Context.MkLe(y, z3Context.MkInt(4000000)));
 
             // range_count is the total of in_ranges[1] (1 if in range, 0 otherwise)
             // So this tells us the maximum number of bots in range
@@ -155,12 +155,13 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3";
                 throw new Exception();
 
             // Debug output:
-            var xVal = uint.Parse(optimize.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "x").Value.ToString());
-            var yVal = uint.Parse(optimize.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "y").Value.ToString());
+            var xVal = Int128.Parse(optimize.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "x").Value.ToString());
+            var yVal = Int128.Parse(optimize.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "y").Value.ToString());
             Console.WriteLine($"Position: ({xVal},{yVal})");
             Console.WriteLine($"Valid Sensors: {h1.Upper}");
             Console.WriteLine($"Sensor Count: {sensors.Count}");
 
+            // The Math is good, but casting to uint wasn't enough
             return ((xVal * 4000000) + yVal).ToString();
         }
 
