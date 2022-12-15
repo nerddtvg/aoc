@@ -6,6 +6,8 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Diagnostics;
 
+using Microsoft.Z3;
+
 namespace AdventOfCode.Solutions.Year2022
 {
 
@@ -88,7 +90,78 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3";
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Bringing over some of the solution from 2018 Day 23
+            var sensors = LoadSensors(Input);
+
+            // Helper because Z3 .NET doesn't expose an easy Abs function for us
+            ArithExpr zabs(ArithExpr x) =>
+                (ArithExpr)x.Context.MkITE(x.Context.MkGe(x, x.Context.MkInt(0)), x, x.Context.MkMul(x, x.Context.MkInt(-1)));
+
+            // Create the z3Context we use to create objects
+            var z3Context = new Microsoft.Z3.Context();
+
+            // Define the integer variables that will be used during processing
+            (var x, var y) = (z3Context.MkIntConst("x"), z3Context.MkIntConst("y"));
+
+            // An array of booleans (1 or 0) that will determine if a specific point is valid
+            var valid = Enumerable.Range(0, sensors.Count).Select(c => z3Context.MkIntConst($"valid_{c}")).ToArray();
+
+            // A total summation of bots in range
+            var range_count = z3Context.MkIntConst("sum");
+
+            // The optimizer / solver instance
+            var optimize = z3Context.MkOptimize();
+
+            // For each bot...
+            for (int i = 0; i < sensors.Count; i++)
+            {
+                // Determine if the bot is in range of the new x, y, z
+                // If so, set in_ranges[i] to 1
+                optimize.Add(
+                    z3Context.MkEq(
+                        valid[i],
+                        z3Context.MkITE(
+                            // We want to know if this location is valid
+                            // That means the point must be GREATER THAN the distance to a sensor,
+                            // otherwise it would have been detected
+                            z3Context.MkGt(
+                                z3Context.MkAdd(
+                                    zabs(z3Context.MkSub(x, z3Context.MkInt(sensors[i].x))),
+                                    zabs(z3Context.MkSub(y, z3Context.MkInt(sensors[i].y)))
+                                ),
+                                z3Context.MkReal(sensors[i].distance)
+                            ),
+                            z3Context.MkInt(1),
+                            z3Context.MkInt(0)
+                        )
+                    )
+                );
+            }
+
+            // Limit x and y values per Part 2 rules
+            optimize.Add(z3Context.MkGe(x, z3Context.MkInt(0)));
+            optimize.Add(z3Context.MkGe(x, z3Context.MkInt(0)));
+            optimize.Add(z3Context.MkGe(y, z3Context.MkInt(4000000)));
+            optimize.Add(z3Context.MkGe(y, z3Context.MkInt(4000000)));
+
+            // range_count is the total of in_ranges[1] (1 if in range, 0 otherwise)
+            // So this tells us the maximum number of bots in range
+            optimize.Add(z3Context.MkEq(range_count, z3Context.MkAdd(valid)));
+
+            // We want the highest range_count, and it should equal our sensor count
+            var h1 = optimize.MkMaximize(range_count);
+
+            if (optimize.Check() != Status.SATISFIABLE)
+                throw new Exception();
+
+            // Debug output:
+            var xVal = uint.Parse(optimize.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "x").Value.ToString());
+            var yVal = uint.Parse(optimize.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "y").Value.ToString());
+            Console.WriteLine($"Position: ({xVal},{yVal})");
+            Console.WriteLine($"Valid Sensors: {h1.Upper}");
+            Console.WriteLine($"Sensor Count: {sensors.Count}");
+
+            return ((xVal * 4000000) + yVal).ToString();
         }
 
         struct Sensor
