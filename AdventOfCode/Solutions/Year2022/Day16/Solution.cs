@@ -10,6 +10,7 @@ namespace AdventOfCode.Solutions.Year2022
 
     class Day16 : ASolution
     {
+        private HashSet<int> maxFlows = new();
 
         public Day16() : base(16, 2022, "Proboscidea Volcanium")
         {
@@ -68,15 +69,16 @@ namespace AdventOfCode.Solutions.Year2022
         /// <param name="currentFlow">Our current flow amount.</param>
         /// <param name="currentValve">What valve we are currently on.</param>
         /// <param name="state">Valve states</param>
-        public IEnumerable<int> GetMaxFlow(int timeLeft, int currentFlow, Valve currentValve, Valve[] state)
+        public void GetMaxFlow(int timeLeft, int currentFlow, Valve currentValve, Valve[] state)
         {
             // Shortcut if we have somehow hit all of them
             // If we only have 1 minute left, only stay if we're not opened
             if (timeLeft <= 0 || (timeLeft == 1 && (currentValve.opened || currentValve.flowRate == 0)) || state.All(v => v.opened || v.flowRate == 0))
             {
                 if (currentFlow > 0)
-                    yield return currentFlow;
-                yield break;
+                    maxFlows.Add(currentFlow);
+
+                return;
             }
 
             var outVertices = Array.Empty<Valve>();
@@ -89,10 +91,7 @@ namespace AdventOfCode.Solutions.Year2022
                 foreach (var move in outVertices)
                 {
                     // No state changes
-                    foreach (var result in GetMaxFlow(timeLeft - 1, currentFlow, move, state))
-                    {
-                        yield return result;
-                    }
+                    GetMaxFlow(timeLeft - 1, currentFlow, move, state);
                 }
             }
 
@@ -107,8 +106,9 @@ namespace AdventOfCode.Solutions.Year2022
                 {
                     // Out of time
                     if (currentFlow > 0)
-                        yield return currentFlow;
-                    yield break;
+                        maxFlows.Add(currentFlow);
+
+                    return;
                 }
 
                 if (outVertices.Length == 0)
@@ -123,10 +123,7 @@ namespace AdventOfCode.Solutions.Year2022
 
                 foreach (var move in outVertices)
                 {
-                    foreach (var result in GetMaxFlow(timeLeft - 1, currentFlow, move, newState))
-                    {
-                        yield return result;
-                    }
+                    GetMaxFlow(timeLeft - 1, currentFlow, move, newState);
                 }
             }
         }
@@ -137,9 +134,10 @@ namespace AdventOfCode.Solutions.Year2022
 
             // We're going to check every possibe combination
             var start = valves.First(v => v.id == "AA");
-            var maxFlows = GetMaxFlow(30, 0, start, valves).ToList();
+            maxFlows.Clear();
+            GetMaxFlow(30, 0, start, valves);
 
-            return maxFlows.ToString();
+            return maxFlows.Max().ToString();
         }
 
         protected override string? SolvePartTwo()
