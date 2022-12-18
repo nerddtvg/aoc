@@ -25,19 +25,24 @@ namespace AdventOfCode.Solutions.Year2019
     /// </summary>
     struct DoorLockPos
     {
-        public int x { get; set; }
-        public int y { get; set; }
         public DoorKeyType type { get; set; }
         /// <summary>
         /// What character is this door or key
         /// </summary>
         /// <value></value>
-        public char? value { get; set; }
-        /// <summary>
-        /// Notes if the door is unlocked and/or key collected
-        /// </summary>
-        /// <value></value>
-        public bool collected { get; set; }
+        public char value { get; set; }
+
+        public int id { get; set; }
+
+        public DoorLockPos() {
+            id = new Random().Next();
+        }
+        public DoorLockPos(char v)
+        {
+            id = new Random().Next();
+            type = 65 <= v && v <= 90 ? DoorKeyType.Door : (97 <= v && v <= 122 ? DoorKeyType.Key : (v == '.' ? DoorKeyType.Passage : (v == '@' ? DoorKeyType.Start : DoorKeyType.Wall)));
+            value = v;
+        }
     }
 
     class DoorLockPosEdge : Edge<DoorLockPos>
@@ -52,7 +57,7 @@ namespace AdventOfCode.Solutions.Year2019
 
     class Day18 : ASolution
     {
-        char[][] map = Array.Empty<char[]>();
+        DoorLockPos[][] map = Array.Empty<DoorLockPos[]>();
 
         public (int x, int y) start = (0, 0);
 
@@ -64,11 +69,13 @@ namespace AdventOfCode.Solutions.Year2019
 
         public struct State
         {
-            public (int x, int y) pos;
+            public DoorLockPos pos;
             public char[] keys;
-            public (int x, int y)[] path;
+            public DoorLockPos[] path;
             public int depth;
         }
+
+        public UndirectedGraph<DoorLockPos, DoorLockPosEdge> graph = default!;
 
         public Day18() : base(18, 2019, "Many-Worlds Interpretation")
         {
@@ -119,23 +126,23 @@ namespace AdventOfCode.Solutions.Year2019
                 }
             };
 
-            // foreach(var exKvp in part1Example)
-            // {
-            //     ResetGrid(exKvp.Key);
+            foreach(var exKvp in part1Example)
+            {
+                ResetGrid(exKvp.Key);
 
-            //     var paths = GetShortestPath(start, Array.Empty<char>(), new (int x, int y)[] { start })
-            //         .Select(p => p.ToList())
-            //         .OrderBy(p => p.Count)
-            //         .FirstOrDefault();
+                var paths = GetPaths()
+                    .Select(p => p.ToList())
+                    .OrderBy(p => p.Count)
+                    .FirstOrDefault();
 
-            //     Debug.Assert(Debug.Equals(minDistance, exKvp.Value), $"Expected: {exKvp.Value}\nActual: {minDistance}");
-            // }
+                Debug.Assert(Debug.Equals(minDistance, exKvp.Value), $"Expected: {exKvp.Value}\nActual: {minDistance}");
+            }
         }
 
         private void ResetGrid(string input)
         {
             map = input.SplitByNewline(true)
-                .Select(line => line.ToCharArray())
+                .Select(line => line.ToCharArray().Select(c => new DoorLockPos(c)).ToArray())
                 .ToArray();
 
             minDistance = Int32.MaxValue;
@@ -144,72 +151,142 @@ namespace AdventOfCode.Solutions.Year2019
             start = (-1, -1);
             for (int y = 0; start.x == -1 && y < map.Length; y++)
                 for (int x = 0; start.x == -1 && x < map[y].Length; x++)
-                    if (map[y][x] == '@')
+                    if (map[y][x].type == DoorKeyType.Start)
                         start = (x, y);
 
-            keyCount = map.Sum(line => line.Count(c => 97 <= c && c <= 122));
+            keyCount = map.Sum(line => line.Count(c => c.type == DoorKeyType.Key));
 
             queue.Clear();
-        }
 
-        public char? GetGrid((int x, int y) pos)
-        {
-            if (pos.x < 0 || pos.x >= map[0].Length)
-                return null;
+            // Build the primary graph of all passages, start, keys, and doors
+            var edges = new List<DoorLockPosEdge>();
 
-            if (pos.y < 0 || pos.y >= map.Length)
-                return null;
-
-            return map[pos.y][pos.x];
-        }
-
-        private IEnumerable<(int x, int y)> GetMoves((int x, int y) pos, char[] keys)
-        {
-            foreach(var move in new (int x, int y)[] { (-1, 0), (1, 0), (0, -1), (0, 1) })
+            for (int y = 0; y < map.Length; y++)
             {
-                var newPos = pos.Add(move);
-                var newChar = GetGrid(newPos);
-
-                if (newChar != null)
+                for (int x = 0; x < map[0].Length; x++)
                 {
-                    // Found a possible opening, door, or key
-                    if (newChar != '#')
-                    {
-                        // If this is a door, make sure we have the corresponding key
-                        if (65 <= newChar && newChar <= 90)
-                        {
-                            if (keys.Any(c => c == newChar + 32))
-                                yield return newPos;
-                            continue;
-                        }
+                    if (map[y][x].type == DoorKeyType.Wall || map[y][x].type == DoorKeyType.Default)
+                        continue;
 
-                        // Otherwise it's a key or an opening
-                        yield return newPos;
+                    if (y > 0)
+                    {
+                        var up = map[y - 1][x];
+
+                        if (up.type != DoorKeyType.Wall && up.type != DoorKeyType.Default)
+                            edges.Add(new(up, map[y][x], up.type == DoorKeyType.Passage && map[y][x].type == DoorKeyType.Passage ? 1 : 10000));
+                    }
+                    
+                    if (x > 0)
+                    {
+                        var left = map[y][x - 1];
+
+                        if (left.type != DoorKeyType.Wall && left.type != DoorKeyType.Default)
+                            edges.Add(new(left, map[y][x], left.type == DoorKeyType.Passage && map[y][x].type == DoorKeyType.Passage ? 1 : 10000));
                     }
                 }
+            }
+
+            // Build a full graph of walkable objects
+            graph = edges.ToUndirectedGraph<DoorLockPos, DoorLockPosEdge>();
+
+            // We will now reduce the graph down to remove passages and replace the edge costs with counts
+            // Go through every permutation of these combos
+            var groups = graph.Vertices
+                .Where(v => new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
+                .GetAllCombos(2)
+                // Pre-process the combos
+                .Select(combo => combo.ToArray())
+                .GroupBy(combo => combo[0])
+                .ToList();
+
+            // New edges
+            edges = new List<DoorLockPosEdge>();
+
+            // Go through each group (Key is the start, then a list of destinations)
+            foreach (var group in groups)
+            {
+                // We can't simply rely on the base algorithm class because it doesn't return
+                // the path, only the distance, and we need to filter it
+                // We manipulate the edge cost such that if the target node is a door or key, increase the cost significantly
+                // This way any additional door or key is seen as too expensive
+                var tryGetPath = graph.ShortestPathsDijkstra(edge => edge.cost, group.Key);
+
+                foreach (var destination in group.Select(grp => grp[1]))
+                {
+                    if (tryGetPath(destination, out IEnumerable<DoorLockPosEdge> path))
+                    {
+                        // Found a path!
+                        // Make sure we do not include another key or door
+                        var pathList = path.ToList();
+                        if (pathList.Any(
+                            edge =>
+                                (
+                                    edge.Source.type != DoorKeyType.Passage
+                                    &&
+                                    edge.Source.id != group.Key.id
+                                    &&
+                                    edge.Source.id != destination.id
+                                )
+                                ||
+                                (
+                                    edge.Target.type != DoorKeyType.Passage
+                                    &&
+                                    edge.Target.id != group.Key.id
+                                    &&
+                                    edge.Target.id != destination.id
+                                )
+                            )
+                        )
+                            continue;
+
+                        // Make sure all of the 
+                        edges.Add(new(group.Key, destination, pathList.Count));
+                    }
+                }
+            }
+
+            // New Graph
+            graph = edges.ToUndirectedGraph<DoorLockPos, DoorLockPosEdge>();
+
+        }
+
+        private IEnumerable<DoorLockPos> GetMoves(DoorLockPos pos, char[] keys)
+        {
+            // Found a possible opening, door, or key
+            foreach(var move in graph.AdjacentVertices(pos))
+            {
+                if (move.type == DoorKeyType.Door)
+                {
+                    // If this is a door, make sure we have the corresponding key
+                    if (keys.Any(c => c == move.value + 32))
+                        yield return move;
+
+                    continue;
+                }
+
+                // Otherwise it's a key or an opening
+                yield return move;
             }
         }
 
         public List<List<char>> GetPaths()
         {
             // Loop through the queue from an initial state
-            queue.Enqueue(new()
+            var start = graph.Vertices.First(v => v.type == DoorKeyType.Start);
+
+            var state = new State()
             {
                 pos = start,
                 keys = Array.Empty<char>(),
-                path = new (int x, int y)[] { start },
+                path = new DoorLockPos[] { start },
                 depth = 0
-            }, keyCount);
+            };
 
             var retList = new List<List<char>>();
 
-            while (queue.Count > 0)
+            foreach(var path in GetShortestPath(state))
             {
-                var state = queue.Dequeue();
-                foreach(var path in GetShortestPath(state))
-                {
-                    retList.Add(path.ToList());
-                }
+                retList.Add(path.ToList());
             }
 
             return retList;
@@ -223,18 +300,18 @@ namespace AdventOfCode.Solutions.Year2019
         /// <param name="path">Array of current path</param>
         public IEnumerable<IEnumerable<char>> GetShortestPath(State state)
         {
-            (int x, int y) pos = state.pos;
-            char[] keys = state.keys;
-            (int x, int y)[] path = state.path;
-            int depth = state.depth;
+            var pos = state.pos;
+            var keys = state.keys;
+            var path = state.path;
+            var depth = state.depth;
 
             var moves = GetMoves(pos, keys)
                 // Exclude visited locations
-                .Where(m => !path.Contains(m))
+                .Where(m => !path.Select(p => p.id).Contains(m.id))
                 .ToArray();
 
             // Maybe we're too far in
-            if (++depth > minDistance)
+            if (depth >= minDistance)
                 yield break;
 
             // Each move has to be valid
@@ -243,36 +320,50 @@ namespace AdventOfCode.Solutions.Year2019
             {
                 // Duplicate keys and paths
                 var newKeys = (char[])keys.Clone();
-                var newPath = ((int x, int y)[])path.Clone();
+                var newPath = (DoorLockPos[])path.Clone();
 
                 // Adding the move
                 newPath = newPath.Append(move).ToArray();
 
+                // Need our edge cost
+                var success = graph.TryGetEdge(pos, move, out DoorLockPosEdge edge);
+
+                if (!success)
+                    throw new Exception();
+
+                var newDepth = depth + edge.cost;
+
+                // Maybe we're too far in (check again due to >1 weights)
+                if (newDepth >= minDistance)
+                    continue;
+
                 // If this move is a key and we don't have it, pick it up and start fresh!
-                var newChar = GetGrid(move);
-                if (97 <= newChar && newChar <= 122 && !keys.Any(c => c == newChar.Value))
+                if (97 <= move.value && move.value <= 122 && !keys.Any(c => c == move.value))
                 {
-                    newKeys = newKeys.Union(new char[] { newChar.Value }).ToArray();
-                    newPath = Array.Empty<(int x, int y)>();
+                    newKeys = newKeys.Union(new char[] { move.value }).ToArray();
+                    newPath = Array.Empty<DoorLockPos>();
 
                     // If this is all of the keys, return our result instead
                     if (newKeys.Length == keyCount)
                     {
                         // Found a new length
-                        minDistance = Math.Min(minDistance, depth);
+                        minDistance = Math.Min(minDistance, newDepth);
 
                         yield return newKeys;
                         continue;
                     }
                 }
 
-                queue.Enqueue(new()
+                foreach(var result in GetShortestPath(new()
                 {
                     pos = move,
                     keys = newKeys,
                     path = newPath,
-                    depth = depth
-                }, keyCount - keys.Length);
+                    depth = newDepth
+                }))
+                {
+                    yield return result;
+                }
             }
         }
 
