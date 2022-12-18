@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -11,6 +12,7 @@ namespace AdventOfCode.Solutions.Year2022
     class Day16 : ASolution
     {
         private HashSet<int> maxFlows = new();
+        int max = 0;
 
         public Day16() : base(16, 2022, "Proboscidea Volcanium")
         {
@@ -76,15 +78,18 @@ namespace AdventOfCode.Solutions.Year2022
             if (timeLeft <= 0 || (timeLeft == 1 && (currentValve.opened || currentValve.flowRate == 0)) || state.All(v => v.opened || v.flowRate == 0))
             {
                 if (currentFlow > 0)
+                {
                     maxFlows.Add(currentFlow);
+                    max = Math.Max(max, currentFlow);
+                }
 
                 return;
             }
 
             var outVertices = Array.Empty<Valve>();
 
-            // Go through the options if we don't open this valve and simply move on
-            if (timeLeft > 1)
+            // Assume we are always going to open our valve if we have a valid option
+            if (timeLeft > 1 && (currentValve.flowRate == 0 || currentValve.opened))
             {
                 outVertices = GetVertices(currentValve, state);
 
@@ -106,7 +111,10 @@ namespace AdventOfCode.Solutions.Year2022
                 {
                     // Out of time
                     if (currentFlow > 0)
+                    {
                         maxFlows.Add(currentFlow);
+                        max = Math.Max(max, currentFlow);
+                    }
 
                     return;
                 }
