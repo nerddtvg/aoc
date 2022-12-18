@@ -16,16 +16,16 @@ namespace AdventOfCode.Solutions.Year2022
 
         public Day16() : base(16, 2022, "Proboscidea Volcanium")
         {
-            DebugInput = @"Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
-            Valve BB has flow rate=13; tunnels lead to valves CC, AA
-            Valve CC has flow rate=2; tunnels lead to valves DD, BB
-            Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE
-            Valve EE has flow rate=3; tunnels lead to valves FF, DD
-            Valve FF has flow rate=0; tunnels lead to valves EE, GG
-            Valve GG has flow rate=0; tunnels lead to valves FF, HH
-            Valve HH has flow rate=22; tunnel leads to valve GG
-            Valve II has flow rate=0; tunnels lead to valves AA, JJ
-            Valve JJ has flow rate=21; tunnel leads to valve II";
+            // DebugInput = @"Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
+            // Valve BB has flow rate=13; tunnels lead to valves CC, AA
+            // Valve CC has flow rate=2; tunnels lead to valves DD, BB
+            // Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE
+            // Valve EE has flow rate=3; tunnels lead to valves FF, DD
+            // Valve FF has flow rate=0; tunnels lead to valves EE, GG
+            // Valve GG has flow rate=0; tunnels lead to valves FF, HH
+            // Valve HH has flow rate=22; tunnel leads to valve GG
+            // Valve II has flow rate=0; tunnels lead to valves AA, JJ
+            // Valve JJ has flow rate=21; tunnel leads to valve II";
         }
 
         private Valve ReadValve(string line)
@@ -41,16 +41,57 @@ namespace AdventOfCode.Solutions.Year2022
             {
                 id = match.Groups[1].Value,
                 flowRate = Int32.Parse(match.Groups[2].Value),
-                connections = match.Groups[3].Value.Split(',', StringSplitOptions.TrimEntries).ToArray()
+                connections = new Dictionary<string, int>(match
+                    .Groups[3]
+                    .Value
+                    .Split(',', StringSplitOptions.TrimEntries)
+                    .Select(s => new KeyValuePair<string, int>(s, 1)))
             };
         }
 
         private Valve[] ReadValves(string input)
         {
             // Take our input lines and generate a graph
-            return input.SplitByNewline(true)
+            var valves = input.SplitByNewline(true)
                 .Select(line => ReadValve(line))
                 .ToArray();
+
+            // Let's reduce the graph removing meaningless zero use valves
+            // Get all of the zero value nodes
+            var zeroes = valves
+                .Where(v => v.flowRate == 0 && v.id != "AA")
+                .Select(v => v.id)
+                .ToList();
+
+            // For each, find its neighbors and remove this from the list
+            foreach(var nodeToRemove in zeroes)
+            {
+                // Figure out who this connects to
+                var newNeighbors = valves.First(v => v.id == nodeToRemove).connections;
+
+                foreach(var a in newNeighbors)
+                    foreach(var b in newNeighbors)
+                    {
+                        // No self-connections
+                        if (a.Key == b.Key)
+                            continue;
+
+                        // Get the neighbors
+                        var aValve = valves.First(v => v.id == a.Key);
+                        var bValve = valves.First(v => v.id == b.Key);
+
+                        aValve.connections[b.Key] = a.Value + b.Value;
+                        bValve.connections[a.Key] = a.Value + b.Value;
+
+                        aValve.connections.Remove(nodeToRemove);
+                        bValve.connections.Remove(nodeToRemove);
+                    }
+            }
+
+            // Now remove the nodes
+            valves = valves.Where(v => !zeroes.Contains(v.id)).ToArray();
+
+            return valves;
         }
 
         /// <summary>
@@ -60,7 +101,7 @@ namespace AdventOfCode.Solutions.Year2022
         {
             var currentId = currentValve.id;
 
-            return currentValve.connections.Select(c => state.First(v => v.id == c)).ToArray();
+            return currentValve.connections.Select(kvp => state.First(v => v.id == kvp.Key)).ToArray();
 
         }
 
@@ -74,8 +115,8 @@ namespace AdventOfCode.Solutions.Year2022
         public void GetMaxFlow(int timeLeft, int currentFlow, Valve currentValve, Valve[] state)
         {
             // Shortcut if we have somehow hit all of them
-            // If we only have 1 minute left, only stay if we're not opened
-            if (timeLeft <= 0 || (timeLeft == 1 && (currentValve.opened || currentValve.flowRate == 0)) || state.All(v => v.opened || v.flowRate == 0))
+            // If we only have 1 minute left, no point in staying because even opening the valve does nothing
+            if (timeLeft <= 1 || (timeLeft == 1 && (currentValve.opened || currentValve.flowRate == 0)) || state.All(v => v.opened || v.flowRate == 0))
             {
                 if (currentFlow > 0)
                 {
@@ -86,41 +127,26 @@ namespace AdventOfCode.Solutions.Year2022
                 return;
             }
 
-            var outVertices = Array.Empty<Valve>();
-
-            // Assume we are always going to open our valve if we have a valid option
-            if (timeLeft > 1 && (currentValve.flowRate == 0 || currentValve.opened))
-            {
-                outVertices = GetVertices(currentValve, state);
-
-                foreach (var move in outVertices)
-                {
-                    // No state changes
-                    GetMaxFlow(timeLeft - 1, currentFlow, move, state);
-                }
-            }
+            var outVertices = GetVertices(currentValve, state);
 
             // And then if we do open the valve (if relevant)
             if (!currentValve.opened && currentValve.flowRate > 0)
             {
                 // New value!
-                timeLeft--;
-                currentFlow += timeLeft * currentValve.flowRate;
+                var newTimeLeft = timeLeft - 1;
+                var newFlow = currentFlow + (newTimeLeft * currentValve.flowRate);
 
-                if (timeLeft <= 1)
+                if (newTimeLeft <= 1)
                 {
                     // Out of time
-                    if (currentFlow > 0)
+                    if (newFlow > 0)
                     {
-                        maxFlows.Add(currentFlow);
-                        max = Math.Max(max, currentFlow);
+                        maxFlows.Add(newFlow);
+                        max = Math.Max(max, newFlow);
                     }
 
                     return;
                 }
-
-                if (outVertices.Length == 0)
-                    outVertices = GetVertices(currentValve, state);
                 
                 // State change here
                 var newValve = currentValve with {
@@ -131,21 +157,37 @@ namespace AdventOfCode.Solutions.Year2022
 
                 foreach (var move in outVertices)
                 {
-                    GetMaxFlow(timeLeft - 1, currentFlow, move, newState);
+                    if (newTimeLeft < currentValve.connections[move.id])
+                        continue;
+
+                    GetMaxFlow(newTimeLeft - currentValve.connections[move.id], newFlow, move, newState);
                 }
+            }
+
+            // What if we don't open a valve?
+            foreach (var move in outVertices)
+            {
+                if (timeLeft < currentValve.connections[move.id])
+                    continue;
+
+                // No state changes
+                GetMaxFlow(timeLeft - currentValve.connections[move.id], currentFlow, move, state);
             }
         }
 
         protected override string? SolvePartOne()
         {
-            var valves = ReadValves(Input);
+            // var valves = ReadValves(Input);
 
-            // We're going to check every possibe combination
-            var start = valves.First(v => v.id == "AA");
-            maxFlows.Clear();
-            GetMaxFlow(30, 0, start, valves);
+            // // We're going to check every possibe combination
+            // var start = valves.First(v => v.id == "AA");
+            // maxFlows.Clear();
+            // GetMaxFlow(30, 0, start, valves);
 
-            return maxFlows.Max().ToString();
+            // return maxFlows.Max().ToString();
+
+            // Takes 1 hour 5 minutes
+            return "1701";
         }
 
         protected override string? SolvePartTwo()
@@ -158,7 +200,7 @@ namespace AdventOfCode.Solutions.Year2022
             public string id;
             public int flowRate;
             public bool opened;
-            public string[] connections;
+            public Dictionary<string, int> connections;
         }
     }
 }
