@@ -91,7 +91,59 @@ namespace AdventOfCode.Solutions.Year2022
             // Now remove the nodes
             valves = valves.Where(v => !zeroes.Contains(v.id)).ToArray();
 
+            // For the rest, let's find the shortest path between each
+            // By doing this, we can avoid having to have open and closed paths below
+            // because AA -> ## -> XY would already skip opening the valves
+            var allValves = valves.Select(v => v.id).ToArray();
+
+            foreach(var valveId in allValves)
+            {
+                var end = valves.First(v => v.id == valveId);
+
+                foreach(var valve in valves)
+                {
+                    // Already have a path
+                    if (valve.id == valveId || valve.connections.ContainsKey(valveId))
+                        continue;
+
+                    int minDistance = Int32.MaxValue;
+                    GetShortestPath(valve, end, valves, Array.Empty<string>(), 0, ref minDistance);
+
+                    valve.connections[valveId] = minDistance;
+                    end.connections[valve.id] = minDistance;
+                }
+            }
+
             return valves;
+        }
+
+        /// <summary>
+        /// Doing this as an interator causes us to search every path and no shortcuts, so using a ref param will help us determine if we should continue
+        /// </summary>
+        public void GetShortestPath(Valve start, Valve end, Valve[] valves, string[] visited, int depth, ref int minDistance)
+        {
+            // Add this to the list
+            visited = visited.Append(start.id).ToArray();
+
+            // Go through each connection and find a new path if possible
+            foreach (var kvp in start.connections)
+            {
+                if (kvp.Key == end.id)
+                {
+                    minDistance = Math.Min(minDistance, depth + kvp.Value);
+                    return;
+                }
+
+                // Otherwise we check each new connection found (if not in the state list)
+                // Already visited there
+                if (visited.Contains(kvp.Key))
+                    continue;
+
+                if (depth + kvp.Value > minDistance)
+                    continue;
+
+                GetShortestPath(valves.First(v => v.id == kvp.Key), end, valves, visited, depth + kvp.Value, ref minDistance);
+            }
         }
 
         /// <summary>
@@ -164,30 +216,31 @@ namespace AdventOfCode.Solutions.Year2022
                 }
             }
 
-            // What if we don't open a valve?
-            foreach (var move in outVertices)
-            {
-                if (timeLeft < currentValve.connections[move.id])
-                    continue;
+            // What if we don't open a valve? (Only valid for "AA")
+            if (currentValve.id == "AA")
+                foreach (var move in outVertices)
+                {
+                    if (timeLeft < currentValve.connections[move.id])
+                        continue;
 
-                // No state changes
-                GetMaxFlow(timeLeft - currentValve.connections[move.id], currentFlow, move, state);
-            }
+                    // No state changes
+                    GetMaxFlow(timeLeft - currentValve.connections[move.id], currentFlow, move, state);
+                }
         }
 
         protected override string? SolvePartOne()
         {
-            // var valves = ReadValves(Input);
+            var valves = ReadValves(Input);
 
-            // // We're going to check every possibe combination
-            // var start = valves.First(v => v.id == "AA");
-            // maxFlows.Clear();
-            // GetMaxFlow(30, 0, start, valves);
+            // We're going to check every possibe combination
+            var start = valves.First(v => v.id == "AA");
+            maxFlows.Clear();
+            GetMaxFlow(30, 0, start, valves);
 
-            // return maxFlows.Max().ToString();
+            return maxFlows.Max().ToString();
 
             // Takes 1 hour 5 minutes
-            return "1701";
+            // return "1701";
         }
 
         protected override string? SolvePartTwo()
