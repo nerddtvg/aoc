@@ -11,8 +11,7 @@ namespace AdventOfCode.Solutions.Year2022
 
     class Day16 : ASolution
     {
-        private HashSet<int> maxFlows = new();
-        int max = 0;
+        private Dictionary<string, int> maxFlows = new();
 
         public Day16() : base(16, 2022, "Proboscidea Volcanium")
         {
@@ -157,6 +156,14 @@ namespace AdventOfCode.Solutions.Year2022
 
         }
 
+        private void AddNewPath(string key, int val)
+        {
+            if (maxFlows.ContainsKey(key))
+                maxFlows[key] = Math.Max(maxFlows[key], val);
+            else
+                maxFlows[key] = val;
+        }
+
         /// <summary>
         /// Provides a list of all possible flow rates found.
         /// </summary>
@@ -164,22 +171,31 @@ namespace AdventOfCode.Solutions.Year2022
         /// <param name="currentFlow">Our current flow amount.</param>
         /// <param name="currentValve">What valve we are currently on.</param>
         /// <param name="state">Valve states</param>
-        public void GetMaxFlow(int timeLeft, int currentFlow, Valve currentValve, Valve[] state)
+        public void GetMaxFlow(int timeLeft, int currentFlow, Valve currentValve, Valve[] state, string path)
         {
             // Shortcut if we have somehow hit all of them
             // If we only have 1 minute left, no point in staying because even opening the valve does nothing
             if (timeLeft <= 1 || (timeLeft == 1 && (currentValve.opened || currentValve.flowRate == 0)) || state.All(v => v.opened || v.flowRate == 0))
             {
-                if (currentFlow > 0)
-                {
-                    maxFlows.Add(currentFlow);
-                    max = Math.Max(max, currentFlow);
-                }
+                AddNewPath(path, currentFlow);
 
                 return;
             }
 
             var outVertices = GetVertices(currentValve, state);
+
+            // What if we don't open a valve? (Only valid for "AA")
+            if (currentValve.flowRate == 0)
+                foreach (var move in outVertices)
+                {
+                    var newPath = $"{path}-{currentValve.id}";
+
+                    if (timeLeft >= currentValve.connections[move.id])
+                        // No state changes
+                        GetMaxFlow(timeLeft - currentValve.connections[move.id], currentFlow, move, state, newPath);
+                    else
+                        AddNewPath(newPath, currentFlow);
+                }
 
             // And then if we do open the valve (if relevant)
             if (!currentValve.opened && currentValve.flowRate > 0)
@@ -191,11 +207,7 @@ namespace AdventOfCode.Solutions.Year2022
                 if (newTimeLeft <= 1)
                 {
                     // Out of time
-                    if (newFlow > 0)
-                    {
-                        maxFlows.Add(newFlow);
-                        max = Math.Max(max, newFlow);
-                    }
+                    AddNewPath(path, newFlow);
 
                     return;
                 }
@@ -209,23 +221,14 @@ namespace AdventOfCode.Solutions.Year2022
 
                 foreach (var move in outVertices)
                 {
-                    if (newTimeLeft < currentValve.connections[move.id])
-                        continue;
+                    var newPath = $"{path}-{currentValve.id}";
 
-                    GetMaxFlow(newTimeLeft - currentValve.connections[move.id], newFlow, move, newState);
+                    if (timeLeft >= currentValve.connections[move.id])
+                        GetMaxFlow(newTimeLeft - currentValve.connections[move.id], newFlow, move, newState, newPath);
+                    else
+                        AddNewPath(newPath, currentFlow);
                 }
             }
-
-            // What if we don't open a valve? (Only valid for "AA")
-            if (currentValve.id == "AA")
-                foreach (var move in outVertices)
-                {
-                    if (timeLeft < currentValve.connections[move.id])
-                        continue;
-
-                    // No state changes
-                    GetMaxFlow(timeLeft - currentValve.connections[move.id], currentFlow, move, state);
-                }
         }
 
         protected override string? SolvePartOne()
@@ -235,9 +238,9 @@ namespace AdventOfCode.Solutions.Year2022
             // We're going to check every possibe combination
             var start = valves.First(v => v.id == "AA");
             maxFlows.Clear();
-            GetMaxFlow(30, 0, start, valves);
+            GetMaxFlow(30, 0, start, valves, start.id);
 
-            return maxFlows.Max().ToString();
+            return maxFlows.Max(kvp => kvp.Value).ToString();
 
             // Takes 1 hour 5 minutes
             // return "1701";
