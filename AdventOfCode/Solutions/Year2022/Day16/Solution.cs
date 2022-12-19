@@ -11,7 +11,14 @@ namespace AdventOfCode.Solutions.Year2022
 
     class Day16 : ASolution
     {
-        private Dictionary<string, int> maxFlows = new();
+        /// <summary>
+        /// Turned into a dictionary of bits representing which valves are open and the final rate. Means two paths that make the same valves open at the end could have different results, only care about the highest.
+        /// </summary>
+        private Dictionary<ulong, int> maxFlows = new();
+
+        private Valve[] initialValves = Array.Empty<Valve>();
+
+        private Dictionary<string, ulong> remainingKeys = new();
 
         public Day16() : base(16, 2022, "Proboscidea Volcanium")
         {
@@ -25,6 +32,8 @@ namespace AdventOfCode.Solutions.Year2022
             // Valve HH has flow rate=22; tunnel leads to valve GG
             // Valve II has flow rate=0; tunnels lead to valves AA, JJ
             // Valve JJ has flow rate=21; tunnel leads to valve II";
+
+            initialValves = ReadValves(Input);
         }
 
         private Valve ReadValve(string line)
@@ -156,13 +165,14 @@ namespace AdventOfCode.Solutions.Year2022
 
         }
 
-        private void AddNewPath(string key, int val)
+        private void AddNewPath(string[] key, int val)
         {
             // Not sure how we would have one path greater than another, but I'm not going to question it working
-            if (maxFlows.ContainsKey(key))
-                maxFlows[key] = Math.Max(maxFlows[key], val);
+            var actualKey = PathToBits(key);
+            if (maxFlows.ContainsKey(actualKey))
+                maxFlows[actualKey] = Math.Max(maxFlows[actualKey], val);
             else
-                maxFlows[key] = val;
+                maxFlows[actualKey] = val;
         }
 
         /// <summary>
@@ -172,7 +182,7 @@ namespace AdventOfCode.Solutions.Year2022
         /// <param name="currentFlow">Our current flow amount.</param>
         /// <param name="currentValve">What valve we are currently on.</param>
         /// <param name="state">Valve states</param>
-        public void GetMaxFlow(int timeLeft, int currentFlow, Valve currentValve, Valve[] state, string path)
+        public void GetMaxFlow(int timeLeft, int currentFlow, Valve currentValve, Valve[] state, string[] path)
         {
             // Shortcut if we have somehow hit all of them
             // If we only have 1 minute left, no point in staying because even opening the valve does nothing
@@ -189,7 +199,7 @@ namespace AdventOfCode.Solutions.Year2022
             if (currentValve.flowRate == 0)
                 foreach (var move in outVertices)
                 {
-                    var newPath = $"{path}-{currentValve.id}";
+                    var newPath = path.Append(currentValve.id).ToArray();
 
                     if (timeLeft >= currentValve.connections[move.id])
                         // No state changes
@@ -222,7 +232,7 @@ namespace AdventOfCode.Solutions.Year2022
 
                 foreach (var move in outVertices)
                 {
-                    var newPath = $"{path}-{currentValve.id}";
+                    var newPath = path.Append(currentValve.id).ToArray();
 
                     if (timeLeft >= currentValve.connections[move.id])
                         GetMaxFlow(newTimeLeft - currentValve.connections[move.id], newFlow, move, newState, newPath);
@@ -234,12 +244,12 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartOne()
         {
-            var valves = ReadValves(Input);
+            // return null;
 
             // We're going to check every possibe combination
-            var start = valves.First(v => v.id == "AA");
+            var start = initialValves.First(v => v.id == "AA");
             maxFlows.Clear();
-            GetMaxFlow(30, 0, start, valves, start.id);
+            GetMaxFlow(30, 0, start, initialValves, Array.Empty<string>());
 
             return maxFlows.Max(kvp => kvp.Value).ToString();
 
@@ -247,9 +257,53 @@ namespace AdventOfCode.Solutions.Year2022
             // Optimized to 10-15 seconds
         }
 
+        private ulong PathToBits(string[] path)
+        {
+            // Converting a path to bits of open valves
+            // Hopefully makes the math comparisons faster
+            // AA should always be zero
+            if (remainingKeys.Count == 0)
+            {
+                uint value = 1;
+                foreach(var key in initialValves.Select(v => v.id).OrderBy(v => v))
+                {
+                    remainingKeys[key] = value;
+                    value = value << 1;
+                }
+            }
+
+            return path.Distinct().Sum(key => remainingKeys[key]) ?? (ulong)0;
+        }
+
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // *NOTE*: This assumes there is no way of opening all valves between the two parties
+            // Because of this, the example input DOES NOT WORK on this code since all valves
+            // end up opened mid-way through the timelimit.
+
+            // Find out paths with a max of 26 seconds
+            var start = initialValves.First(v => v.id == "AA");
+            maxFlows.Clear();
+            GetMaxFlow(26, 0, start, initialValves, Array.Empty<string>());
+
+            // Assumption: We want to paths that only overlap at the start node
+            // Any other overlap assumes both parties opened the valves
+            // and that would be miscalculated in the results from the above math
+            var twoMaxFlow = 0;
+
+            foreach(var item1 in maxFlows)
+                foreach (var item2 in maxFlows)
+                {
+                    // The only overlap will be "AA" which is value one
+                    var test = item1.Key & item2.Key;
+                    if ((item1.Key & item2.Key) > 1) continue;
+
+                    var flow = item1.Value + item2.Value;
+
+                    twoMaxFlow = Math.Max(twoMaxFlow, flow);
+                }
+
+            return twoMaxFlow.ToString();
         }
 
         public struct Valve
