@@ -158,6 +158,7 @@ namespace AdventOfCode.Solutions.Year2022
 
         private void AddNewPath(string key, int val)
         {
+            // Not sure how we would have one path greater than another, but I'm not going to question it working
             if (maxFlows.ContainsKey(key))
                 maxFlows[key] = Math.Max(maxFlows[key], val);
             else
@@ -243,7 +244,7 @@ namespace AdventOfCode.Solutions.Year2022
             return maxFlows.Max(kvp => kvp.Value).ToString();
 
             // Takes 1 hour 5 minutes
-            // return "1701";
+            // Optimized to 10-15 seconds
         }
 
         protected override string? SolvePartTwo()
