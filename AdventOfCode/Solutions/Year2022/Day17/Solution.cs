@@ -7,8 +7,9 @@ using System.Linq;
 
 // One hint from the megathread is to use bitwise math for the output
 // I'm going to try with each row being bits of 9 characters across
-//   |.......| => 512 + 1 => 513
-// 512       1
+// 256 128  64  32  16   8   4   2   1
+//   |   .   .   .   .   .   .   .   | => 256 + 1 => 257
+// 256 128  64  32  16   8   4   2   1
 // Then each shape will be easy to shift left and right, then check for
 // collisions because any AND will return > 0
 
@@ -38,51 +39,74 @@ namespace AdventOfCode.Solutions.Year2022
                 RockType.Horiz,
                 new uint[]
                 {
-                    30
+                    // 256 128  64  32  16   8   4   2   1
+                    //   |   .   .   #   #   #   #   .   |
+                    // 256 128  64  32  16   8   4   2   1
+                    60
                 }
             },
             {
                 RockType.Plus,
                 new uint[]
                 {
-                    8,
-                    // 16 + 8 + 4
-                    28,
-                    8
+                    // 256 128  64  32  16   8   4   2   1
+                    //   |   .   .   .   #   .   .   .   |
+                    //   |   .   .   #   #   #   .   .   |
+                    //   |   .   .   .   #   .   .   .   |
+                    // 256 128  64  32  16   8   4   2   1
+                    16,
+                    // 32 + 16 + 8
+                    56,
+                    16
                 }
             },
             {
                 RockType.Bracket,
                 new uint[]
                 {
-                    4,
-                    4,
-                    // 16 + 8 + 4
-                    28
+                    // 256 128  64  32  16   8   4   2   1
+                    //   |   .   .   .   .   #   .   .   |
+                    //   |   .   .   .   .   #   .   .   |
+                    //   |   .   .   #   #   #   .   .   |
+                    // 256 128  64  32  16   8   4   2   1
+                    8,
+                    8,
+                    // 32 + 16 + 8
+                    56
                 }
             },
             {
                 RockType.Vertical,
                 new uint[]
                 {
-                    16,
-                    16,
-                    16,
-                    16
+                    // 256 128  64  32  16   8   4   2   1
+                    //   |   .   .   #   .   .   .   .   |
+                    //   |   .   .   #   .   .   .   .   |
+                    //   |   .   .   #   .   .   .   .   |
+                    //   |   .   .   #   .   .   .   .   |
+                    // 256 128  64  32  16   8   4   2   1
+                    32,
+                    32,
+                    32,
+                    32
                 }
             },
             {
                 RockType.Box,
                 new uint[]
                 {
-                    // 16 + 8
-                    24,
-                    24
+                    // 256 128  64  32  16   8   4   2   1
+                    //   |   .   .   #   #   .   .   .   |
+                    //   |   .   .   #   #   .   .   .   |
+                    // 256 128  64  32  16   8   4   2   1
+                    // 32 + 16
+                    48,
+                    48
                 }
             }
         };
 
-        private const uint LeftWall = 512;
+        private const uint LeftWall = 256;
         private const uint RightWall = 1;
 
         public Day17() : base(17, 2022, "Pyroclastic Flow")
@@ -98,7 +122,14 @@ namespace AdventOfCode.Solutions.Year2022
 
             // And our input
             Input.ToCharArray().ToList().ForEach(c => airJet.Enqueue(c));
+
+            ResetOutput();
         }
+
+        /// <summary>
+        /// Remove all output
+        /// </summary>
+        private void ResetOutput() => output = Array.Empty<uint>();
 
         /// <summary>
         /// Finds the first row index that has a box in it
@@ -112,7 +143,7 @@ namespace AdventOfCode.Solutions.Year2022
                     return i;
             }
 
-            throw new Exception();
+            return 0;
         }
 
         private void ProcessShape()
@@ -140,7 +171,7 @@ namespace AdventOfCode.Solutions.Year2022
                 if (air == '<')
                 {
                     // Attempt to move left
-                    if (shape.Any(row => (row & LeftWall) > 0))
+                    if (shape.Any(row => ((row << 1) & LeftWall) > 0))
                     {
                         // Can't move left, wall
                         // Didn't shift yet, nothing to do but move down
@@ -171,8 +202,8 @@ namespace AdventOfCode.Solutions.Year2022
                 }
                 else
                 {
-                    // Attempt to move left
-                    if (shape.Any(row => (row & RightWall) > 0))
+                    // Attempt to move right
+                    if (shape.Any(row => ((row >> 1) & RightWall) > 0))
                     {
                         // Can't move right, wall
                         // Didn't shift yet, nothing to do but move down
@@ -188,6 +219,7 @@ namespace AdventOfCode.Solutions.Year2022
                             if (outputIndex < 0)
                                 continue;
 
+                            // If we have hit the bottom, we're done
                             if ((output[outputIndex] & (shape[shapeIndex] >> 1)) > 0)
                             {
                                 // Hit something!
@@ -206,7 +238,7 @@ namespace AdventOfCode.Solutions.Year2022
                 // If we are below 0, we move down no matter what because there is nothing else below us
                 // Otherwise check for a collision
                 var bottomIndex = row + shape.Length;
-                if (bottomIndex > 0 && (output[bottomIndex + 1] & shape[^1]) > 0)
+                if (bottomIndex == output.Length || (bottomIndex >= 0 && (output[bottomIndex] & shape[^1]) > 0))
                 {
                     // Can't move down, found the stop
                     if (row < 0)
@@ -221,7 +253,7 @@ namespace AdventOfCode.Solutions.Year2022
 
                         // Append the new rows
                         for (int i = 0; i < shift; i++)
-                            newOutput[i] = LeftWall + RightWall;
+                            newOutput[i] = LeftWall | RightWall;
 
                         // Reset!
                         row = 0;
@@ -243,9 +275,74 @@ namespace AdventOfCode.Solutions.Year2022
             } while (true);
         }
 
+        private void PrintOutput()
+        {
+            for (int i = 0; i < output.Length; i++)
+            {
+                if ((output[i] & LeftWall) > 0)
+                    Console.Write('|');
+                else
+                    Console.Write('.');
+
+                if ((output[i] & (2 << 6)) > 0)
+                    Console.Write('#');
+                else
+                    Console.Write('.');
+
+                if ((output[i] & (2 << 5)) > 0)
+                    Console.Write('#');
+                else
+                    Console.Write('.');
+
+                if ((output[i] & (2 << 4)) > 0)
+                    Console.Write('#');
+                else
+                    Console.Write('.');
+
+                if ((output[i] & (2 << 3)) > 0)
+                    Console.Write('#');
+                else
+                    Console.Write('.');
+
+                if ((output[i] & (2 << 2)) > 0)
+                    Console.Write('#');
+                else
+                    Console.Write('.');
+
+                if ((output[i] & (2 << 1)) > 0)
+                    Console.Write('#');
+                else
+                    Console.Write('.');
+
+                if ((output[i] & (2 << 0)) > 0)
+                    Console.Write('#');
+                else
+                    Console.Write('.');
+
+                if ((output[i] & RightWall) > 0)
+                    Console.Write('|');
+                else
+                    Console.Write('.');
+
+                Console.WriteLine();
+            }
+
+            Console.WriteLine("+-------+");
+            Console.WriteLine();
+        }
+
         protected override string? SolvePartOne()
         {
-            return string.Empty;
+            for (int i = 0; i < 2022; i++)
+            {
+                ProcessShape();
+
+                if (i < 10)
+                    PrintOutput();
+            }
+
+            // Count the height (remove the bottom row and empty rows at the top)
+            return (output.Length - FindFirstRow() - 1).ToString();
         }
 
         protected override string? SolvePartTwo()
