@@ -113,7 +113,13 @@ namespace AdventOfCode.Solutions.Year2022
         {
             // DebugInput = @">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>";
 
+            ResetEverything();
+        }
+
+        private void ResetEverything()
+        {
             // Load the queues
+            rocks.Clear();
             rocks.Enqueue(RockType.Horiz);
             rocks.Enqueue(RockType.Plus);
             rocks.Enqueue(RockType.Bracket);
@@ -121,15 +127,11 @@ namespace AdventOfCode.Solutions.Year2022
             rocks.Enqueue(RockType.Box);
 
             // And our input
+            airJet.Clear();
             Input.ToCharArray().ToList().ForEach(c => airJet.Enqueue(c));
 
-            ResetOutput();
+            output = Array.Empty<uint>();
         }
-
-        /// <summary>
-        /// Remove all output
-        /// </summary>
-        private void ResetOutput() => output = Array.Empty<uint>();
 
         /// <summary>
         /// Finds the first row index that has a box in it
@@ -356,11 +358,72 @@ namespace AdventOfCode.Solutions.Year2022
             }
 
             // Count the height (remove the bottom row and empty rows at the top)
-            return (output.Length - FindFirstRow()).ToString();
+            return GetTowerHeight().ToString();
         }
+
+        private uint GetTowerHeight() => (uint)output.Length - (uint)FindFirstRow();
 
         protected override string? SolvePartTwo()
         {
+            // This question is built on periods, so we need to identify the period of our tower
+            // We can do this by tracking the height and, say the last 25 rows, hashed together
+            // Tested with 5, 10, and 25 rows but it wasn't enough to capture the period (25 was enough for the example)
+            var periodHashes = new Dictionary<string, (uint index, ulong height)>();
+            var cycleHeights = new Dictionary<ulong, ulong>();
+
+            ResetEverything();
+
+            // Final cycle count
+            var finalCount = (ulong)1000000000000;
+
+            var periodBuffer = 50;
+
+            for (uint i = 0; i < 10000; i++)
+            {
+                ProcessShape();
+                
+                // If we have enough rows...
+                if (i >= periodBuffer)
+                {
+                    var start = FindFirstRow();
+                    var arr = new uint[periodBuffer];
+
+                    for (int q = 0; q + start < output.Length && q < periodBuffer; q++)
+                        arr[q] = output[q + start];
+
+                    // Add it to the dictionary
+                    var hash = string.Join("-", arr);
+                    var height = GetTowerHeight();
+
+                    cycleHeights.Add(i, height);
+
+                    if (periodHashes.ContainsKey(hash))
+                    {
+                        // Found a possible period
+                        // 0 .... P1 .... P2 .... P3 .... etc.
+                        // P1 is our first height, P2 is "i"
+                        // The height of the period is height-heights[P1]
+                        var period = i - periodHashes[hash].index;
+                        var periodHeight = height - periodHashes[hash].height;
+
+                        // To complete the math...
+                        // finalCount - heights[hash].index => cycles after period starts
+                        // Then find out how many full periods there are and how many cycles remain to complete it
+                        var cyclesAfterPeriodStarts = finalCount - (uint)periodHashes[hash].index;
+                        var fullPeriods = cyclesAfterPeriodStarts / period;
+                        var remainderCycles = cyclesAfterPeriodStarts % period;
+
+                        // In theory, find the cycleHeights[period cycle + remainderCycles] to add on to our new height
+                        // cycleHeights[periodHashes[hash].index-1] + (periodHeight * fullPeriods) + (cycleHeights[period cycle + remainderCycles] - periodHashes[hash].height)
+                        return (cycleHeights[periodHashes[hash].index - 1] + (periodHeight * fullPeriods) + (cycleHeights[periodHashes[hash].index + remainderCycles] - cycleHeights[periodHashes[hash].index])).ToString();
+                    }
+                    else
+                    {
+                        periodHashes.Add(hash, (i, height));
+                    }
+                }
+            }
+
             return string.Empty;
         }
 
