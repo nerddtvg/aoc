@@ -31,7 +31,7 @@ namespace AdventOfCode.Solutions
 
             var node = source.First;
 
-            while(node != null)
+            while (node != null)
             {
                 if (predicate(node.Value))
                     return node;
@@ -43,7 +43,7 @@ namespace AdventOfCode.Solutions
             // Nothing found
             throw new InvalidOperationException("No result found.");
         }
-        
+
         /// <summary>
         /// Returns the last <see cref="System.Collections.Generic.LinkedListNode{T}"/> in a sequence that satisfies a specified condition.
         /// </summary>
@@ -68,7 +68,7 @@ namespace AdventOfCode.Solutions
 
             var node = source.Last;
 
-            while(node != null)
+            while (node != null)
             {
                 if (predicate(node.Value))
                     return node;
