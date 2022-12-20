@@ -111,7 +111,7 @@ namespace AdventOfCode.Solutions.Year2022
 
         public Day17() : base(17, 2022, "Pyroclastic Flow")
         {
-            DebugInput = @">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>";
+            // DebugInput = @">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>";
 
             // Load the queues
             rocks.Enqueue(RockType.Horiz);
@@ -138,7 +138,7 @@ namespace AdventOfCode.Solutions.Year2022
         {
             for (int i = 0; i<output.Length; i++)
             {
-                // Look for 2<<2 through 2<<8
+                // Look for 2^1 through 2^7
                 if ((output[i] & 254) > 0)
                     return i;
             }
@@ -236,9 +236,23 @@ namespace AdventOfCode.Solutions.Year2022
 
                 // Now move down!
                 // If we are below 0, we move down no matter what because there is nothing else below us
-                // Otherwise check for a collision
+                // Otherwise check for a collision (need to be sure to check every row of the shape)
                 var bottomIndex = row + shape.Length;
-                if (bottomIndex == output.Length || (bottomIndex >= 0 && (output[bottomIndex] & shape[^1]) > 0))
+
+                // Consider it a collision if we are at the bottom of the tower
+                var downCollision = bottomIndex == output.Length;
+
+                if (!downCollision && bottomIndex >= 0)
+                {
+                    // Do a bitwise check from the bottom up
+                    for (int outputIndex = bottomIndex, shapeIndex = shape.Length - 1; !downCollision && outputIndex >= 0 && shapeIndex >= 0; outputIndex--, shapeIndex--)
+                    {
+                        if ((output[outputIndex] & shape[shapeIndex]) > 0)
+                            downCollision = true;
+                    }
+                }
+
+                if (downCollision)
                 {
                     // Can't move down, found the stop
                     if (row < 0)
@@ -264,7 +278,7 @@ namespace AdventOfCode.Solutions.Year2022
                     // Combine the row values
                     for (int outputIndex = row, shapeIndex = 0; shapeIndex < shape.Length; outputIndex++,shapeIndex++)
                     {
-                        output[outputIndex] = output[outputIndex] | shape[shapeIndex];
+                        output[outputIndex] |= shape[shapeIndex];
                     }
                     break;
                 }
@@ -337,12 +351,12 @@ namespace AdventOfCode.Solutions.Year2022
             {
                 ProcessShape();
 
-                if (i < 10)
-                    PrintOutput();
+                // if (i < 10)
+                //     PrintOutput();
             }
 
             // Count the height (remove the bottom row and empty rows at the top)
-            return (output.Length - FindFirstRow() - 1).ToString();
+            return (output.Length - FindFirstRow()).ToString();
         }
 
         protected override string? SolvePartTwo()
