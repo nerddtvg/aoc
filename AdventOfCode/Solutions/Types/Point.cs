@@ -73,6 +73,54 @@ public readonly struct Point<T> where T : INumber<T>
     }
 
     /// <summary>
+    /// Add <paramref name="b" /> to all coordinate values
+    /// </summary>
+    public static Point<T> operator +(Point<T> a, T b)
+    {
+        return new Point<T>(
+            Enumerable.Range(0, a.coordinates.Length)
+            .Select(i => a.coordinates[i] + b)
+            .ToArray()
+        );
+    }
+
+    /// <summary>
+    /// Subtract <paramref name="b" /> from all coordinate values
+    /// </summary>
+    public static Point<T> operator -(Point<T> a, T b)
+    {
+        return new Point<T>(
+            Enumerable.Range(0, a.coordinates.Length)
+            .Select(i => a.coordinates[i] - b)
+            .ToArray()
+        );
+    }
+
+    /// <summary>
+    /// Multiply all coordinate values by <paramref name="b" />
+    /// </summary>
+    public static Point<T> operator *(Point<T> a, T b)
+    {
+        return new Point<T>(
+            Enumerable.Range(0, a.coordinates.Length)
+            .Select(i => a.coordinates[i] * b)
+            .ToArray()
+        );
+    }
+
+    /// <summary>
+    /// Divide all coordinate values by <paramref name="b" />
+    /// </summary>
+    public static Point<T> operator /(Point<T> a, T b)
+    {
+        return new Point<T>(
+            Enumerable.Range(0, a.coordinates.Length)
+            .Select(i => a.coordinates[i] / b)
+            .ToArray()
+        );
+    }
+
+    /// <summary>
     /// Not implemented.
     /// </summary>
     public static Point<T>operator *(Point<T>a, Point<T>b)
