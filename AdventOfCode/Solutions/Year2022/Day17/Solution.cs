@@ -203,6 +203,43 @@ namespace AdventOfCode.Solutions.Year2022
                 }
 
                 // Now move down!
+                // If we are below 0, we move down no matter what because there is nothing else below us
+                // Otherwise check for a collision
+                var bottomIndex = row + shape.Length;
+                if (bottomIndex > 0 && (output[bottomIndex + 1] & shape[^1]) > 0)
+                {
+                    // Can't move down, found the stop
+                    if (row < 0)
+                    {
+                        // Need to shift the array to make room
+                        var shift = (int)Math.Abs(row);
+                        var newLength = output.Length + shift;
+                        var newOutput = new uint[newLength];
+
+                        // Copy the old data over
+                        Array.Copy(output, 0, newOutput, shift, output.Length);
+
+                        // Append the new rows
+                        for (int i = 0; i < shift; i++)
+                            newOutput[i] = LeftWall + RightWall;
+
+                        // Reset!
+                        row = 0;
+                        output = newOutput;
+                    }
+
+                    // We have a non-negative row number now
+                    // Combine the row values
+                    for (int outputIndex = row, shapeIndex = 0; shapeIndex < shape.Length; outputIndex++,shapeIndex++)
+                    {
+                        output[outputIndex] = output[outputIndex] | shape[shapeIndex];
+                    }
+                    break;
+                }
+                else
+                {
+                    row++;
+                }
             } while (true);
         }
 
