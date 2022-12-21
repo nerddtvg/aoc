@@ -111,7 +111,7 @@ namespace AdventOfCode.Solutions.Year2022
                         }
                         else
                         {
-                            rightMonkey.value -= value;
+                            rightMonkey.value += value;
                         }
                         break;
 
