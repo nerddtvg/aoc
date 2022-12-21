@@ -61,18 +61,20 @@ namespace AdventOfCode.Solutions.Year2022
                 // Don't move anything at zero
                 if (node.Value == 0) continue;
 
-                var newNode = node.GetNodeByStep(node.Value);
+                // If we get one more shift for move left,
+                // then we only have to move right
+                var shift = node.Value;
+                if (shift < 0)
+                    shift--;
+
+                var newNode = node.GetNodeByStep(shift);
+
+                // If we found ourself, do nothing
+                if (newNode == node)
+                    continue;
 
                 list.Remove(node);
-
-                if (node.Value < 0)
-                {
-                    list.AddBefore(newNode, node);
-                }
-                else
-                {
-                    list.AddAfter(newNode, node);
-                }
+                list.AddAfter(newNode, node);
             }
         }
 
