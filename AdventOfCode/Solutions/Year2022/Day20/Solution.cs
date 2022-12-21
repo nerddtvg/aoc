@@ -16,6 +16,14 @@ namespace AdventOfCode.Solutions.Year2022
 
         public Day20() : base(20, 2022, "Grove Positioning System")
         {
+            // DebugInput = @"1
+            //     2
+            //     -3
+            //     3
+            //     -2
+            //     0
+            //     4";
+
             ReadList();
         }
 
@@ -48,7 +56,7 @@ namespace AdventOfCode.Solutions.Year2022
                 // C# modulo is actually remainder
                 if (shift < 0)
                 {
-                    shift %= indexes.Count;
+                    shift %= (indexes.Count - 1);
 
                     // We have a remainder, so make it positive
                     while (shift < 0)
