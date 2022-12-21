@@ -12,7 +12,7 @@ namespace AdventOfCode.Solutions.Year2022
     class Day20 : ASolution
     {
         private List<int> indexes = new();
-        private List<int> values = new();
+        private List<long> values = new();
 
         public Day20() : base(20, 2022, "Grove Positioning System")
         {
@@ -22,7 +22,7 @@ namespace AdventOfCode.Solutions.Year2022
         private void ReadList()
         {
             values = Input.SplitByNewline(true)
-                .Select(line => Int32.Parse(line))
+                .Select(line => long.Parse(line))
                 .ToList();
 
             indexes = Enumerable.Range(0, values.Count).ToList();
@@ -45,9 +45,15 @@ namespace AdventOfCode.Solutions.Year2022
                 // Get our position in the array right now
                 var index = indexes.IndexOf(i);
 
-                // Negative modulo in C# issue
-                while (shift < 0)
-                    shift += indexes.Count - 1;
+                // C# modulo is actually remainder
+                if (shift < 0)
+                {
+                    shift %= indexes.Count;
+
+                    // We have a remainder, so make it positive
+                    while (shift < 0)
+                        shift += indexes.Count - 1;
+                }
 
                 var newPosition = (index + shift) % (indexes.Count - 1);
 
@@ -67,13 +73,13 @@ namespace AdventOfCode.Solutions.Year2022
                 }
                 else
                 {
-                    newIndexes.AddRange(indexes.Take(newPosition));
+                    newIndexes.AddRange(indexes.BigTake(newPosition));
                     newIndexes.Add(i);
 
                     // Append an end if needed
                     if (newPosition < indexes.Count)
                     {
-                        newIndexes.AddRange(indexes.Skip(newPosition));
+                        newIndexes.AddRange(indexes.BigSkip(newPosition));
                     }
                 }
 
@@ -91,6 +97,16 @@ namespace AdventOfCode.Solutions.Year2022
             Console.WriteLine();
         }
 
+        private long GetCoordinates()
+        {
+            var zeroIndex = indexes.IndexOf(values.IndexOf(0));
+            var v1000 = values[indexes[(zeroIndex + 1000) % values.Count]];
+            var v2000 = values[indexes[(zeroIndex + 2000) % values.Count]];
+            var v3000 = values[indexes[(zeroIndex + 3000) % values.Count]];
+
+            return v1000 + v2000 + v3000;
+        }
+
         protected override string? SolvePartOne()
         {
             // Ominous start:
@@ -98,18 +114,22 @@ namespace AdventOfCode.Solutions.Year2022
 
             // Mix the list once
             MixList();
-            
-            var zeroIndex = indexes.IndexOf(values.IndexOf(0));
-            var v1000 = values[indexes[(zeroIndex + 1000) % values.Count]];
-            var v2000 = values[indexes[(zeroIndex + 2000) % values.Count]];
-            var v3000 = values[indexes[(zeroIndex + 3000) % values.Count]];
 
-            return (v1000 + v2000 + v3000).ToString();
+            return GetCoordinates().ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            ReadList();
+
+            // Update the valves
+            for (int i = 0; i < values.Count; i++)
+                values[i] *= 811589153;
+
+            for (int i = 0; i < 10; i++)
+                MixList();
+
+            return GetCoordinates().ToString();
         }
     }
 }
