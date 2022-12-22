@@ -337,8 +337,36 @@ public readonly struct Point<T> where T : INumber<T>
             return this[GetIndex(c)];
         }
         set
-            {this[GetIndex(c)] = value;
+        {
+            this[GetIndex(c)] = value;
         }
+    }
+
+    /// <summary>
+    /// Helper to provide more consistent access to x like an object property
+    /// </summary>
+    public T x
+    {
+        get => this[nameof(x)[0]];
+        set => this[nameof(x)[0]] = value;
+    }
+
+    /// <summary>
+    /// Helper to provide more consistent access to y like an object property
+    /// </summary>
+    public T y
+    {
+        get => this[nameof(y)[0]];
+        set => this[nameof(y)[0]] = value;
+    }
+
+    /// <summary>
+    /// Helper to provide more consistent access to z like an object property
+    /// </summary>
+    public T z
+    {
+        get => this[nameof(z)[0]];
+        set => this[nameof(z)[0]] = value;
     }
 
     private int GetIndex(char c)

@@ -12,13 +12,133 @@ namespace AdventOfCode.Solutions.Year2022
     class Day22 : ASolution
     {
         private char[][] grid;
-        private (int x, int y) start;
+        private Point<int> start;
+        private Point<int> current;
+        private int deltaIndex = 0;
+        private List<string> instructions;
+
+        /// <summary>
+        /// Used to change our <see cref="direction" /> value
+        /// </summary>
+        private Point<int>[] deltas = new Point<int>[]
+        {
+            // Right
+            new(1, 0),
+            // Down
+            new(0, 1),
+            // Left
+            new(-1, 0),
+            // Up
+            new(0, -1)
+        };
 
         public Day22() : base(22, 2022, "Monkey Map")
         {
-            grid = ReadGrid(Input);
+            var map = Input.SplitByBlankLine()[0].JoinAsString();
+            var steps = Input.SplitByBlankLine()[1][0];
 
-            start = (FindRowStart(0), 0);
+            grid = ReadGrid(map);
+
+            // Start in the first spot in the top row
+            start = new(FindRowStart(0), 0);
+
+            // Start by heading right
+            deltaIndex = 0;
+
+            // Make sure we're not in a wall
+            while(GetGrid(start) == '#')
+            {
+                start = FindNext(start, deltas[deltaIndex]);
+            }
+
+            // This matches all but a lone distance at the end
+            var pattern = new Regex(@"((?<distance>[0-9]+)(?<direction>[LR]))");
+            var patternEnd = new Regex(@"[LR](?<distance>[0-9]+)$");
+
+            var matches = pattern.Matches(steps);
+            var matchEnd = patternEnd.Match(steps);
+
+            instructions = new();
+
+            foreach (Match match in matches)
+            {
+                // These are matches in <distance><direction>
+                instructions.Add(match.Groups["distance"].Value);
+                instructions.Add(match.Groups["direction"].Value);
+            }
+
+            //  Then add the final
+            if (matchEnd.Success)
+                instructions.Add(matchEnd.Groups["distance"].Value);
+        }
+
+        private Point<int> FindNext(Point<int> pos, Point<int> direction)
+        {
+            pos += direction;
+
+            // See if we're in the grid
+            if (pos.y >= 0 && pos.y < grid.Length && pos.x >= 0 && pos.x < grid[pos.y].Length)
+            {
+                // If this is not a space...
+                if (GetGrid(pos) != ' ')
+                    return pos;
+
+                // Found a space, keep going...
+                do
+                {
+                    pos += direction;
+
+                    if (GetGrid(pos) != ' ')
+                        return pos;
+                } while (IsInGrid(pos));
+            }
+
+            do
+            {
+                // We have rolled off the grid somewhere, loop us back
+                // Under zero, bring us back to the bottom
+                while (pos.y < 0)
+                {
+                    pos.y += FindColEnd(pos.x) + 1;
+                }
+
+                // Over length, bring us back to the top
+                while (pos.y >= grid.Length)
+                {
+                    pos.y %= grid.Length;
+                }
+
+                // Under zero, bring us back to the right
+                while (pos.x < 0)
+                {
+                    pos.x += FindRowEnd(pos.y);
+                }
+
+                // Over length, bring us back to the left
+                while (pos.x > grid[pos.y].Length)
+                {
+                    pos.x %= grid[pos.y].Length;
+                }
+
+                if (GetGrid(pos) != ' ')
+                    return pos;
+
+                // Might have found another space
+                pos += direction;
+            } while (true);
+        }
+
+        private bool IsInGrid(Point<int> pos)
+        {
+            return pos.y >= 0 && pos.y < grid.Length && pos.x >= 0 && pos.x < grid[pos.y].Length;
+        }
+
+        private char GetGrid(Point<int> pos)
+        {
+            if (IsInGrid(pos))
+                return grid[pos[1]][pos[0]];
+
+            return ' ';
         }
 
         private char[][] ReadGrid(string input)
@@ -98,6 +218,12 @@ namespace AdventOfCode.Solutions.Year2022
         protected override string? SolvePartTwo()
         {
             return string.Empty;
+        }
+
+        public enum Direction
+        {
+            L,
+            R
         }
     }
 }
