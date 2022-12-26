@@ -34,7 +34,22 @@ namespace AdventOfCode.Solutions.Year2022
 
         public Day22() : base(22, 2022, "Monkey Map")
         {
-            var map = Input.SplitByBlankLine()[0].JoinAsString();
+            DebugInput = @"        ...#
+        .#..
+        #...
+        ....
+...#.......#
+........#...
+..#....#....
+..........#.
+        ...#....
+        .....#..
+        .#......
+        ......#.
+
+10R5L5R10L4R5L5";
+
+            var map = string.Join('\n', Input.SplitByBlankLine()[0]);
             var steps = Input.SplitByBlankLine()[1][0];
 
             grid = ReadGrid(map);
@@ -50,6 +65,8 @@ namespace AdventOfCode.Solutions.Year2022
             {
                 start = FindNext(start, deltas[deltaIndex]);
             }
+
+            current = start;
 
             // This matches all but a lone distance at the end
             var pattern = new Regex(@"((?<distance>[0-9]+)(?<direction>[LR]))");
@@ -77,7 +94,7 @@ namespace AdventOfCode.Solutions.Year2022
             pos += direction;
 
             // See if we're in the grid
-            if (pos.y >= 0 && pos.y < grid.Length && pos.x >= 0 && pos.x < grid[pos.y].Length)
+            if (IsInGrid(pos))
             {
                 // If this is not a space...
                 if (GetGrid(pos) != ' ')
@@ -115,7 +132,7 @@ namespace AdventOfCode.Solutions.Year2022
                 }
 
                 // Over length, bring us back to the left
-                while (pos.x > grid[pos.y].Length)
+                while (pos.x >= grid[pos.y].Length)
                 {
                     pos.x %= grid[pos.y].Length;
                 }
@@ -136,7 +153,7 @@ namespace AdventOfCode.Solutions.Year2022
         private char GetGrid(Point<int> pos)
         {
             if (IsInGrid(pos))
-                return grid[pos[1]][pos[0]];
+                return grid[pos.y][pos.x];
 
             return ' ';
         }
@@ -204,7 +221,7 @@ namespace AdventOfCode.Solutions.Year2022
                 if (x >= grid[y].Length) continue;
 
                 if (grid[y][x] != ' ')
-                    return x;
+                    return y;
             }
 
             throw new Exception();
@@ -212,18 +229,83 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartOne()
         {
-            return string.Empty;
+            PrintGrid();
+
+            var steps = new Queue<string>(instructions);
+            while(steps.Count > 0)
+            {
+                var step = steps.Dequeue();
+
+                if (step == "R" || step == "L")
+                {
+                    // Change direction now
+                    if (step == "R")
+                        deltaIndex++;
+                    else
+                        deltaIndex--;
+
+                    if (deltaIndex < 0)
+                        deltaIndex += deltas.Length;
+
+                    deltaIndex %= deltas.Length;
+
+                    UpdateArrow();
+
+                    continue;
+                }
+
+                var distance = Int32.Parse(step);
+
+                for (int i = 0; i < distance; i++)
+                {
+                    var newPos = FindNext(current, deltas[deltaIndex]);
+
+                    // If this is a wall, end out
+                    if (GetGrid(newPos) == '#')
+                        break;
+
+                    // Otherwise, it's a valid step
+                    current = newPos;
+
+                    UpdateArrow();
+                }
+
+                PrintGrid();
+            }
+
+            return (((current.y + 1) * 1000) + ((current.x + 1) * 4) + deltaIndex).ToString();
+        }
+
+        private void UpdateArrow()
+        {
+            switch (deltaIndex)
+            {
+                case 0:
+                    grid[current.y][current.x] = '>';
+                    break;
+
+                case 1:
+                    grid[current.y][current.x] = 'v';
+                    break;
+
+                case 2:
+                    grid[current.y][current.x] = '<';
+                    break;
+
+                case 3:
+                    grid[current.y][current.x] = '^';
+                    break;
+            }
+        }
+
+        private void PrintGrid()
+        {
+            Console.WriteLine(grid.Select(line => $"{line.JoinAsString()}\n").JoinAsString());
         }
 
         protected override string? SolvePartTwo()
         {
             return string.Empty;
-        }
-
-        public enum Direction
-        {
-            L,
-            R
         }
     }
 }
