@@ -34,20 +34,20 @@ namespace AdventOfCode.Solutions.Year2022
 
         public Day22() : base(22, 2022, "Monkey Map")
         {
-            DebugInput = @"        ...#
-        .#..
-        #...
-        ....
-...#.......#
-........#...
-..#....#....
-..........#.
-        ...#....
-        .....#..
-        .#......
-        ......#.
+//             DebugInput = @"        ...#
+//         .#..
+//         #...
+//         ....
+// ...#.......#
+// ........#...
+// ..#....#....
+// ..........#.
+//         ...#....
+//         .....#..
+//         .#......
+//         ......#.
 
-10R5L5R10L4R5L5";
+// 10R5L5R10L4R5L5";
 
             var map = string.Join('\n', Input.SplitByBlankLine()[0]);
             var steps = Input.SplitByBlankLine()[1][0];
@@ -67,9 +67,10 @@ namespace AdventOfCode.Solutions.Year2022
             }
 
             current = start;
+            UpdateArrow();
 
             // This matches all but a lone distance at the end
-            var pattern = new Regex(@"((?<distance>[0-9]+)(?<direction>[LR]))");
+            var pattern = new Regex(@"((?<distance>[0-9]+)|(?<direction>[LR]))");
             var patternEnd = new Regex(@"[LR](?<distance>[0-9]+)$");
 
             var matches = pattern.Matches(steps);
@@ -80,8 +81,11 @@ namespace AdventOfCode.Solutions.Year2022
             foreach (Match match in matches)
             {
                 // These are matches in <distance><direction>
-                instructions.Add(match.Groups["distance"].Value);
-                instructions.Add(match.Groups["direction"].Value);
+                if (!string.IsNullOrEmpty(match.Groups["distance"].Value))
+                    instructions.Add(match.Groups["distance"].Value);
+
+                if (!string.IsNullOrEmpty(match.Groups["direction"].Value))
+                    instructions.Add(match.Groups["direction"].Value);
             }
 
             //  Then add the final
@@ -91,53 +95,51 @@ namespace AdventOfCode.Solutions.Year2022
 
         private Point<int> FindNext(Point<int> pos, Point<int> direction)
         {
-            pos += direction;
-
-            // See if we're in the grid
-            if (IsInGrid(pos))
+            // Found a space, keep going...
+            while (IsInGrid(pos))
             {
-                // If this is not a space...
-                if (GetGrid(pos) != ' ')
+                pos += direction;
+
+                var g = GetGrid(pos);
+                if (g == '.' || g == '#')
                     return pos;
-
-                // Found a space, keep going...
-                do
-                {
-                    pos += direction;
-
-                    if (GetGrid(pos) != ' ')
-                        return pos;
-                } while (IsInGrid(pos));
             }
 
             do
             {
                 // We have rolled off the grid somewhere, loop us back
-                // Under zero, bring us back to the bottom
-                while (pos.y < 0)
+                if (direction.x == 0)
                 {
-                    pos.y += FindColEnd(pos.x) + 1;
+                    // Under zero, bring us back to the bottom
+                    if (pos.y < 0)
+                    {
+                        pos.y = grid.Length - 1;
+                    }
+
+                    // Over length, bring us back to the top
+                    if (pos.y >= grid.Length)
+                    {
+                        pos.y = 0;
+                    }
                 }
 
-                // Over length, bring us back to the top
-                while (pos.y >= grid.Length)
+                if (direction.y == 0)
                 {
-                    pos.y %= grid.Length;
+                    // Under zero, bring us back to the right
+                    if (pos.x < 0)
+                    {
+                        pos.x = grid[pos.y].Length - 1;
+                    }
+
+                    // Over length, bring us back to the left
+                    if (pos.x >= grid[pos.y].Length)
+                    {
+                        pos.x = 0;
+                    }
                 }
 
-                // Under zero, bring us back to the right
-                while (pos.x < 0)
-                {
-                    pos.x += FindRowEnd(pos.y);
-                }
-
-                // Over length, bring us back to the left
-                while (pos.x >= grid[pos.y].Length)
-                {
-                    pos.x %= grid[pos.y].Length;
-                }
-
-                if (GetGrid(pos) != ' ')
+                var g = GetGrid(pos);
+                if (g == '.' || g == '#')
                     return pos;
 
                 // Might have found another space
@@ -150,12 +152,12 @@ namespace AdventOfCode.Solutions.Year2022
             return pos.y >= 0 && pos.y < grid.Length && pos.x >= 0 && pos.x < grid[pos.y].Length;
         }
 
-        private char GetGrid(Point<int> pos)
+        private char? GetGrid(Point<int> pos)
         {
             if (IsInGrid(pos))
                 return grid[pos.y][pos.x];
 
-            return ' ';
+            return default;
         }
 
         private char[][] ReadGrid(string input)
@@ -163,6 +165,13 @@ namespace AdventOfCode.Solutions.Year2022
             // Read the input into [y][x] char array
             var arr = input.SplitByNewline()
                 .Select(line => line.ToCharArray())
+                .ToArray();
+
+            // For Part 1, pad so all lines are the same length
+            var len = arr.Max(line => line.Length);
+
+            arr = arr
+                .Select(line => line.Length < len ? line.Concat(Enumerable.Repeat(' ', len - line.Length)).ToArray() : line)
                 .ToArray();
 
             return arr;
@@ -229,7 +238,7 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartOne()
         {
-            PrintGrid();
+            // PrintGrid();
 
             var steps = new Queue<string>(instructions);
             while(steps.Count > 0)
@@ -270,7 +279,7 @@ namespace AdventOfCode.Solutions.Year2022
                     UpdateArrow();
                 }
 
-                PrintGrid();
+                // PrintGrid();
             }
 
             return (((current.y + 1) * 1000) + ((current.x + 1) * 4) + deltaIndex).ToString();
