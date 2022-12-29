@@ -96,14 +96,14 @@ namespace AdventOfCode.Solutions.Year2022
         private Point<int> FindNext(Point<int> pos, Point<int> direction)
         {
             // Found a space, keep going...
-            while (IsInGrid(pos))
+            do
             {
                 pos += direction;
 
                 var g = GetGrid(pos);
-                if (g == '.' || g == '#')
+                if (g.HasValue && g.Value != ' ')
                     return pos;
-            }
+            } while (IsInGrid(pos));
 
             do
             {
@@ -139,7 +139,7 @@ namespace AdventOfCode.Solutions.Year2022
                 }
 
                 var g = GetGrid(pos);
-                if (g == '.' || g == '#')
+                if (g.HasValue && g.Value != ' ')
                     return pos;
 
                 // Might have found another space
@@ -239,11 +239,14 @@ namespace AdventOfCode.Solutions.Year2022
         protected override string? SolvePartOne()
         {
             // PrintGrid();
+            int count = 0;
 
             var steps = new Queue<string>(instructions);
             while(steps.Count > 0)
             {
                 var step = steps.Dequeue();
+
+                // Console.WriteLine($"Step: {step}");
 
                 if (step == "R" || step == "L")
                 {
