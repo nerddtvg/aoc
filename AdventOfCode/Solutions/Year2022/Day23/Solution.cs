@@ -11,13 +11,6 @@ namespace AdventOfCode.Solutions.Year2022
 
     class Day23 : ASolution
     {
-        public struct Elf
-        {
-            public int id;
-            public int x;
-            public int y;
-        }
-
         public enum Direction
         {
             North,
@@ -26,7 +19,7 @@ namespace AdventOfCode.Solutions.Year2022
             East
         }
 
-        public List<Elf> elves = new();
+        public HashSet<(int x, int y)> elves = new();
         public Queue<Direction> directions = new();
 
         public Day23() : base(23, 2022, "Unstable Diffusion")
@@ -49,14 +42,13 @@ namespace AdventOfCode.Solutions.Year2022
             directions = new(new Direction[] { Direction.North, Direction.South, Direction.West, Direction.East });
 
             int y = 0;
-            int id = 0;
             foreach (var line in Input.SplitByNewline(true))
             {
                 int x = 0;
                 foreach (var c in line.ToCharArray())
                 {
                     if (c == '#')
-                        elves.Add(new() { x = x, y = y, id = id++ });
+                        elves.Add((x, y));
 
                     x++;
                 }
@@ -64,13 +56,13 @@ namespace AdventOfCode.Solutions.Year2022
             }
         }
 
-        public bool ElfExists(int x, int y) => elves.Any(e => e.x == x && e.y == y);
+        public bool ElfExists(int x, int y) => elves.Contains((x, y));
 
-        public bool ElfNorth(Elf elf) => ElfExists(elf.x - 1, elf.y - 1) || ElfExists(elf.x, elf.y - 1) || ElfExists(elf.x + 1, elf.y - 1);
-        public bool ElfEast(Elf elf) => ElfExists(elf.x + 1, elf.y - 1) || ElfExists(elf.x + 1, elf.y) || ElfExists(elf.x + 1, elf.y + 1);
-        public bool ElfWest(Elf elf) => ElfExists(elf.x - 1, elf.y - 1) || ElfExists(elf.x - 1, elf.y) || ElfExists(elf.x - 1, elf.y + 1);
-        public bool ElfSouth(Elf elf) => ElfExists(elf.x - 1, elf.y + 1) || ElfExists(elf.x, elf.y + 1) || ElfExists(elf.x + 1, elf.y + 1);
-        public bool HasElfNeighbors(Elf elf) => ElfNorth(elf) || ElfSouth(elf) || ElfWest(elf) || ElfEast(elf);
+        public bool ElfNorth((int x, int y) elf) => ElfExists(elf.x - 1, elf.y - 1) || ElfExists(elf.x, elf.y - 1) || ElfExists(elf.x + 1, elf.y - 1);
+        public bool ElfEast((int x, int y) elf) => ElfExists(elf.x + 1, elf.y - 1) || ElfExists(elf.x + 1, elf.y) || ElfExists(elf.x + 1, elf.y + 1);
+        public bool ElfWest((int x, int y) elf) => ElfExists(elf.x - 1, elf.y - 1) || ElfExists(elf.x - 1, elf.y) || ElfExists(elf.x - 1, elf.y + 1);
+        public bool ElfSouth((int x, int y) elf) => ElfExists(elf.x - 1, elf.y + 1) || ElfExists(elf.x, elf.y + 1) || ElfExists(elf.x + 1, elf.y + 1);
+        public bool HasElfNeighbors((int x, int y) elf) => ElfNorth(elf) || ElfSouth(elf) || ElfWest(elf) || ElfEast(elf);
 
         public int RunRound()
         {
@@ -79,23 +71,25 @@ namespace AdventOfCode.Solutions.Year2022
             /// <summary>
             /// These are the elves that proposed moving
             /// </summary>
-            var newElves = new List<Elf>();
+            var newElves = new HashSet<(int x, int y)>();
 
             /// <summary>
             /// These are the elves that cannot move this round
             /// </summary>
-            var finalElves = new List<Elf>();
+            var finalElves = new HashSet<(int x, int y)>();
 
             // What direction are we checking? Add it back to the end of the list
             var direction = directions.Dequeue();
             directions.Enqueue(direction);
+
+            int movedCount = 0;
 
             foreach (var elf in elves)
             {
                 // No neighbors, no movement
                 if (!HasElfNeighbors(elf))
                 {
-                    finalElves.Add(elf);
+                    newElves.Add(elf);
                     continue;
                 }
 
@@ -103,6 +97,10 @@ namespace AdventOfCode.Solutions.Year2022
 
                 // Start with the above direction
                 // Then try the rest in order
+
+                // Optimization from mega thread:
+                // A conflict can only occur during movement
+                // and from the opposite direction, so we can handle it here
                 for (int i = 0; i < 4 && !proposed; i++)
                 {
                     var thisDir = (Direction)(((int)direction + i) % 4);
@@ -110,25 +108,93 @@ namespace AdventOfCode.Solutions.Year2022
                     if (thisDir == Direction.North && !ElfNorth(elf))
                     {
                         // Propose we move up
-                        newElves.Add(elf with { y = elf.y - 1 });
+                        var newElf = elf with { y = elf.y - 1 };
+                        if (newElves.Contains(newElf))
+                        {
+                            // No movement
+                            newElves.Add(elf);
+
+                            newElves.Remove(newElf);
+                            newElves.Add(newElf with { y = newElf.y - 1 });
+
+                            movedCount--;
+                        }
+                        else
+                        {
+                            newElves.Add(newElf);
+
+                            movedCount++;
+                        }
+
                         proposed = true;
                     }
                     else if (thisDir == Direction.South && !ElfSouth(elf))
                     {
                         // Propose we move down
-                        newElves.Add(elf with { y = elf.y + 1 });
+                        var newElf = elf with { y = elf.y + 1 };
+                        if (newElves.Contains(newElf))
+                        {
+                            // No movement
+                            newElves.Add(elf);
+
+                            newElves.Remove(newElf);
+                            newElves.Add(newElf with { y = newElf.y + 1 });
+
+                            movedCount--;
+                        }
+                        else
+                        {
+                            newElves.Add(newElf);
+
+                            movedCount++;
+                        }
+
                         proposed = true;
                     }
                     else if (thisDir == Direction.West && !ElfWest(elf))
                     {
                         // Propose we move left
-                        newElves.Add(elf with { x = elf.x - 1 });
+                        var newElf = elf with { x = elf.x - 1 };
+                        if (newElves.Contains(newElf))
+                        {
+                            // No movement
+                            newElves.Add(elf);
+
+                            newElves.Remove(newElf);
+                            newElves.Add(newElf with { x = newElf.x - 1 });
+
+                            movedCount--;
+                        }
+                        else
+                        {
+                            newElves.Add(newElf);
+
+                            movedCount++;
+                        }
+
                         proposed = true;
                     }
                     else if (thisDir == Direction.East && !ElfEast(elf))
                     {
                         // Propose we move right
-                        newElves.Add(elf with { x = elf.x + 1 });
+                        var newElf = elf with { x = elf.x + 1 };
+                        if (newElves.Contains(newElf))
+                        {
+                            // No movement
+                            newElves.Add(elf);
+
+                            newElves.Remove(newElf);
+                            newElves.Add(newElf with { x = newElf.x + 1 });
+
+                            movedCount--;
+                        }
+                        else
+                        {
+                            newElves.Add(newElf);
+
+                            movedCount++;
+                        }
+
                         proposed = true;
                     }
                 }
@@ -140,28 +206,10 @@ namespace AdventOfCode.Solutions.Year2022
                 }
             }
 
-            // Now check the proposals for any overlap
-            var overlaps = newElves
-                .GroupBy(e => (e.x, e.y))
-                .Where(grp => grp.Count() > 1)
-                .SelectMany(grp => grp.Select(e => e))
-                .ToList();
-
-            var overlapIds = overlaps.Select(e => e.id).ToList();
-
-            // Remove the overlaps
-            newElves.RemoveAll(e => overlaps.Contains(e));
-
-            // Add any remaining movements
-            finalElves.AddRange(newElves);
-
-            // Add back the original overlap positions
-            finalElves.AddRange(elves.Where(e => overlapIds.Contains(e.id)));
-
             // Finalize the move
-            elves = finalElves;
+            elves = newElves;
 
-            return newElves.Count;
+            return movedCount;
         }
 
         private void PrintGrid()
@@ -218,7 +266,7 @@ namespace AdventOfCode.Solutions.Year2022
                 if (moved == 0)
                     return (10 + i).ToString();
             }
-            
+
             return string.Empty;
         }
     }
