@@ -32,6 +32,14 @@ namespace AdventOfCode.Solutions.Year2022
             new(0, -1)
         };
 
+        public enum Direction
+        {
+            Right,
+            Down,
+            Left,
+            Up
+        }
+
         public Day22() : base(22, 2022, "Monkey Map")
         {
 //             DebugInput = @"        ...#
@@ -49,22 +57,15 @@ namespace AdventOfCode.Solutions.Year2022
 
 // 10R5L5R10L4R5L5";
 
-            var map = string.Join('\n', Input.SplitByBlankLine()[0]);
             var steps = Input.SplitByBlankLine()[1][0];
 
-            grid = ReadGrid(map);
+            grid = ReadGrid();
 
             // Start in the first spot in the top row
             start = new(FindRowStart(0), 0);
 
             // Start by heading right
-            deltaIndex = 0;
-
-            // Make sure we're not in a wall
-            while(GetGrid(start) == '#')
-            {
-                start = FindNext(start, deltas[deltaIndex]);
-            }
+            deltaIndex = (int)Direction.Right;
 
             current = start;
             UpdateArrow();
@@ -93,7 +94,7 @@ namespace AdventOfCode.Solutions.Year2022
                 instructions.Add(matchEnd.Groups["distance"].Value);
         }
 
-        private Point<int> FindNext(Point<int> pos, Point<int> direction)
+        private Point<int> FindNextFlat(Point<int> pos, Point<int> direction)
         {
             // Found a space, keep going...
             do
@@ -147,6 +148,150 @@ namespace AdventOfCode.Solutions.Year2022
             } while (true);
         }
 
+        private (Point<int> newPos, int newDeltaIndex) FindNextCube(Point<int> pos, Point<int> direction)
+        {
+            /*
+             *   AB
+             *   C
+             *  DE
+             *  F
+             * 
+             *   F
+             *  DAB
+             *   C
+             * 
+             *   A
+             *  DCB
+             *   E
+             * 
+             *   C
+             *  DEB
+             *   F
+             *
+             * Start facing => end facing
+             * A up => F right
+             * A left => D right
+             * 
+             * B down => C left
+             * B up => F up
+             * B right => E left
+             * 
+             * C left => D down
+             * C right => B up
+             * 
+             * D up => C right
+             * D left => A right
+             * 
+             * E down => F left
+             * E right => B left
+             * 
+             * F down => B down
+             * F left => A down
+             * F right => E up
+             *  
+            */
+
+            pos += direction;
+
+            if (IsInGrid(pos))
+            {
+                var g = GetGrid(pos);
+
+                if (g.HasValue && g != ' ')
+                    return (pos, deltaIndex);
+            }
+
+            // We have moved outside one of our spaces
+            // Maybe A or B went up
+            if (pos.y < 0)
+            {
+                if (pos.x >= 100)
+                {
+                    // B up => F up
+                    return (new(pos.x - 100, 199), (int)Direction.Up);
+                }
+
+                // A up => F right
+                return (new(0, pos.x + 100), (int)Direction.Right);
+            }
+
+            // C or E to the right
+            if (100 <= pos.x && pos.x < 150 && deltaIndex == (int)Direction.Right)
+            {
+                if (pos.y >= 100)
+                {
+                    // E right => B left
+                    return (new(149, 149 - pos.y), (int)Direction.Left);
+                }
+
+                // C right => B up
+                return (new(pos.y + 50, 49), (int)Direction.Up);
+            }
+
+            // D or F to the left
+            if (pos.x < 0)
+            {
+                if (pos.y >= 150)
+                {
+                    // F left => A down
+                    return (new(pos.y - 100, 0), (int)Direction.Down);
+                }
+
+                // D left => A right
+                return (new(50, 149 - pos.y), (int)Direction.Right);
+            }
+
+            // E down
+            if (pos.y >= 150 && pos.x >= 50 && deltaIndex == (int)Direction.Down)
+            {
+                // E down => F left
+                return (new(49, pos.x + 100), (int)Direction.Left);
+            }
+
+            // B down or B right
+            if (pos.x >= 100)
+            {
+                // B down => C left
+                if (deltaIndex == (int)Direction.Down)
+                    return (new(99, pos.x - 50), (int)Direction.Left);
+
+                // B right => E left
+                return (new(99, 149 - pos.y), (int)Direction.Left);
+            }
+
+            // D up
+            if (0 <= pos.x && pos.x < 50 && pos.y < 100 && deltaIndex == (int)Direction.Up)
+            {
+                // D up => C right
+                return (new(50, 50 + pos.x), (int)Direction.Right);
+            }
+
+            // F down
+            if (pos.y > 199)
+            {
+                // F down => B down
+                return (new(pos.x + 100, 0), (int)Direction.Down);
+            }
+
+            // F right
+            if (pos.y >= 150)
+            {
+                // F down => E up
+                return (new(pos.y - 100, 149), (int)Direction.Up);
+            }
+
+            // Remaining are:
+            // A and C left
+            if (pos.y <= 49)
+            {
+                // A left => D right
+                return (new(0, 149 - pos.y), (int)Direction.Right);
+            }
+
+            // C left => D down
+            return (new(pos.y - 50, 100), (int)Direction.Down);
+        }
+
         private bool IsInGrid(Point<int> pos)
         {
             return pos.y >= 0 && pos.y < grid.Length && pos.x >= 0 && pos.x < grid[pos.y].Length;
@@ -159,6 +304,8 @@ namespace AdventOfCode.Solutions.Year2022
 
             return default;
         }
+
+        private char[][] ReadGrid() => ReadGrid(string.Join('\n', Input.SplitByBlankLine()[0]));
 
         private char[][] ReadGrid(string input)
         {
@@ -236,17 +383,18 @@ namespace AdventOfCode.Solutions.Year2022
             throw new Exception();
         }
 
-        protected override string? SolvePartOne()
+        private void RunInstructions(int part = 1)
         {
-            // PrintGrid();
-            int count = 0;
+            // const bool printGrid = false;
+            // if (part == 2 && printGrid) PrintGrid();
+            // int count = 0;
 
             var steps = new Queue<string>(instructions);
-            while(steps.Count > 0)
+            while (steps.Count > 0)
             {
                 var step = steps.Dequeue();
 
-                // Console.WriteLine($"Step: {step}");
+                // if (part == 2 && printGrid) Console.WriteLine($"Step: {step}");
 
                 if (step == "R" || step == "L")
                 {
@@ -270,22 +418,50 @@ namespace AdventOfCode.Solutions.Year2022
 
                 for (int i = 0; i < distance; i++)
                 {
-                    var newPos = FindNext(current, deltas[deltaIndex]);
+                    Point<int> newPos = default!;
+                    var newDeltaIndex = deltaIndex;
+
+                    if (part == 1)
+                        newPos = FindNextFlat(current, deltas[deltaIndex]);
+                    else
+                        (newPos, newDeltaIndex) = FindNextCube(current, deltas[deltaIndex]);
 
                     // If this is a wall, end out
                     if (GetGrid(newPos) == '#')
                         break;
 
+                    var temp = current;
+
                     // Otherwise, it's a valid step
                     current = newPos;
 
+                    // In Part 2, there are edge cases where we stop on an edge and don't
+                    // change our direction
+                    if (part == 2)
+                        deltaIndex = newDeltaIndex;
+
                     UpdateArrow();
+
+                    // if (part == 2 && count++ < 6000)
+                    //     Console.WriteLine($"({current.x},{current.y}) {(Direction)deltaIndex}");
                 }
 
-                // PrintGrid();
-            }
+                // if (part == 2 && printGrid) PrintGrid();
 
-            return (((current.y + 1) * 1000) + ((current.x + 1) * 4) + deltaIndex).ToString();
+                // if (part == 2 && printGrid && count++ > 30) break;
+            }
+        }
+
+        private int GetHash()
+        {
+            return ((current.y + 1) * 1000) + ((current.x + 1) * 4) + deltaIndex;
+        }
+
+        protected override string? SolvePartOne()
+        {
+            RunInstructions();
+
+            return GetHash().ToString();
         }
 
         private void UpdateArrow()
@@ -317,7 +493,14 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            grid = ReadGrid();
+            current = start;
+            deltaIndex = (int)Direction.Right;
+            UpdateArrow();
+
+            RunInstructions(2);
+
+            return GetHash().ToString();
         }
     }
 }
