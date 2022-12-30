@@ -210,6 +210,15 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartTwo()
         {
+            for (int i = 1; i < 1000; i++)
+            {
+                var moved = RunRound();
+
+                // We are continuing from Part 1
+                if (moved == 0)
+                    return (10 + i).ToString();
+            }
+            
             return string.Empty;
         }
     }
