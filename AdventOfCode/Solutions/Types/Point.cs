@@ -150,6 +150,23 @@ public readonly struct Point<T> where T : INumber<T>
     }
 
     /// <summary>
+    /// Modulus operation against all values in <paramref name="a" />
+    /// </summary>
+    public static Point<T> operator %(Point<T> a, T b)
+    {
+        return new Point<T>(
+            a
+                .coordinates
+                // If d is less than 0, % returns the remainder and we have to add the divisor again
+                // Example:
+                // -6 % 4 = -2
+                // So -2 + 4 = 2 to get the modulus
+                .Select(d => d < T.Zero ? (d % b) + b : d % b)
+                .ToArray()
+        );
+    }
+
+    /// <summary>
     /// Not implemented.
     /// </summary>
     public static Point<T> operator &(Point<T> a, Point<T> b)
