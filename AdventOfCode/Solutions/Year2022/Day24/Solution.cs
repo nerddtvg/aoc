@@ -36,6 +36,8 @@ namespace AdventOfCode.Solutions.Year2022
         public int width;
         public PriorityQueue<(Point<int> current, int minute, Point<int>[] path), ulong> queue = new();
         public HashSet<(Point<int> current, int minute)> visited = new();
+        public Dictionary<int, Point<int>[]> blizzardMinutes = new();
+        public int loop;
 
         public Day24() : base(24, 2022, "Blizzard Basin")
         {
@@ -79,6 +81,14 @@ namespace AdventOfCode.Solutions.Year2022
 
             start = new(lines[0].IndexOf('.') - 1, -1);
             end = new(lines[^1].IndexOf('.') - 1, lines.Length - 2);
+
+            // Blizzards repeat, so we can precalculate maps
+            blizzardMinutes.Clear();
+            loop = (int)Utilities.FindLCM(width, height);
+            for (int i = 0; i < loop; i++)
+            {
+                blizzardMinutes.Add(i, GetBlizzardsAtMinute(i));
+            }
         }
 
         public Point<int>[] GetBlizzardsAtMinute(int minute) =>
@@ -157,11 +167,8 @@ namespace AdventOfCode.Solutions.Year2022
 
             visited.Add((current, minute));
 
-            // Figure out our next blizzard positions
-            var blizzardPositons = GetBlizzardsAtMinute(minute + 1);
-
             // Get our possible moves
-            foreach(var newPos in GetPossibleMoves(blizzardPositons, current, end))
+            foreach(var newPos in GetPossibleMoves(blizzardMinutes[(minute + 1) % loop], current, end))
             {
                 queue.Enqueue((newPos, minute + 1, path.Append(newPos).ToArray()), ((newPos % end) * 1000) + (ulong)minute);
             }
