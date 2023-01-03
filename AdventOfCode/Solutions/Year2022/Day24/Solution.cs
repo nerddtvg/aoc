@@ -253,6 +253,9 @@ namespace AdventOfCode.Solutions.Year2022
             queue.Enqueue((start, 0, Array.Empty<Point<int>>()), 0);
             visited.Clear();
 
+            // Keep track of all paths, return the shortest
+            var paths = new List<Point<int>[]>();
+
             while(queue.Count > 0)
             {
                 var state = queue.Dequeue();
@@ -261,19 +264,20 @@ namespace AdventOfCode.Solutions.Year2022
 
                 if (path != default)
                 {
-                    return path;
+                    paths.Add(path);
                 }
             }
 
-            return Array.Empty<Point<int>>();
+            // Find the shortest path in the list
+            return paths
+                .OrderBy(p => p.Length)
+                .DefaultIfEmpty(Array.Empty<Point<int>>())
+                .First();
         }
 
         protected override string? SolvePartOne()
         {
             var path = FindPath();
-
-            // foreach(var move in path)
-            //     Console.WriteLine($"({move.x}, {move.y})");
 
             return minDistance == int.MaxValue ? string.Empty : minDistance.ToString();
         }
