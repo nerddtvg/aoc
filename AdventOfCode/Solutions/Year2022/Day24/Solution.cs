@@ -127,6 +127,8 @@ namespace AdventOfCode.Solutions.Year2022
             {
                 blizzardMinutes.Add(i, GetBlizzardsAtMinute(i));
             }
+
+            minDistance = int.MaxValue;
         }
 
         public HashSet<Point<int>> GetBlizzardsAtMinute(int minute) =>
@@ -248,43 +250,46 @@ namespace AdventOfCode.Solutions.Year2022
         /// <summary>
         /// The primary loop that handles queue processing to find paths
         /// </summary>
-        private Point<int>[] FindPath()
+        private void FindPath(Point<int> start, Point<int> end, int startMinute)
         {
-            queue.Enqueue((start, 0, Array.Empty<Point<int>>()), 0);
+            queue.Enqueue((start, startMinute, Array.Empty<Point<int>>()), 0);
             visited.Clear();
-
-            // Keep track of all paths, return the shortest
-            var paths = new List<Point<int>[]>();
 
             while(queue.Count > 0)
             {
                 var state = queue.Dequeue();
 
                 var path = FindPath(state.current, end, state.minute, state.path);
-
-                if (path != default)
-                {
-                    paths.Add(path);
-                }
             }
-
-            // Find the shortest path in the list
-            return paths
-                .OrderBy(p => p.Length)
-                .DefaultIfEmpty(Array.Empty<Point<int>>())
-                .First();
         }
 
         protected override string? SolvePartOne()
         {
-            var path = FindPath();
+            FindPath(start, end, 0);
 
             return minDistance == int.MaxValue ? string.Empty : minDistance.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // We have the answer from part 1
+            int totalMinutes = minDistance;
+
+            // Reset so we can find end => start, then start => end again
+            ReadMap();
+
+            // Go from end to start
+            FindPath(end, start, totalMinutes);
+
+            // Get the new total (this includes the original minutes)
+            totalMinutes = minDistance;
+
+            // Now let's go back to end!
+            ReadMap();
+
+            FindPath(start, end, totalMinutes);
+
+            return minDistance.ToString();
         }
     }
 }
