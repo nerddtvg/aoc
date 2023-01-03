@@ -27,16 +27,54 @@ namespace AdventOfCode.Solutions.Year2022
             { 'v', new(0, 1) }
         };
 
+        /// <summary>
+        /// Our input list of blizzards
+        /// </summary>
         public List<Blizzard> blizzards = new();
 
+        /// <summary>
+        /// The map's start location
+        /// </summary>
         public Point<int> start;
+
+        /// <summary>
+        /// The map's end location
+        /// </summary>
         public Point<int> end;
+
+        /// <summary>
+        /// Tracking any discovered path to shortcut out of it
+        /// </summary>
         public static int minDistance = Int32.MaxValue;
+
+        /// <summary>
+        /// The map's height
+        /// </summary>
         public int height;
+
+        /// <summary>
+        /// The map's width
+        /// </summary>
         public int width;
-        public PriorityQueue<(Point<int> current, int minute, Point<int>[] path), ulong> queue = new();
+
+        /// <summary>
+        /// Our queue to work through steps
+        /// </summary>
+        public PriorityQueue<(Point<int> current, int minute, Point<int>[] path), long> queue = new();
+
+        /// <summary>
+        /// Track our visited location (coordinate + minute)
+        /// </summary>
         public HashSet<(Point<int> current, int minute)> visited = new();
-        public Dictionary<int, Point<int>[]> blizzardMinutes = new();
+
+        /// <summary>
+        /// Precalculated blizzard locations
+        /// </summary>
+        public Dictionary<int, HashSet<Point<int>>> blizzardMinutes = new();
+
+        /// <summary>
+        /// Our loop modulus (LCM of width and height)
+        /// </summary>
         public int loop;
 
         public Day24() : base(24, 2022, "Blizzard Basin")
@@ -91,7 +129,7 @@ namespace AdventOfCode.Solutions.Year2022
             }
         }
 
-        public Point<int>[] GetBlizzardsAtMinute(int minute) =>
+        public HashSet<Point<int>> GetBlizzardsAtMinute(int minute) =>
             blizzards
                 .Select(b =>
                 {
@@ -108,12 +146,12 @@ namespace AdventOfCode.Solutions.Year2022
 
                     return new Point<int>(newX, newY);
                 })
-                .ToArray();
+                .ToHashSet();
 
         /// <summary>
-        /// Get all possible moves from <paramref name="current" />
+        /// Get all possible moves from <paramref name="current" /> in the provided list of <paramref name="blizzards" />
         /// </summary>
-        public IEnumerable<Point<int>> GetPossibleMoves(Point<int>[] blizzards, Point<int> current, Point<int> end)
+        public IEnumerable<Point<int>> GetPossibleMoves(HashSet<Point<int>> blizzards, Point<int> current, Point<int> end)
         {
             var moves = new Point<int>[]
             {
@@ -128,16 +166,23 @@ namespace AdventOfCode.Solutions.Year2022
             {
                 var newPos = current + move;
 
-                // Make sure this is a valid move
-                // If the move is 0,0, it's valid out of bounds for start/end
-                if (move != moves.Last() && move != end && (newPos.x < 0 || width <= newPos.x))
-                    continue;
-
-                if (move != moves.Last() && move != end && (newPos.y < 0 || height <= newPos.y))
-                    continue;
-
-                if (!blizzards.Contains(newPos))
+                // Always valid to move to end
+                if (newPos == end)
                     yield return newPos;
+                else
+                {
+
+                    // Make sure this is a valid move
+                    // If the move is 0,0, it's valid out of bounds for start/end
+                    if (move != moves[^1] && (newPos.x < 0 || width <= newPos.x))
+                        continue;
+
+                    if (move != moves[^1] && (newPos.y < 0 || height <= newPos.y))
+                        continue;
+
+                    if (!blizzards.Contains(newPos))
+                        yield return newPos;
+                }
             }
         }
 
@@ -162,20 +207,47 @@ namespace AdventOfCode.Solutions.Year2022
             }
 
             // If we've been here, skip it
-            if (visited.Contains((current, minute)))
+            // This accounts for the same minute within the loop
+            if (AddHasVisited(current, minute))
                 return default;
 
-            visited.Add((current, minute));
-
             // Get our possible moves
-            foreach(var newPos in GetPossibleMoves(blizzardMinutes[(minute + 1) % loop], current, end))
+            var newMinute = minute + 1;
+            foreach(var newPos in GetPossibleMoves(blizzardMinutes[newMinute % loop], current, end))
             {
-                queue.Enqueue((newPos, minute + 1, path.Append(newPos).ToArray()), ((newPos % end) * 1000) + (ulong)minute);
+                // Priority queue is dequeued in order of lowest priority
+                // By taking the distance to end, we have preferences towards closer answers
+                // Add in the current minute so that the same position but at a lower minute is preferred
+                queue.Enqueue((newPos, newMinute, path.Append(newPos).ToArray()), ((long)(newPos % end) * 1000) + newMinute);
             }
 
             return default;
         }
 
+        /// <summary>
+        /// Determines if we have visited this location + time or not
+        /// </summary>
+        private bool HasVisited(Point<int> current, int minute)
+        {
+            return visited.Contains((current, minute % loop));
+        }
+
+        /// <summary>
+        /// Determines if we have visited this location + time or not, inserts it otherwise
+        /// </summary>
+        private bool AddHasVisited(Point<int> current, int minute)
+        {
+            if (HasVisited(current, minute % loop))
+                return true;
+
+            visited.Add((current, minute % loop));
+
+            return false;
+        }
+
+        /// <summary>
+        /// The primary loop that handles queue processing to find paths
+        /// </summary>
         private Point<int>[] FindPath()
         {
             queue.Enqueue((start, 0, Array.Empty<Point<int>>()), 0);
@@ -193,17 +265,17 @@ namespace AdventOfCode.Solutions.Year2022
                 }
             }
 
-            throw new Exception();
+            return Array.Empty<Point<int>>();
         }
 
         protected override string? SolvePartOne()
         {
             var path = FindPath();
 
-            foreach(var move in path)
-                Console.WriteLine($"({move.x}, {move.y})");
+            // foreach(var move in path)
+            //     Console.WriteLine($"({move.x}, {move.y})");
 
-            return path.Length.ToString();
+            return minDistance == int.MaxValue ? string.Empty : minDistance.ToString();
         }
 
         protected override string? SolvePartTwo()
