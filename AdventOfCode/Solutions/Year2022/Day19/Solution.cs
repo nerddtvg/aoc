@@ -86,6 +86,25 @@ namespace AdventOfCode.Solutions.Year2022
                 // Another shortcut to prevent us from making dozens of ore when that's useless
                 maximums = (ore: Math.Max(Math.Max(costsOre.ore, costsObsidian.ore), Math.Max(costsGeode.ore, costsClay.ore)), clay: costsObsidian.clay, obsidian: costsGeode.obsidian);
             }
+
+            /// <summary>
+            /// Simplify the resource increase
+            /// </summary>
+            public void IncreaseResources()
+            {
+                this.resources.ore += this.bots.ore;
+                this.resources.clay += this.bots.clay;
+                this.resources.obsidian += this.bots.obsidian;
+                this.resources.geode += this.bots.geode;
+            }
+
+            /// <summary>
+            /// Provides a simple hash to prevent duplicate efforts
+            /// </summary>
+            public string GetIdString(int minute)
+            {
+                return $"{id}-{bots.ore}-{bots.clay}-{bots.obsidian}-{bots.geode}-{resources.ore}-{resources.clay}-{resources.obsidian}-{resources.geode}-{minute}";
+            }
         }
 
         /// <summary>
@@ -100,8 +119,8 @@ namespace AdventOfCode.Solutions.Year2022
 
         public Day19() : base(19, 2022, "Not Enough Minerals")
         {
-            DebugInput = @"Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.
-            Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.";
+            // DebugInput = @"Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.
+            // Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.";
 
             ReadBlueprints(Input);
         }
@@ -119,13 +138,24 @@ namespace AdventOfCode.Solutions.Year2022
             // Hold our current states
             Queue<(Blueprint blueprint, int minute)> queue = new();
 
+            // Don't duplicate tests
+            HashSet<string> seen = new();
+
             // First thing we do is load up all of the blueprints into the queue
-            blueprints.ForEach(b => queue.Enqueue((b, 0)));
+            blueprints.ForEach(b => queue.Enqueue((b, 1)));
             blueprints.ForEach(b => blueprintMax[b.id] = 0);
 
             while(queue.Count > 0)
             {
                 (var blueprint, var minute) = queue.Dequeue();
+
+                // Skip this blueprint if we have been here before
+                var hash = blueprint.GetIdString(minute);
+
+                if (seen.Contains(hash))
+                    continue;
+
+                seen.Add(hash);
 
                 // If we are done...
                 if (minute > maxMinute)
@@ -148,10 +178,11 @@ namespace AdventOfCode.Solutions.Year2022
                         // If we can build a geode, don't bother building something else
                         var newBlueprint = blueprint.Clone();
 
-                        newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsGeode.ore;
-                        newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsGeode.clay;
-                        newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsGeode.obsidian;
-                        newBlueprint.resources.geode += newBlueprint.bots.geode;
+                        newBlueprint.IncreaseResources();
+
+                        newBlueprint.resources.ore -= newBlueprint.costsGeode.ore;
+                        newBlueprint.resources.clay -= newBlueprint.costsGeode.clay;
+                        newBlueprint.resources.obsidian -= newBlueprint.costsGeode.obsidian;
 
                         newBlueprint.bots.geode++;
 
@@ -167,10 +198,11 @@ namespace AdventOfCode.Solutions.Year2022
                         {
                             var newBlueprint = blueprint.Clone();
 
-                            newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsOre.ore;
-                            newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsOre.clay;
-                            newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsOre.obsidian;
-                            newBlueprint.resources.geode += newBlueprint.bots.geode;
+                            newBlueprint.IncreaseResources();
+
+                            newBlueprint.resources.ore -= newBlueprint.costsOre.ore;
+                            newBlueprint.resources.clay -= newBlueprint.costsOre.clay;
+                            newBlueprint.resources.obsidian -= newBlueprint.costsOre.obsidian;
 
                             newBlueprint.bots.ore++;
 
@@ -185,10 +217,11 @@ namespace AdventOfCode.Solutions.Year2022
                         {
                             var newBlueprint = blueprint.Clone();
 
-                            newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsClay.ore;
-                            newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsClay.clay;
-                            newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsClay.obsidian;
-                            newBlueprint.resources.geode += newBlueprint.bots.geode;
+                            newBlueprint.IncreaseResources();
+
+                            newBlueprint.resources.ore -= newBlueprint.costsClay.ore;
+                            newBlueprint.resources.clay -= newBlueprint.costsClay.clay;
+                            newBlueprint.resources.obsidian -= newBlueprint.costsClay.obsidian;
 
                             newBlueprint.bots.clay++;
 
@@ -203,10 +236,11 @@ namespace AdventOfCode.Solutions.Year2022
                         {
                             var newBlueprint = blueprint.Clone();
 
-                            newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsObsidian.ore;
-                            newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsObsidian.clay;
-                            newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsObsidian.obsidian;
-                            newBlueprint.resources.geode += newBlueprint.bots.geode;
+                            newBlueprint.IncreaseResources();
+
+                            newBlueprint.resources.ore -= newBlueprint.costsObsidian.ore;
+                            newBlueprint.resources.clay -= newBlueprint.costsObsidian.clay;
+                            newBlueprint.resources.obsidian -= newBlueprint.costsObsidian.obsidian;
 
                             newBlueprint.bots.obsidian++;
 
@@ -220,10 +254,7 @@ namespace AdventOfCode.Solutions.Year2022
                 }
 
                 // Add a state of doing nothing (saving resources)
-                blueprint.resources.ore += blueprint.bots.ore;
-                blueprint.resources.clay += blueprint.bots.clay;
-                blueprint.resources.obsidian += blueprint.bots.obsidian;
-                blueprint.resources.geode += blueprint.bots.geode;
+                blueprint.IncreaseResources();
                 blueprint.skipped = skip.ToArray();
 
                 queue.Enqueue((blueprint, minute + 1));
