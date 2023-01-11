@@ -52,6 +52,11 @@ namespace AdventOfCode.Solutions.Year2022
             public (int ore, int clay, int obsidian, int geode) resources;
 
             /// <summary>
+            /// Maximum desired values (allowing us to produce one of each robot each turn)
+            /// </summary>
+            public (int ore, int clay, int obsidian) maximums;
+
+            /// <summary>
             /// Tacking what robots to skip
             /// </summary>
             public string[] skipped = Array.Empty<string>();
@@ -76,6 +81,10 @@ namespace AdventOfCode.Solutions.Year2022
 
                 // And no resources
                 resources = (0, 0, 0, 0);
+
+                // Determine our ultimate maximums for each bot
+                // Another shortcut to prevent us from making dozens of ore when that's useless
+                maximums = (ore: Math.Max(Math.Max(costsOre.ore, costsObsidian.ore), Math.Max(costsGeode.ore, costsClay.ore)), clay: costsObsidian.clay, obsidian: costsGeode.obsidian);
             }
         }
 
@@ -131,78 +140,82 @@ namespace AdventOfCode.Solutions.Year2022
 
                 // Otherwise, we have the ability to select a bot to make or not
                 // Let's find all possible bots that we can make this minute and queue those as new states
-                if (!blueprint.skipped.Contains("geode") && blueprint.costsGeode.ore <= blueprint.resources.ore && blueprint.costsGeode.clay <= blueprint.resources.clay && blueprint.costsGeode.obsidian <= blueprint.resources.obsidian)
+                // This only applies if we are over 1 minute remainig (otherwise the bot won't be done in time)
+                if (minute < maxMinute)
                 {
-                    // If we can build a geode, don't bother building something else
-                    var newBlueprint = blueprint.Clone();
-
-                    newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsGeode.ore;
-                    newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsGeode.clay;
-                    newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsGeode.obsidian;
-                    newBlueprint.resources.geode += newBlueprint.bots.geode;
-
-                    newBlueprint.bots.geode++;
-
-                    newBlueprint.skipped = Array.Empty<string>();
-
-                    queue.Enqueue((newBlueprint, minute + 1));
-
-                    skip.Add("geode");
-                }
-                else
-                {
-                    if (!blueprint.skipped.Contains("ore") && blueprint.costsOre.ore <= blueprint.resources.ore && blueprint.costsOre.clay <= blueprint.resources.clay && blueprint.costsOre.obsidian <= blueprint.resources.obsidian)
+                    if (!blueprint.skipped.Contains("geode") && blueprint.costsGeode.ore <= blueprint.resources.ore && blueprint.costsGeode.clay <= blueprint.resources.clay && blueprint.costsGeode.obsidian <= blueprint.resources.obsidian)
                     {
+                        // If we can build a geode, don't bother building something else
                         var newBlueprint = blueprint.Clone();
 
-                        newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsOre.ore;
-                        newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsOre.clay;
-                        newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsOre.obsidian;
+                        newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsGeode.ore;
+                        newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsGeode.clay;
+                        newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsGeode.obsidian;
                         newBlueprint.resources.geode += newBlueprint.bots.geode;
 
-                        newBlueprint.bots.ore++;
+                        newBlueprint.bots.geode++;
 
                         newBlueprint.skipped = Array.Empty<string>();
 
                         queue.Enqueue((newBlueprint, minute + 1));
 
-                        skip.Add("ore");
+                        skip.Add("geode");
                     }
-
-                    if (!blueprint.skipped.Contains("clay") && blueprint.costsClay.ore <= blueprint.resources.ore && blueprint.costsClay.clay <= blueprint.resources.clay && blueprint.costsClay.obsidian <= blueprint.resources.obsidian)
+                    else
                     {
-                        var newBlueprint = blueprint.Clone();
+                        if (!blueprint.skipped.Contains("ore") && blueprint.bots.ore < blueprint.maximums.ore && blueprint.costsOre.ore <= blueprint.resources.ore && blueprint.costsOre.clay <= blueprint.resources.clay && blueprint.costsOre.obsidian <= blueprint.resources.obsidian)
+                        {
+                            var newBlueprint = blueprint.Clone();
 
-                        newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsClay.ore;
-                        newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsClay.clay;
-                        newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsClay.obsidian;
-                        newBlueprint.resources.geode += newBlueprint.bots.geode;
+                            newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsOre.ore;
+                            newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsOre.clay;
+                            newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsOre.obsidian;
+                            newBlueprint.resources.geode += newBlueprint.bots.geode;
 
-                        newBlueprint.bots.clay++;
+                            newBlueprint.bots.ore++;
 
-                        newBlueprint.skipped = Array.Empty<string>();
+                            newBlueprint.skipped = Array.Empty<string>();
 
-                        queue.Enqueue((newBlueprint, minute + 1));
+                            queue.Enqueue((newBlueprint, minute + 1));
 
-                        skip.Add("clay");
-                    }
+                            skip.Add("ore");
+                        }
 
-                    if (!blueprint.skipped.Contains("obsidian") && blueprint.costsObsidian.ore <= blueprint.resources.ore && blueprint.costsObsidian.clay <= blueprint.resources.clay && blueprint.costsObsidian.obsidian <= blueprint.resources.obsidian)
-                    {
-                        var newBlueprint = blueprint.Clone();
+                        if (!blueprint.skipped.Contains("clay") && blueprint.bots.clay < blueprint.maximums.clay && blueprint.costsClay.ore <= blueprint.resources.ore && blueprint.costsClay.clay <= blueprint.resources.clay && blueprint.costsClay.obsidian <= blueprint.resources.obsidian)
+                        {
+                            var newBlueprint = blueprint.Clone();
 
-                        newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsObsidian.ore;
-                        newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsObsidian.clay;
-                        newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsObsidian.obsidian;
-                        newBlueprint.resources.geode += newBlueprint.bots.geode;
+                            newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsClay.ore;
+                            newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsClay.clay;
+                            newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsClay.obsidian;
+                            newBlueprint.resources.geode += newBlueprint.bots.geode;
 
-                        newBlueprint.bots.obsidian++;
+                            newBlueprint.bots.clay++;
 
-                        newBlueprint.skipped = Array.Empty<string>();
+                            newBlueprint.skipped = Array.Empty<string>();
 
-                        queue.Enqueue((newBlueprint, minute + 1));
+                            queue.Enqueue((newBlueprint, minute + 1));
 
-                        skip.Add("obsidian");
+                            skip.Add("clay");
+                        }
+
+                        if (!blueprint.skipped.Contains("obsidian") && blueprint.bots.obsidian < blueprint.maximums.obsidian && blueprint.costsObsidian.ore <= blueprint.resources.ore && blueprint.costsObsidian.clay <= blueprint.resources.clay && blueprint.costsObsidian.obsidian <= blueprint.resources.obsidian)
+                        {
+                            var newBlueprint = blueprint.Clone();
+
+                            newBlueprint.resources.ore += newBlueprint.bots.ore - newBlueprint.costsObsidian.ore;
+                            newBlueprint.resources.clay += newBlueprint.bots.clay - newBlueprint.costsObsidian.clay;
+                            newBlueprint.resources.obsidian += newBlueprint.bots.obsidian - newBlueprint.costsObsidian.obsidian;
+                            newBlueprint.resources.geode += newBlueprint.bots.geode;
+
+                            newBlueprint.bots.obsidian++;
+
+                            newBlueprint.skipped = Array.Empty<string>();
+
+                            queue.Enqueue((newBlueprint, minute + 1));
+
+                            skip.Add("obsidian");
+                        }
                     }
                 }
 
