@@ -130,11 +130,12 @@ namespace AdventOfCode.Solutions.Year2022
             blueprints = input.SplitByNewline(true).Select(b => new Blueprint(b)).ToList();
         }
 
-        private void FindMaximum()
+        /// <summary>
+        /// Find the maximum for each blueprint within the allowed timeframe
+        /// </summary>
+        /// <param name="maxMinute">Maximum number of minutes to run</param>
+        private void FindMaximum(int maxMinute)
         {
-            // How long can we run?
-            const int maxMinute = 24;
-
             // Hold our current states
             Queue<(Blueprint blueprint, int minute)> queue = new();
 
@@ -263,14 +264,16 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartOne()
         {
-            FindMaximum();
+            FindMaximum(24);
             return blueprintMax.Sum(b => b.Key * b.Value).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Only read the first three
+            blueprints = blueprints.Take(3).ToList();
+            FindMaximum(32);
+            return blueprintMax.Sum(b => b.Key * b.Value).ToString();
         }
     }
 }
-
