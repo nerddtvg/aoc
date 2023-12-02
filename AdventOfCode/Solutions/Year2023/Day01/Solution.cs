@@ -8,9 +8,11 @@ using System.Linq;
 
 namespace AdventOfCode.Solutions.Year2023
 {
-
-    class Day01 : ASolution
+    partial class Day01 : ASolution
     {
+        [GeneratedRegex("[0-9]")]
+        private static partial Regex regex();
+
         public Day01() : base(01, 2023, "Trebuchet?!")
         {
 
@@ -18,10 +20,8 @@ namespace AdventOfCode.Solutions.Year2023
 
         private int getSum(string input)
         {
-            var reg = new Regex("[0-9]");
-
             return input.SplitByNewline()
-                .Select(line => reg.Matches(line))
+                .Select(line => regex().Matches(line))
                 .Select(allNumbers => int.Parse($"{allNumbers[0].Value}{allNumbers[^1].Value}"))
                 .Sum();
         }
