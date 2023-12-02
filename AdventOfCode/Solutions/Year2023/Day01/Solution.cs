@@ -20,9 +20,13 @@ namespace AdventOfCode.Solutions.Year2023
 
         private int getSum(string input)
         {
+            // For each of the lines in the input
             return input.SplitByNewline()
+                // Match all digits
                 .Select(line => regex().Matches(line))
+                // Then find the first and last digit, pair them together and parse into an integer
                 .Select(allNumbers => int.Parse($"{allNumbers[0].Value}{allNumbers[^1].Value}"))
+                // Get the total
                 .Sum();
         }
 
@@ -34,6 +38,7 @@ namespace AdventOfCode.Solutions.Year2023
         protected override string? SolvePartTwo()
         {
             // Words can be overlapping so replacing them with digits + first/last characters makes the original code work
+            // oneight => o1e8t
             var input = Input;
 
             input = input.Replace("one", "o1e");
