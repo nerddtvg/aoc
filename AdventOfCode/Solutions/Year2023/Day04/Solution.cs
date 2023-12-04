@@ -37,8 +37,7 @@ namespace AdventOfCode.Solutions.Year2023
                         // Find the keys where there are 2 matches
                         .Where(group => group.Count() == 2)
                         // Total the number of keys
-                        .Count()
-                        ;
+                        .Count();
 
                     // Find our score
                     if (matches == 0) return 0;
@@ -56,7 +55,46 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Empty counts
+            int[] cardCounts = Enumerable.Repeat(0, 200).ToArray();
+
+            int cardIdx = 0;
+
+            // For each card, find the number of matches
+            // Then math it out!
+            Input.SplitByNewline()
+                // Get the "winning numbers | card" portion
+                .ToList().ForEach(line =>
+                {
+                    // cardIdx is one off
+                    cardIdx++;
+
+                    // We may have zero or more of these cards
+                    // defined by copies, so don't set the count
+                    // to one, we need to increment it
+                    cardCounts[cardIdx]++;
+
+                    var matches = new Regex(@"\d+")
+                        // Finds all the of digits
+                        .Matches(line.Split(":", 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[1])
+                        // Group the digits together
+                        .GroupBy(digit => digit.Value)
+                        // Find the keys where there are 2 matches
+                        .Where(group => group.Count() == 2)
+                        // Total the number of keys
+                        .Count();
+
+                    // For each of our matches, we increment up
+                    // to that number of cards after for "copies"
+                    for(var i = cardIdx + 1; matches > 0; matches--, i++)
+                    {
+                        // We need to increment by the number of
+                        // cardCounts for this card
+                        cardCounts[i] += cardCounts[cardIdx];
+                    }
+                });
+
+            return cardCounts.Sum().ToString();
         }
     }
 }
