@@ -287,11 +287,8 @@ namespace AdventOfCode.Solutions
         /// <exception cref="System.OverflowExeption">The sum is larger than <see cref="System.UInt64.MaxValue"/>.</exception>
         public static UInt64? Sum<TSource>(this IEnumerable<TSource> source, Func<TSource, UInt64?> selector)
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
-                
-            if (selector == null)
-                throw new ArgumentNullException(nameof(source));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
 
             bool HasValue = false;
             UInt64? returnValue = 0;
