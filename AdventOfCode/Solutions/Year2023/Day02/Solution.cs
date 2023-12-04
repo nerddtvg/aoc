@@ -64,7 +64,10 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            return Games
+                .Select(game => game.rounds.Max(round => (ulong)round.r) * game.rounds.Max(round => (ulong)round.b) * game.rounds.Max(round => (ulong)round.g))
+                .Sum(s => s)
+                .ToString();
         }
     }
 }
