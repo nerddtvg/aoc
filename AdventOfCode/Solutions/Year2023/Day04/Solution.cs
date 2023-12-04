@@ -58,13 +58,11 @@ namespace AdventOfCode.Solutions.Year2023
             // Empty counts
             int[] cardCounts = Enumerable.Repeat(0, 200).ToArray();
 
-            int cardIdx = 0;
-
             // For each card, find the number of matches
             // Then math it out!
             Input.SplitByNewline()
                 // Get the "winning numbers | card" portion
-                .ToList().ForEach(line =>
+                .ForEach((line, cardIdx) =>
                 {
                     // cardIdx is one off
                     cardIdx++;

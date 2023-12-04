@@ -319,5 +319,37 @@ namespace AdventOfCode.Solutions
 
             return returnValue;
         }
+
+        /// <summary>
+        /// Performs the specified action on each element of the <paramref name="source"/>. This provides missing LINQ functionality for IEnumerable ForEach.
+        /// </summary>
+        /// <param name="source">The source <see cref="IEnumerable{T}"/></param>
+        /// <param name="action">The <see cref="Action{T1}"/> to perform on each element of the <paramref name="source"/>.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="action"/> is <see langword="null" />.</exception>
+        public static void ForEach<TSource>(this IEnumerable<TSource> source, Action<TSource> action)
+        {
+            ArgumentNullException.ThrowIfNull(action);
+
+            foreach (var item in source)
+                action(item);
+        }
+
+        /// <summary>
+        /// Performs the specified action on each element of the <paramref name="source"/> with index parameters. This provides missing LINQ functionality for IEnumerable ForEach.
+        /// </summary>
+        /// <param name="source">The source <see cref="IEnumerable{T}"/></param>
+        /// <param name="action">The <see cref="Action{T1, T2}"/> to perform on each element of the <paramref name="source"/>.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="action"/> is <see langword="null" />.</exception>
+        public static void ForEach<TSource>(this IEnumerable<TSource> source, Action<TSource, int> action)
+        {
+            ArgumentNullException.ThrowIfNull(action);
+
+            int idx = 0;
+            foreach(var item in source)
+            {
+                action(item, idx);
+                idx++;
+            }
+        }
     }
 }
