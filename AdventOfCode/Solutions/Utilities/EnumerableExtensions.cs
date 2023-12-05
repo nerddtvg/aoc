@@ -351,5 +351,37 @@ namespace AdventOfCode.Solutions
                 idx++;
             }
         }
+
+        /// <summary>
+        /// Generates a sequence of integral numbers within a specified range.
+        /// </summary>
+        /// <param name="start">The value of the first integer in the sequence.</param>
+        /// <param name="count">The number of sequential integers to generate.</param>
+        /// <returns>An IEnumerable<Int32> in C# a range of sequential integral numbers.</returns>
+        /// <exception cred="System.ArgumentOutOfRangeException"><paramref name="start" /> + <paramref name="count" /> -1 is larger than UInt64.MaxValue.
+        public static IEnumerable<ulong> Range(ulong start, ulong count)
+        {
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(start, ulong.MaxValue - count, nameof(start));
+
+            var end = start + count;
+            for (; start < end; start++)
+                yield return start;
+        }
+
+        /// <summary>
+        /// Generates a sequence of integral numbers within a specified range.
+        /// </summary>
+        /// <param name="start">The value of the first integer in the sequence.</param>
+        /// <param name="count">The number of sequential integers to generate.</param>
+        /// <returns>An IEnumerable<Int32> in C# a range of sequential integral numbers.</returns>
+        /// <exception cred="System.ArgumentOutOfRangeException"><paramref name="start" /> + <paramref name="count" /> -1 is larger than UInt32.MaxValue.
+        public static IEnumerable<uint> Range(uint start, uint count)
+        {
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(start, uint.MaxValue - count, nameof(start));
+
+            var end = start + count;
+            for (; start < end; start++)
+                yield return start;
+        }
     }
 }
