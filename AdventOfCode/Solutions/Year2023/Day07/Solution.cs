@@ -12,11 +12,10 @@ namespace AdventOfCode.Solutions.Year2023
     using Hand = (char[] cards, int bid, HandType handType, HandType handType2, int rank, int rank2);
 
     /// <summary>
-    /// Poker hands in order of rank (None == 0 for scoring)
+    /// Poker hands in order
     /// </summary>
     public enum HandType
     {
-        None,
         High,
         OnePair,
         TwoPair,
