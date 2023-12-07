@@ -4,11 +4,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using System.Linq;
+using System.Diagnostics;
 
 
 namespace AdventOfCode.Solutions.Year2023
 {
-    using Hand = (CardRank[] cards, int bid, HandType handType, int rank);
+    using Hand = (char[] cards, int bid, HandType handType, HandType handType2, int rank);
 
     /// <summary>
     /// Cards in order of rank
@@ -31,6 +32,26 @@ namespace AdventOfCode.Solutions.Year2023
     }
 
     /// <summary>
+    /// Cards in order of rank
+    /// </summary>
+    public enum CardRank2
+    {
+        J,
+        Two,
+        Three,
+        Four,
+        Five,
+        Six,
+        Seven,
+        Eight,
+        Nine,
+        T,
+        Q,
+        K,
+        A
+    }
+
+    /// <summary>
     /// Poker hands in order of rank (None == 0 for scoring)
     /// </summary>
     public enum HandType
@@ -47,21 +68,38 @@ namespace AdventOfCode.Solutions.Year2023
 
     class Day07 : ASolution
     {
-        public Dictionary<char, CardRank> CardMap = new()
+        public Dictionary<char, int> CardMap = new()
         {
-            { '2', CardRank.Two },
-            { '3', CardRank.Three },
-            { '4', CardRank.Four },
-            { '5', CardRank.Five },
-            { '6', CardRank.Six },
-            { '7', CardRank.Seven },
-            { '8', CardRank.Eight },
-            { '9', CardRank.Nine },
-            { 'T', CardRank.T },
-            { 'J', CardRank.J },
-            { 'Q', CardRank.Q },
-            { 'K', CardRank.K },
-            { 'A', CardRank.A }
+            { '2', (int)CardRank.Two },
+            { '3', (int)CardRank.Three },
+            { '4', (int)CardRank.Four },
+            { '5', (int)CardRank.Five },
+            { '6', (int)CardRank.Six },
+            { '7', (int)CardRank.Seven },
+            { '8', (int)CardRank.Eight },
+            { '9', (int)CardRank.Nine },
+            { 'T', (int)CardRank.T },
+            { 'J', (int)CardRank.J },
+            { 'Q', (int)CardRank.Q },
+            { 'K', (int)CardRank.K },
+            { 'A', (int)CardRank.A }
+        };
+
+        public Dictionary<char, int> CardMap2 = new()
+        {
+            { '2', (int)CardRank2.Two },
+            { '3', (int)CardRank2.Three },
+            { '4', (int)CardRank2.Four },
+            { '5', (int)CardRank2.Five },
+            { '6', (int)CardRank2.Six },
+            { '7', (int)CardRank2.Seven },
+            { '8', (int)CardRank2.Eight },
+            { '9', (int)CardRank2.Nine },
+            { 'T', (int)CardRank2.T },
+            { 'J', (int)CardRank2.J },
+            { 'Q', (int)CardRank2.Q },
+            { 'K', (int)CardRank2.K },
+            { 'A', (int)CardRank2.A }
         };
 
         public List<Hand> hands;
@@ -69,26 +107,39 @@ namespace AdventOfCode.Solutions.Year2023
         public Day07() : base(07, 2023, "Camel Cards")
         {
             hands = Input.SplitByNewline().Select(line => parseHand(line)).ToList();
-            var highestRank = hands.Count;
-
-            // Now rank them
-            hands = hands
-                .OrderByDescending(hand => hand.handType)
-                .ThenByDescending(hand => hand.cards, new CompareHands())
-                // Score them starting at highestRank and moving down
-                .Select((hand, idx) => { hand.rank = highestRank - idx; return hand; })
-                .ToList();
         }
 
-        private Hand parseHand(string line)
+        private Hand parseHand(string line, int part = 1)
         {
             var split = line.Split(" ");
 
-            var cards = split[0].Select(c => CardMap[c]).ToArray();
+            var cards = split[0].ToCharArray();
             var bid = int.Parse(split[1]);
 
+            return (cards, bid, scoreHand(cards), scoreHand(cards, 2), 0);
+        }
+
+        private HandType scoreHand(char[] cards, int part = 1)
+        {
             // Determine the hand type now
             var handType = HandType.High;
+
+            if (part == 2)
+            {
+                // If we have any pairs, we should pick the biggest group
+                // If there are more than one groups with the same count, pick the highest value card
+                // If it is all J's then we stick with it
+                var newCard = cards
+                    .Where(c => c != 'J')
+                    .DefaultIfEmpty('J')
+                    .GroupBy(c => c)
+                    .OrderByDescending(grp => grp.Count())
+                    .ThenByDescending(grp => (int)CardMap2[grp.Key])
+                    .First()
+                    .Key;
+                cards = cards.Select(c => c == 'J' ? newCard : c).ToArray();
+            }
+
             var groups = cards.GroupBy(c => c);
             var groupsCount = groups.Count();
 
@@ -113,23 +164,40 @@ namespace AdventOfCode.Solutions.Year2023
             else if (groupsCount == 4)
                 handType = HandType.OnePair;
 
-            return (cards, bid, handType, 0);
+            return handType;
         }
 
         protected override string? SolvePartOne()
         {
+            // Now rank them
+            hands = hands
+                .OrderByDescending(hand => hand.handType)
+                .ThenByDescending(hand => hand.cards, new CompareHands() { map = CardMap })
+                // Score them starting at highestRank and moving down
+                .Select((hand, idx) => { hand.rank = hands.Count - idx; return hand; })
+                .ToList();
+
             return hands.Sum(hand => hand.bid * hand.rank).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Now rank them
+            hands = hands
+                .OrderByDescending(hand => hand.handType2)
+                .ThenByDescending(hand => hand.cards, new CompareHands() { map = CardMap2 })
+                // Score them starting at highestRank and moving down
+                .Select((hand, idx) => { hand.rank = hands.Count - idx; return hand; })
+                .ToList();
+
+            return hands.Sum(hand => hand.bid * hand.rank).ToString();
         }
     }
 
-    public class CompareHands : IComparer<CardRank[]>
+    public class CompareHands : IComparer<char[]>
     {
-        public int Compare(CardRank[] a, CardRank[] b)
+        public Dictionary<char, int> map = new();
+        public int Compare(char[] a, char[] b)
         {
             //return positive if a should be higher, return negative if b should be higher
             ArgumentNullException.ThrowIfNull(a);
@@ -140,9 +208,9 @@ namespace AdventOfCode.Solutions.Year2023
 
             for(int i =0; i<5; i++)
             {
-                if (a[i] > b[i])
+                if (map[a[i]] > map[b[i]])
                     return 1;
-                else if (a[i] < b[i])
+                else if (map[a[i]] < map[b[i]])
                     return -1;
             }
 
