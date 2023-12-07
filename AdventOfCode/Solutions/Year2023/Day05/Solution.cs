@@ -11,7 +11,7 @@ using System.Reflection;
 
 namespace AdventOfCode.Solutions.Year2023
 {
-    using TypeMap = (TypeOrder sourceName, TypeOrder destName, uint sourceIdx, uint destIdx, uint count);
+    using TypeMap = (TypeOrder sourceName, TypeOrder destName, ulong sourceIdx, ulong destIdx, ulong count);
 
     public enum TypeOrder
     {
@@ -27,50 +27,19 @@ namespace AdventOfCode.Solutions.Year2023
 
     class Day05 : ASolution
     {
-        public List<uint> seeds;
+        public List<ulong> seeds;
         public List<TypeMap> maps;
 
         const int TypeOrderCount = 8;
 
+        // The range of numbers from the live data includes 4,294,967,296 which is uint+1
+        const ulong MaxValue = (ulong)uint.MaxValue + 1;
+
         public Day05() : base(05, 2023, "If You Give A Seed A Fertilizer")
         {
-            DebugInput = @"seeds: 79 14 55 13
-
-seed-to-soil map:
-50 98 2
-52 50 48
-
-soil-to-fertilizer map:
-0 15 37
-37 52 2
-39 0 15
-
-fertilizer-to-water map:
-49 53 8
-0 11 42
-42 0 7
-57 7 4
-
-water-to-light map:
-88 18 7
-18 25 70
-
-light-to-temperature map:
-45 77 23
-81 45 19
-68 64 13
-
-temperature-to-humidity map:
-0 69 1
-1 0 69
-
-humidity-to-location map:
-60 56 37
-56 93 4";
-
             // Load the desired seed indices
             var groups = Input.SplitByBlankLine();
-            seeds = new Regex(@"\d+").Matches(groups[0][0]).Select(digit => uint.Parse(digit.Value)).ToList();
+            seeds = new Regex(@"\d+").Matches(groups[0][0]).Select(digit => ulong.Parse(digit.Value)).ToList();
 
             maps = new();
 
@@ -85,7 +54,33 @@ humidity-to-location map:
 
                 var orderedDigits = regex
                     .Matches(string.Join('\n', section))
-                    .Select(match => match.Groups.Values.Skip(1).Select(grp => uint.Parse(grp.Value)).ToArray())
+                    .Select(match => match.Groups.Values.Skip(1).Select(grp => ulong.Parse(grp.Value)).ToArray())
+                    .OrderBy(row => row[1])
+                    .ToArray();
+
+                // Pad the start of orderedDigits to include 0 => min
+                if (orderedDigits[0][1] > 0)
+                    orderedDigits = orderedDigits.Prepend(new ulong[] { 0, 0, orderedDigits[0][1] }).ToArray();
+
+                // Pad the end of orderedDigits to include the full range as well
+                if (orderedDigits[^1][1] + orderedDigits[^1][2] < MaxValue)
+                    orderedDigits = orderedDigits.Append(new ulong[] { orderedDigits[^1][1] + orderedDigits[^1][2], orderedDigits[^1][1] + orderedDigits[^1][2], MaxValue - (orderedDigits[^1][1] + orderedDigits[^1][2]) }).ToArray();
+
+                // Reorder
+                orderedDigits = orderedDigits.OrderBy(row => row[1]).ToArray();
+
+                // In the sample data, there are no gaps in groups
+                // But in the live data, there were gaps found in some
+                // Let's go through and fix those now
+                List<(ulong start, ulong count)> missing = new();
+                for (int i = 0; i < orderedDigits.Length - 1; i++)
+                {
+                    if (orderedDigits[i][1] + orderedDigits[i][2] < orderedDigits[i + 1][1])
+                        missing.Add((orderedDigits[i][1] + orderedDigits[i][2], orderedDigits[i + 1][1] - (orderedDigits[i][1] + orderedDigits[i][2])));
+                }
+
+                orderedDigits = orderedDigits
+                    .Union(missing.Select(row => new ulong[] { row.start, row.start, row.count }))
                     .OrderBy(row => row[1])
                     .ToArray();
 
@@ -94,42 +89,17 @@ humidity-to-location map:
                 {
                     orderedDigits.ForEach(digits => maps.Add((order, order + 1, digits[1], digits[0], digits[2])));
 
-                    // Fill in gaps at the top and bottom
-                    // 0 => min(source)
-                    // max(source) + count => uint.MaxValue
-                    var min = orderedDigits.Min(digits => digits[1]);
-                    var max = orderedDigits.Max(digits => digits[1]);
-                    var maxCount = orderedDigits.First(digits => digits[1] == max)[2];
-                    max += maxCount;
-
-                    if (min > 0)
-                        maps.Add((TypeOrder.seed, TypeOrder.soil, 0, 0, min));
-
-                    if (max < uint.MaxValue)
-                        maps.Add((TypeOrder.seed, TypeOrder.seed, max, max, uint.MaxValue - max));
-
                     continue;
                 }
 
-                // Now we have a full range list (0 => uint.MaxValue)
+                // Now we have a full range list (0 => MaxValue)
                 // It should be easier to map the destinations now
-
                 var tmpMaps = new List<TypeMap>();
-                TypeMap defaultMap = (TypeOrder.seed, TypeOrder.seed, uint.MaxValue, uint.MaxValue, 0);
 
                 // We need to work up each slice and figure out where each begins/ends
                 var stepDestMap = maps.First(map => map.destIdx == 0);
 
                 var orderedIdx = 0;
-
-                // Pad the end of orderedDigits to include the full range as well
-                var maxDigits = orderedDigits.Max(digits => digits[1]);
-                var maxDigitsCount = orderedDigits.First(digits => digits[1] == maxDigits)[2];
-
-                if (maxDigits + maxDigitsCount < uint.MaxValue)
-                {
-                    orderedDigits = orderedDigits.Append(new uint[] { maxDigits + maxDigitsCount, maxDigits + maxDigitsCount, uint.MaxValue - (maxDigits + maxDigitsCount) }).ToArray();
-                }
 
                 // We work our way up the slices and determine which is next by figuring out where
                 // the Idx + Counts start/end
@@ -146,39 +116,6 @@ humidity-to-location map:
                     var stepSourceIdx = orderedDigits[orderedIdx][1];
                     var stepSourceCount = orderedDigits[orderedIdx][2];
 
-                    if (stepDestIdx < stepSourceIdx)
-                    {
-                        // Gap at the top where the maps has mappings that orderedDigits doesn't
-                        if (stepDestIdx + stepDestMap.count < stepSourceIdx)
-                        {
-                            // Directly copy this mapping changing the destination type
-                            stepDestMap = stepDestMap.Clone();
-                            stepDestMap.destName = order + 1;
-                            tmpMaps.Add(stepDestMap);
-
-                            // Move up to the next one
-                            stepDestMap = maps
-                                .Where(map => map.destIdx == (stepDestIdx + stepDestMap.count))
-                                .DefaultIfEmpty(defaultMap)
-                                .FirstOrDefault();
-
-                            continue;
-                        }
-
-                        // We have a gap but we have to update the break point
-                        tmpMaps.Add((TypeOrder.seed, order + 1, stepDestIdx, stepDestIdx, stepSourceIdx - stepDestIdx));
-
-                        // Change the old breakpoint
-                        stepDestMap.sourceIdx += stepSourceIdx - stepDestIdx;
-                        stepDestMap.destIdx += stepSourceIdx - stepDestIdx;
-                        stepDestMap.count -= stepSourceIdx - stepDestIdx;
-
-                        if (stepDestMap.count == 0)
-                            stepDestMap = maps.First(map => map.destIdx == stepSourceIdx);
-
-                        continue;
-                    }
-
                     // At this point we should always have equal values
                     Debug.Assert(stepDestIdx == stepSourceIdx, "Invalid condition");
 
@@ -186,9 +123,9 @@ humidity-to-location map:
                     var minStep = Math.Min(stepDestMap.count, stepSourceCount);
 
                     // Add the new map
-                    tmpMaps.Add((TypeOrder.seed, order + 1, stepSourceIdx, orderedDigits[orderedIdx][0], minStep));
+                    tmpMaps.Add((TypeOrder.seed, order + 1, stepDestMap.sourceIdx, orderedDigits[orderedIdx][0], minStep));
 
-                    if (stepSourceIdx + minStep == uint.MaxValue)
+                    if (stepSourceIdx + minStep == MaxValue)
                         break;
 
                     // Update the old map
@@ -203,7 +140,7 @@ humidity-to-location map:
 
                     // Find the next if needed
                     if (stepDestMap.count == 0)
-                        stepDestMap = maps.First(map => map.destIdx == stepSourceIdx + minStep);
+                        stepDestMap = maps.Single(map => map.destIdx == stepSourceIdx + minStep);
 
                     // Increment if needed
                     if (orderedDigits[orderedIdx][2] == 0)
@@ -212,28 +149,24 @@ humidity-to-location map:
 
                 // We're done, save the new map
                 maps = tmpMaps;
-
-                Console.WriteLine($"seed 0 => {order+1} {maps.First(map => map.sourceIdx == 0).destIdx}");
             }
         }
 
-        private uint MapSeedLocation(uint seed)
+        private ulong MapSeedLocation(ulong seed)
         {
-            var map = maps.First(map => map.sourceIdx <= seed && seed <= map.sourceIdx + map.count);
+            var map = maps.First(map => map.sourceIdx <= seed && seed < map.sourceIdx + map.count);
 
             return map.destIdx + (seed - map.sourceIdx);
         }
 
         protected override string? SolvePartOne()
         {
-            seeds.ForEach(seed => Console.WriteLine($"{seed}: {MapSeedLocation(seed)}"));
-
             return seeds.Min(MapSeedLocation).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // return string.Empty;
             // The original seeds array is a set of pairs
             // a b c d ... => (a, b), (c, d), ...
             // a is the start, b is the count
