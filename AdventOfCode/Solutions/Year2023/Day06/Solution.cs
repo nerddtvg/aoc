@@ -30,31 +30,31 @@ namespace AdventOfCode.Solutions.Year2023
             part2 = (ulong.Parse(input[0].Split(":")[1]), ulong.Parse(input[1].Split(":")[1]));
         }
 
-        private List<ulong> CountWins(Race race)
+        private ulong CountWins(Race race)
         {
-            List<ulong> winningTimes = new();
+            ulong winCounts = 0;
 
             for(ulong time = 1; time < race.time - 1; time++)
             {
                 if ((race.time - time) * time > race.distance)
-                    winningTimes.Add(time);
+                    winCounts++;
 
                 // Check if we have hit the other side of our arc
-                else if (winningTimes.Count > 0)
+                else if (winCounts > 0)
                     break;
             }
 
-            return winningTimes;
+            return winCounts;
         }
 
         protected override string? SolvePartOne()
         {
-            return races.Aggregate(1, (agg, race) => agg * CountWins(race).Count).ToString();
+            return races.Aggregate((ulong)1, (agg, race) => agg * CountWins(race)).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return CountWins(part2).Count.ToString();
+            return CountWins(part2).ToString();
         }
     }
 }
