@@ -7,11 +7,13 @@ using System.Linq;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
+using System.Collections;
+using System.Collections.Specialized;
 
 
 namespace AdventOfCode.Solutions.Year2023
 {
-    using TypeMap = (TypeOrder sourceName, TypeOrder destName, ulong sourceIdx, ulong destIdx, ulong count);
+    using TypeMap = (ulong sourceIdx, ulong destIdx, ulong count);
 
     public enum TypeOrder
     {
@@ -28,7 +30,8 @@ namespace AdventOfCode.Solutions.Year2023
     class Day05 : ASolution
     {
         public List<ulong> seeds;
-        public List<TypeMap> maps;
+        public ulong[] keys;
+        public Dictionary<ulong, ulong> finalMaps;
 
         const int TypeOrderCount = 8;
 
@@ -41,7 +44,7 @@ namespace AdventOfCode.Solutions.Year2023
             var groups = Input.SplitByBlankLine();
             seeds = new Regex(@"\d+").Matches(groups[0][0]).Select(digit => ulong.Parse(digit.Value)).ToList();
 
-            maps = new();
+            List<TypeMap> maps = new();
 
             // Load the maps
             for (TypeOrder order = 0; (int)order < TypeOrderCount - 1; order++)
@@ -87,7 +90,7 @@ namespace AdventOfCode.Solutions.Year2023
                 // First step goes in as-is
                 if (order == TypeOrder.seed)
                 {
-                    orderedDigits.ForEach(digits => maps.Add((order, order + 1, digits[1], digits[0], digits[2])));
+                    orderedDigits.ForEach(digits => maps.Add((digits[1], digits[0], digits[2])));
 
                     continue;
                 }
@@ -123,7 +126,7 @@ namespace AdventOfCode.Solutions.Year2023
                     var minStep = Math.Min(stepDestMap.count, stepSourceCount);
 
                     // Add the new map
-                    tmpMaps.Add((TypeOrder.seed, order + 1, stepDestMap.sourceIdx, orderedDigits[orderedIdx][0], minStep));
+                    tmpMaps.Add((stepDestMap.sourceIdx, orderedDigits[orderedIdx][0], minStep));
 
                     if (stepSourceIdx + minStep == MaxValue)
                         break;
@@ -150,18 +153,31 @@ namespace AdventOfCode.Solutions.Year2023
                 // We're done, save the new map
                 maps = tmpMaps;
             }
+
+            // To make this faster when searching, we order it descending by start value
+            keys = maps.OrderByDescending(map => map.sourceIdx).Select(map => map.sourceIdx).ToArray();
+            finalMaps = maps.ToDictionary(map => map.sourceIdx, map => map.destIdx);
         }
 
-        private ulong MapSeedLocation(ulong seed)
+        private ulong MapSeedLocation(ulong seed, ulong count = 1)
         {
-            var map = maps.First(map => map.sourceIdx <= seed && seed < map.sourceIdx + map.count);
+            // Find all break points that may trigger for this range from seed to seed+count
+            // The lowest location at all times will be the location for key
+            // So we can return just that location from finalMaps
+            var seedLocations = keys.Where(key => seed < key && key < seed+count)
+                .Select(key => finalMaps[key])
+                .ToArray();
 
-            return map.destIdx + (seed - map.sourceIdx);
+            // Find the seed itself
+            var key = keys.First(key => key <= seed);
+            var seedLocation = finalMaps[key] + (seed - key);
+
+            return seedLocations.Append(seedLocation).Min();
         }
 
         protected override string? SolvePartOne()
         {
-            return seeds.Min(MapSeedLocation).ToString();
+            return seeds.Min(seed => MapSeedLocation(seed)).ToString();
         }
 
         protected override string? SolvePartTwo()
@@ -172,10 +188,7 @@ namespace AdventOfCode.Solutions.Year2023
             // a is the start, b is the count
             // Get the seed locations listed
             return Enumerable.Range(0, seeds.Count / 2)
-                .SelectMany(
-                    idx => EnumerableExtensions.Range(seeds[idx * 2], seeds[(idx * 2) + 1])
-                )
-                .Select(MapSeedLocation)
+                .Select(idx => MapSeedLocation(seeds[idx * 2], seeds[(idx * 2) + 1]))
                 .Min()
                 .ToString();
         }
