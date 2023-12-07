@@ -30,8 +30,7 @@ namespace AdventOfCode.Solutions.Year2023
     class Day05 : ASolution
     {
         public List<ulong> seeds;
-        public ulong[] keys;
-        public Dictionary<ulong, ulong> finalMaps;
+        public List<TypeMap> maps;
 
         const int TypeOrderCount = 8;
 
@@ -44,7 +43,7 @@ namespace AdventOfCode.Solutions.Year2023
             var groups = Input.SplitByBlankLine();
             seeds = new Regex(@"\d+").Matches(groups[0][0]).Select(digit => ulong.Parse(digit.Value)).ToList();
 
-            List<TypeMap> maps = new();
+            maps = new();
 
             // Load the maps
             for (TypeOrder order = 0; (int)order < TypeOrderCount - 1; order++)
@@ -155,8 +154,7 @@ namespace AdventOfCode.Solutions.Year2023
             }
 
             // To make this faster when searching, we order it descending by start value
-            keys = maps.OrderByDescending(map => map.sourceIdx).Select(map => map.sourceIdx).ToArray();
-            finalMaps = maps.ToDictionary(map => map.sourceIdx, map => map.destIdx);
+            maps = maps.OrderByDescending(map => map.sourceIdx).ToList();
         }
 
         private ulong MapSeedLocation(ulong seed, ulong count = 1)
@@ -164,13 +162,13 @@ namespace AdventOfCode.Solutions.Year2023
             // Find all break points that may trigger for this range from seed to seed+count
             // The lowest location at all times will be the location for key
             // So we can return just that location from finalMaps
-            var seedLocations = keys.Where(key => seed < key && key < seed+count)
-                .Select(key => finalMaps[key])
+            var seedLocations = maps.Where(map => seed < map.sourceIdx && map.sourceIdx < seed+count)
+                .Select(map => map.destIdx)
                 .ToArray();
 
             // Find the seed itself
-            var key = keys.First(key => key <= seed);
-            var seedLocation = finalMaps[key] + (seed - key);
+            var map = maps.First(map => map.sourceIdx <= seed);
+            var seedLocation = map.destIdx + (seed - map.sourceIdx);
 
             return seedLocations.Append(seedLocation).Min();
         }
