@@ -152,9 +152,12 @@ namespace AdventOfCode.Solutions.Year2022
             blueprints.ForEach(b => queue.Enqueue((b, 1)));
             blueprints.ForEach(b => blueprintMax[b.id] = 0);
 
-            while(queue.Count > 0)
+            while (queue.Count > 0)
             {
                 (var blueprint, var minute) = queue.Dequeue();
+
+                if (minute >= maxMinute)
+                    continue;
 
                 // Skip this blueprint if we have been here before
                 var hash = blueprint.GetIdString(minute);
@@ -164,108 +167,121 @@ namespace AdventOfCode.Solutions.Year2022
 
                 seen.Add(hash);
 
-                // If we are done...
-                if (minute > maxMinute)
-                {
-                    blueprintMax[blueprint.id] = Math.Max(blueprintMax[blueprint.id], blueprint.resources.geode);
-                    continue;
-                }
-
                 // Keeping track of what we can make each time will reduce our steps down the road
                 // If we can make an Ore robot here, but save resources, don't make an Ore robot the next time around
                 var skip = new HashSet<BlueprintType>();
 
-                // Otherwise, we have the ability to select a bot to make or not
-                // Let's find all possible bots that we can make this minute and queue those as new states
-                // This only applies if we are over 1 minute remainig (otherwise the bot won't be done in time)
-                if (minute < maxMinute)
+                // /u/yossi_peti made an interesting comment:
+                // Instead of running the search minute by minute, I searched over the options of "what type of robot
+                // should I build next?" This allows you to reduce the search space by jumping over multiple minutes at once.
+
+                // If we look at the robots to build, we can skip minutes at a time
+                // Do this by looking at each bot and determining:
+                // a. Can I build it now? If yes, do that and enqueue it
+                // b. How long until I can build it? Enqueue that time plus resources
+
+                // Determine how long until we can build a geode bot
+                // Skip ahead and do that
+                // Otherwise, if we can build it now, the timeCost will be zero or less
+                Blueprint newBlueprint;
+                int timeCost = 0;
+
+                // Order of operations:
+                // We start at the top of the minute
+                // Determine what/if we can build
+                // Increase timeCost by one for all actions
+                // If timeCost is under zero, we can build now so set that to zero
+                // * This prevents rollback in time and bad resource counts
+                // Increase resources by timeCost
+                // * Because we need to account for the minute we are currently in
+                //   so that when we start the next minute, the resources are correct
+                // Increase the bot count after the resources step
+                // Enqueue for the next run (minute + timeCost) to get to the next designated minute
+
+                newBlueprint = blueprint.Clone();
+
+                timeCost = 1 + new int[] { 0, (int)Math.Ceiling((newBlueprint.costsOre.ore - newBlueprint.resources.ore) / (double)newBlueprint.bots.ore) }.Max();
+                if (timeCost + minute <= maxMinute)
                 {
-                    if (!blueprint.skipped.Contains(BlueprintType.geode) && blueprint.costsGeode.ore <= blueprint.resources.ore && blueprint.costsGeode.clay <= blueprint.resources.clay && blueprint.costsGeode.obsidian <= blueprint.resources.obsidian)
+                    newBlueprint.resources.ore -= newBlueprint.costsOre.ore;
+                    newBlueprint.resources.clay -= newBlueprint.costsOre.clay;
+                    newBlueprint.resources.obsidian -= newBlueprint.costsOre.obsidian;
+
+                    newBlueprint.resources.ore += newBlueprint.bots.ore * timeCost;
+                    newBlueprint.resources.clay += newBlueprint.bots.clay * timeCost;
+                    newBlueprint.resources.obsidian += newBlueprint.bots.obsidian * timeCost;
+
+                    newBlueprint.bots.ore++;
+
+                    queue.Enqueue((newBlueprint, minute + timeCost));
+                }
+
+                newBlueprint = blueprint.Clone();
+
+                timeCost = 1 + new int[] { 0, (int)Math.Ceiling((newBlueprint.costsClay.ore - newBlueprint.resources.ore) / (double)newBlueprint.bots.ore) }.Max();
+                if (timeCost + minute <= maxMinute)
+                {
+                    newBlueprint.resources.ore -= newBlueprint.costsClay.ore;
+                    newBlueprint.resources.clay -= newBlueprint.costsClay.clay;
+                    newBlueprint.resources.obsidian -= newBlueprint.costsClay.obsidian;
+
+                    newBlueprint.resources.ore += newBlueprint.bots.ore * timeCost;
+                    newBlueprint.resources.clay += newBlueprint.bots.clay * timeCost;
+                    newBlueprint.resources.obsidian += newBlueprint.bots.obsidian * timeCost;
+
+                    newBlueprint.bots.clay++;
+
+                    queue.Enqueue((newBlueprint, minute + timeCost));
+                }
+
+                // Only look at this if we have a clay bot
+                if (blueprint.bots.clay > 0)
+                {
+                    newBlueprint = blueprint.Clone();
+
+                    timeCost = 1 + new int[] { 0, (int)Math.Ceiling((newBlueprint.costsObsidian.ore - newBlueprint.resources.ore) / (double)newBlueprint.bots.ore), (int)Math.Ceiling((newBlueprint.costsObsidian.clay - newBlueprint.resources.clay) / (double)newBlueprint.bots.clay) }.Max();
+                    if (timeCost + minute <= maxMinute)
                     {
-                        // If we can build a geode, don't bother building something else
-                        var newBlueprint = blueprint.Clone();
+                        newBlueprint.resources.ore -= newBlueprint.costsObsidian.ore;
+                        newBlueprint.resources.clay -= newBlueprint.costsObsidian.clay;
+                        newBlueprint.resources.obsidian -= newBlueprint.costsObsidian.obsidian;
 
+                        newBlueprint.resources.ore += newBlueprint.bots.ore * timeCost;
+                        newBlueprint.resources.clay += newBlueprint.bots.clay * timeCost;
+                        newBlueprint.resources.obsidian += newBlueprint.bots.obsidian * timeCost;
+
+                        newBlueprint.bots.obsidian++;
+
+                        queue.Enqueue((newBlueprint, minute + timeCost));
+                    }
+                }
+
+                // Only look at this if we have an obsidian bot
+                if (blueprint.bots.obsidian > 0)
+                {
+                    newBlueprint = blueprint.Clone();
+
+                    timeCost = 1 + new int[] { 0, (int)Math.Ceiling((newBlueprint.costsGeode.ore - newBlueprint.resources.ore) / (double)newBlueprint.bots.ore), (int)Math.Ceiling((newBlueprint.costsGeode.clay - newBlueprint.resources.clay) / (double)newBlueprint.bots.clay), (int)Math.Ceiling((newBlueprint.costsGeode.obsidian - newBlueprint.resources.obsidian) / (double)newBlueprint.bots.obsidian) }.Max();
+                    if (timeCost + minute <= maxMinute)
+                    {
                         // If we can build a geode, just count those geodes now
-                        newBlueprint.resources.geode += maxMinute - minute;
+                        // Then if/when we exit early, the count is good
+                        newBlueprint.resources.geode += maxMinute - minute - timeCost + 1;
 
-                        newBlueprint.IncreaseResources();
+                        // Save this possible max
+                        blueprintMax[blueprint.id] = Math.Max(blueprintMax[blueprint.id], newBlueprint.resources.geode);
 
                         newBlueprint.resources.ore -= newBlueprint.costsGeode.ore;
                         newBlueprint.resources.clay -= newBlueprint.costsGeode.clay;
                         newBlueprint.resources.obsidian -= newBlueprint.costsGeode.obsidian;
 
-                        newBlueprint.skipped = Array.Empty<BlueprintType>();
+                        newBlueprint.resources.ore += newBlueprint.bots.ore * timeCost;
+                        newBlueprint.resources.clay += newBlueprint.bots.clay * timeCost;
+                        newBlueprint.resources.obsidian += newBlueprint.bots.obsidian * timeCost;
 
-                        queue.Enqueue((newBlueprint, minute + 1));
-
-                        skip.Add(BlueprintType.geode);
-                    }
-                    else
-                    {
-                        if (!blueprint.skipped.Contains(BlueprintType.ore) && blueprint.bots.ore < blueprint.maximums.ore && blueprint.costsOre.ore <= blueprint.resources.ore && blueprint.costsOre.clay <= blueprint.resources.clay && blueprint.costsOre.obsidian <= blueprint.resources.obsidian)
-                        {
-                            var newBlueprint = blueprint.Clone();
-
-                            newBlueprint.IncreaseResources();
-
-                            newBlueprint.resources.ore -= newBlueprint.costsOre.ore;
-                            newBlueprint.resources.clay -= newBlueprint.costsOre.clay;
-                            newBlueprint.resources.obsidian -= newBlueprint.costsOre.obsidian;
-
-                            newBlueprint.bots.ore++;
-
-                            newBlueprint.skipped = Array.Empty<BlueprintType>();
-
-                            queue.Enqueue((newBlueprint, minute + 1));
-
-                            skip.Add(BlueprintType.ore);
-                        }
-
-                        if (!blueprint.skipped.Contains(BlueprintType.clay) && blueprint.bots.clay < blueprint.maximums.clay && blueprint.costsClay.ore <= blueprint.resources.ore && blueprint.costsClay.clay <= blueprint.resources.clay && blueprint.costsClay.obsidian <= blueprint.resources.obsidian)
-                        {
-                            var newBlueprint = blueprint.Clone();
-
-                            newBlueprint.IncreaseResources();
-
-                            newBlueprint.resources.ore -= newBlueprint.costsClay.ore;
-                            newBlueprint.resources.clay -= newBlueprint.costsClay.clay;
-                            newBlueprint.resources.obsidian -= newBlueprint.costsClay.obsidian;
-
-                            newBlueprint.bots.clay++;
-
-                            newBlueprint.skipped = Array.Empty<BlueprintType>();
-
-                            queue.Enqueue((newBlueprint, minute + 1));
-
-                            skip.Add(BlueprintType.clay);
-                        }
-
-                        if (!blueprint.skipped.Contains(BlueprintType.obsidian) && blueprint.bots.obsidian < blueprint.maximums.obsidian && blueprint.costsObsidian.ore <= blueprint.resources.ore && blueprint.costsObsidian.clay <= blueprint.resources.clay && blueprint.costsObsidian.obsidian <= blueprint.resources.obsidian)
-                        {
-                            var newBlueprint = blueprint.Clone();
-
-                            newBlueprint.IncreaseResources();
-
-                            newBlueprint.resources.ore -= newBlueprint.costsObsidian.ore;
-                            newBlueprint.resources.clay -= newBlueprint.costsObsidian.clay;
-                            newBlueprint.resources.obsidian -= newBlueprint.costsObsidian.obsidian;
-
-                            newBlueprint.bots.obsidian++;
-
-                            newBlueprint.skipped = Array.Empty<BlueprintType>();
-
-                            queue.Enqueue((newBlueprint, minute + 1));
-
-                            skip.Add(BlueprintType.obsidian);
-                        }
+                        queue.Enqueue((newBlueprint, minute + timeCost));
                     }
                 }
-
-                // Add a state of doing nothing (saving resources)
-                blueprint.IncreaseResources();
-                blueprint.skipped = skip.ToArray();
-
-                queue.Enqueue((blueprint, minute + 1));
             }
         }
 
