@@ -71,7 +71,7 @@ namespace AdventOfCode.Solutions.Year2019
         {
             public DoorLockPos pos;
             public char[] keys;
-            public DoorLockPos[] path;
+            // public DoorLockPos[] path;
             public int depth;
         }
 
@@ -278,7 +278,7 @@ namespace AdventOfCode.Solutions.Year2019
             {
                 pos = start,
                 keys = Array.Empty<char>(),
-                path = new DoorLockPos[] { start },
+                // path = new DoorLockPos[] { start },
                 depth = 0
             };
 
@@ -302,12 +302,12 @@ namespace AdventOfCode.Solutions.Year2019
         {
             var pos = state.pos;
             var keys = state.keys;
-            var path = state.path;
+            // var path = state.path;
             var depth = state.depth;
 
             var moves = GetMoves(pos, keys)
                 // Exclude visited locations
-                .Where(m => !path.Select(p => p.id).Contains(m.id))
+                // .Where(m => !path.Select(p => p.id).Contains(m.id))
                 .ToArray();
 
             // Maybe we're too far in
@@ -320,10 +320,10 @@ namespace AdventOfCode.Solutions.Year2019
             {
                 // Duplicate keys and paths
                 var newKeys = (char[])keys.Clone();
-                var newPath = (DoorLockPos[])path.Clone();
+                // var newPath = (DoorLockPos[])path.Clone();
 
                 // Adding the move
-                newPath = newPath.Append(move).ToArray();
+                // newPath = newPath.Append(move).ToArray();
 
                 // Need our edge cost
                 var success = graph.TryGetEdge(pos, move, out DoorLockPosEdge edge);
@@ -341,7 +341,7 @@ namespace AdventOfCode.Solutions.Year2019
                 if (97 <= move.value && move.value <= 122 && !keys.Any(c => c == move.value))
                 {
                     newKeys = newKeys.Union(new char[] { move.value }).ToArray();
-                    newPath = Array.Empty<DoorLockPos>();
+                    // newPath = Array.Empty<DoorLockPos>();
 
                     // If this is all of the keys, return our result instead
                     if (newKeys.Length == keyCount)
@@ -358,7 +358,7 @@ namespace AdventOfCode.Solutions.Year2019
                 {
                     pos = move,
                     keys = newKeys,
-                    path = newPath,
+                    // path = newPath,
                     depth = newDepth
                 }))
                 {
