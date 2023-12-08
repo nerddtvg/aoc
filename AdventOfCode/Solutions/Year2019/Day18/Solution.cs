@@ -279,8 +279,14 @@ namespace AdventOfCode.Solutions.Year2019
                 depth = 0
             };
 
-            var queue = new Queue<State>();
-            queue.Enqueue(startState);
+            // Track if we have seen this state before and what depth
+            // Dictionary<string, int> seenKeys = new();
+            Dictionary<(int vertexId, string keys), int> seenState = new();
+
+            var queue = new PriorityQueue<State, ulong>();
+            queue.Enqueue(startState, 0);
+
+            var minKeys = string.Empty;
 
             while(queue.Count > 0)
             {
@@ -291,6 +297,17 @@ namespace AdventOfCode.Solutions.Year2019
                 // var path = state.path;
                 var depth = state.depth;
 
+                // Check if we have seen this state before
+                // If we have gotten to the same position with the same keys
+                // in a lower depth, skip this branch
+                var stateHash = (pos.id, keys.OrderBy(c => c).JoinAsString());
+                if (seenState.ContainsKey(stateHash) && seenState[stateHash] < depth)
+                {
+                    continue;
+                }
+                else
+                    seenState[stateHash] = depth;
+
                 var moves = GetMoves(pos, keys)
                     // Exclude visited locations
                     // .Where(m => !path.Select(p => p.id).Contains(m.id))
@@ -298,7 +315,7 @@ namespace AdventOfCode.Solutions.Year2019
 
                 // Maybe we're too far in
                 if (depth >= minDistance)
-                    break;
+                    continue;
 
                 // Each move has to be valid
                 // Either it's another key, opening, or door that is unlocked
@@ -324,7 +341,7 @@ namespace AdventOfCode.Solutions.Year2019
                         continue;
 
                     // If this move is a key and we don't have it, pick it up and start fresh!
-                    if (97 <= move.value && move.value <= 122 && !keys.Any(c => c == move.value))
+                    if (move.type == DoorKeyType.Key && !keys.Any(c => c == move.value))
                     {
                         newKeys = newKeys.Union(new char[] { move.value }).ToArray();
                         // newPath = Array.Empty<DoorLockPos>();
@@ -334,8 +351,25 @@ namespace AdventOfCode.Solutions.Year2019
                         {
                             // Found a new length
                             minDistance = Math.Min(minDistance, newDepth);
+                            if (minDistance == newDepth)
+                                minKeys = newKeys.JoinAsString();
                             continue;
                         }
+
+                        // Avoid this if we have seen this key set before
+                        // a,b,c,d and b,d,c,a are identical, we only care about
+                        // the lowest depth to get to that last key
+                        // NOTE: Moved this to before Enqueue because we should only
+                        // check this when adding a new key
+                        // var sortedKeys = newKeys.OrderBy(c => c).JoinAsString();
+                        // if (seenKeys.ContainsKey(sortedKeys) && seenKeys[sortedKeys] < newDepth)
+                        // {
+                        //     continue;
+                        // }
+                        // else
+                        // {
+                        //     seenKeys[sortedKeys] = newDepth;
+                        // }
                     }
 
                     queue.Enqueue(new()
@@ -344,11 +378,11 @@ namespace AdventOfCode.Solutions.Year2019
                         keys = newKeys,
                         // path = newPath,
                         depth = newDepth
-                    });
+                    }, (ulong)(keyCount - newKeys.Length) * (ulong)newDepth);
                 }
             }
 
-            return (minDistance, "");
+            return (minDistance, minKeys);
         }
 
         protected override string? SolvePartOne()
