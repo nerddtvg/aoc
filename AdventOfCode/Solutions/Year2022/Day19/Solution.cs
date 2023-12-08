@@ -11,13 +11,6 @@ namespace AdventOfCode.Solutions.Year2022
 
     class Day19 : ASolution
     {
-        public enum BlueprintType
-        {
-            ore,
-            clay,
-            obsidian,
-            geode
-        }
         /// <summary>
         /// The definition of a blueprint
         /// </summary>
