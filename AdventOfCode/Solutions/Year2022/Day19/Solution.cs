@@ -140,6 +140,9 @@ namespace AdventOfCode.Solutions.Year2022
 
             // First thing we do is load up all of the blueprints into the queue
             blueprints.ForEach(b => queue.Enqueue((b, 1)));
+
+            // Part 2 needs this reset
+            blueprintMax.Clear();
             blueprints.ForEach(b => blueprintMax[b.id] = 0);
 
             while (queue.Count > 0)
@@ -186,7 +189,7 @@ namespace AdventOfCode.Solutions.Year2022
                 newBlueprint = blueprint.Clone();
 
                 timeCost = 1 + new int[] { 0, (int)Math.Ceiling((newBlueprint.costsOre.ore - newBlueprint.resources.ore) / (double)newBlueprint.bots.ore) }.Max();
-                if (timeCost + minute <= maxMinute)
+                if (newBlueprint.bots.ore < newBlueprint.maximums.ore && timeCost + minute <= maxMinute)
                 {
                     newBlueprint.resources.ore -= newBlueprint.costsOre.ore;
                     newBlueprint.resources.clay -= newBlueprint.costsOre.clay;
@@ -204,7 +207,7 @@ namespace AdventOfCode.Solutions.Year2022
                 newBlueprint = blueprint.Clone();
 
                 timeCost = 1 + new int[] { 0, (int)Math.Ceiling((newBlueprint.costsClay.ore - newBlueprint.resources.ore) / (double)newBlueprint.bots.ore) }.Max();
-                if (timeCost + minute <= maxMinute)
+                if (newBlueprint.bots.clay < newBlueprint.maximums.clay && timeCost + minute <= maxMinute)
                 {
                     newBlueprint.resources.ore -= newBlueprint.costsClay.ore;
                     newBlueprint.resources.clay -= newBlueprint.costsClay.clay;
@@ -220,7 +223,7 @@ namespace AdventOfCode.Solutions.Year2022
                 }
 
                 // Only look at this if we have a clay bot
-                if (blueprint.bots.clay > 0)
+                if (newBlueprint.bots.obsidian < newBlueprint.maximums.obsidian && blueprint.bots.clay > 0)
                 {
                     newBlueprint = blueprint.Clone();
 
