@@ -64,53 +64,43 @@ namespace AdventOfCode.Solutions.Year2022
             public (int ore, int clay, int obsidian) maximums;
 
             /// <summary>
-            /// Tacking what robots to skip
-            /// </summary>
-            public BlueprintType[] skipped = Array.Empty<BlueprintType>();
-
-            public Blueprint(string input)
-            {
-                var pattern = new Regex(@"Blueprint (?<id>[0-9]+): Each ore robot costs (?<ore>[0-9]+) ore. Each clay robot costs (?<clay>[0-9]+) ore. Each obsidian robot costs (?<obsore>[0-9]+) ore and (?<obsclay>[0-9]+) clay. Each geode robot costs (?<geodeore>[0-9]+) ore and (?<geodeobs>[0-9]+) obsidian.");
-
-                var match = pattern.Match(input);
-
-                if (!match.Success)
-                    throw new Exception();
-
-                id = Convert.ToInt32(match.Groups["id"].Value);
-                costsOre = (ore: Convert.ToInt32(match.Groups["ore"].Value), 0, 0);
-                costsClay = (ore: Convert.ToInt32(match.Groups["clay"].Value), 0, 0);
-                costsObsidian = (ore: Convert.ToInt32(match.Groups["obsore"].Value), clay: Convert.ToInt32(match.Groups["obsclay"].Value), 0);
-                costsGeode = (ore: Convert.ToInt32(match.Groups["geodeore"].Value), clay: 0, obsidian: Convert.ToInt32(match.Groups["geodeobs"].Value));
-
-                // We always start with one ore bot
-                bots = (1, 0, 0);
-
-                // And no resources
-                resources = (0, 0, 0, 0);
-
-                // Determine our ultimate maximums for each bot
-                // Another shortcut to prevent us from making dozens of ore when that's useless
-                maximums = (ore: Math.Max(Math.Max(costsOre.ore, costsObsidian.ore), Math.Max(costsGeode.ore, costsClay.ore)), clay: costsObsidian.clay, obsidian: costsGeode.obsidian);
-            }
-
-            /// <summary>
-            /// Simplify the resource increase
-            /// </summary>
-            public void IncreaseResources()
-            {
-                this.resources.ore += this.bots.ore;
-                this.resources.clay += this.bots.clay;
-                this.resources.obsidian += this.bots.obsidian;
-            }
-
-            /// <summary>
             /// Provides a simple hash to prevent duplicate efforts
             /// </summary>
             public string GetIdString(int minute)
             {
                 return $"{id}-{bots.ore}-{bots.clay}-{bots.obsidian}-{resources.ore}-{resources.clay}-{resources.obsidian}-{resources.geode}-{minute}";
             }
+        }
+
+        private Blueprint parseBlueprint(string input)
+        {
+            var pattern = new Regex(@"Blueprint (?<id>[0-9]+): Each ore robot costs (?<ore>[0-9]+) ore. Each clay robot costs (?<clay>[0-9]+) ore. Each obsidian robot costs (?<obsore>[0-9]+) ore and (?<obsclay>[0-9]+) clay. Each geode robot costs (?<geodeore>[0-9]+) ore and (?<geodeobs>[0-9]+) obsidian.");
+
+            var match = pattern.Match(input);
+
+            if (!match.Success)
+                throw new Exception();
+
+            Blueprint blueprint = new()
+            {
+                id = Convert.ToInt32(match.Groups["id"].Value),
+                costsOre = (ore: Convert.ToInt32(match.Groups["ore"].Value), 0, 0),
+                costsClay = (ore: Convert.ToInt32(match.Groups["clay"].Value), 0, 0),
+                costsObsidian = (ore: Convert.ToInt32(match.Groups["obsore"].Value), clay: Convert.ToInt32(match.Groups["obsclay"].Value), 0),
+                costsGeode = (ore: Convert.ToInt32(match.Groups["geodeore"].Value), clay: 0, obsidian: Convert.ToInt32(match.Groups["geodeobs"].Value)),
+
+                // We always start with one ore bot
+                bots = (1, 0, 0),
+
+                // And no resources
+                resources = (0, 0, 0, 0)
+            };
+
+            // Determine our ultimate maximums for each bot
+            // Another shortcut to prevent us from making dozens of ore when that's useless
+            blueprint.maximums = (ore: Math.Max(Math.Max(blueprint.costsOre.ore, blueprint.costsObsidian.ore), Math.Max(blueprint.costsGeode.ore, blueprint.costsClay.ore)), clay: blueprint.costsObsidian.clay, obsidian: blueprint.costsGeode.obsidian);
+
+            return blueprint;
         }
 
         /// <summary>
@@ -133,7 +123,7 @@ namespace AdventOfCode.Solutions.Year2022
 
         private void ReadBlueprints(string input)
         {
-            blueprints = input.SplitByNewline(true).Select(b => new Blueprint(b)).ToList();
+            blueprints = input.SplitByNewline(true).Select(b => parseBlueprint(b)).ToList();
         }
 
         /// <summary>
@@ -161,15 +151,10 @@ namespace AdventOfCode.Solutions.Year2022
 
                 // Skip this blueprint if we have been here before
                 var hash = blueprint.GetIdString(minute);
-
                 if (seen.Contains(hash))
                     continue;
 
                 seen.Add(hash);
-
-                // Keeping track of what we can make each time will reduce our steps down the road
-                // If we can make an Ore robot here, but save resources, don't make an Ore robot the next time around
-                var skip = new HashSet<BlueprintType>();
 
                 // /u/yossi_peti made an interesting comment:
                 // Instead of running the search minute by minute, I searched over the options of "what type of robot
