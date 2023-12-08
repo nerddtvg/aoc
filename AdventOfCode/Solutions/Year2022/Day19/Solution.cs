@@ -281,11 +281,10 @@ namespace AdventOfCode.Solutions.Year2022
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
             // Only read the first three
             blueprints = blueprints.Take(3).ToList();
             FindMaximum(32);
-            return blueprintMax.Sum(b => b.Key * b.Value).ToString();
+            return blueprintMax.Aggregate((long)1, (x, bpMax) => x * bpMax.Value).ToString();
         }
     }
 }
