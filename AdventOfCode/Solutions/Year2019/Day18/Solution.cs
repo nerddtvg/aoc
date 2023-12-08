@@ -128,11 +128,23 @@ namespace AdventOfCode.Solutions.Year2019
 
             foreach(var exKvp in part1Example)
             {
-                ResetGrid(exKvp.Key);
+                Debug.WriteLine($"Starting Test: {exKvp.Value}");
 
+                var sw = new Stopwatch();
+                sw.Start();
+                ResetGrid(exKvp.Key);
+                sw.Stop();
+                Debug.WriteLine($"Reset Grid: {sw.Elapsed}");
+
+                sw.Restart();
                 (var minDistance, var keys) = GetShortestPath();
+                sw.Stop();
 
                 Debug.Assert(Debug.Equals(minDistance, exKvp.Value), $"Expected: {exKvp.Value}\nActual: {minDistance}");
+                Debug.WriteLine($"Test Results: Expected: {exKvp.Value}, Actual: {minDistance}");
+                Debug.WriteLine($"Shortest Path: {sw.Elapsed}");
+
+                Debug.WriteLine(string.Empty);
             }
         }
 
@@ -387,6 +399,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string? SolvePartOne()
         {
+            return string.Empty;
             ResetGrid(Input);
 
             return GetShortestPath().minDistance.ToString();
