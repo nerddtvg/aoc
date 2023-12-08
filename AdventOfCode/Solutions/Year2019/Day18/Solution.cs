@@ -130,10 +130,7 @@ namespace AdventOfCode.Solutions.Year2019
             {
                 ResetGrid(exKvp.Key);
 
-                var paths = GetPaths()
-                    .Select(p => p.ToList())
-                    .OrderBy(p => p.Count)
-                    .FirstOrDefault();
+                (var minDistance, var keys) = GetShortestPath();
 
                 Debug.Assert(Debug.Equals(minDistance, exKvp.Value), $"Expected: {exKvp.Value}\nActual: {minDistance}");
             }
@@ -269,12 +266,12 @@ namespace AdventOfCode.Solutions.Year2019
             }
         }
 
-        public List<List<char>> GetPaths()
+        public (int minDistance, string keys) GetShortestPath()
         {
             // Loop through the queue from an initial state
             var start = graph.Vertices.First(v => v.type == DoorKeyType.Start);
 
-            var state = new State()
+            var startState = new State()
             {
                 pos = start,
                 keys = Array.Empty<char>(),
@@ -282,98 +279,83 @@ namespace AdventOfCode.Solutions.Year2019
                 depth = 0
             };
 
-            var retList = new List<List<char>>();
+            var queue = new Queue<State>();
+            queue.Enqueue(startState);
 
-            foreach(var path in GetShortestPath(state))
+            while(queue.Count > 0)
             {
-                retList.Add(path.ToList());
-            }
+                var state = queue.Dequeue();
 
-            return retList;
-        }
+                var pos = state.pos;
+                var keys = state.keys;
+                // var path = state.path;
+                var depth = state.depth;
 
-        /// <summary>
-        /// Provide the shortest path from pos to the rest of the keys
-        /// </summary>
-        /// <param name="pos">Current position</param>
-        /// <param name="keys">Currently collected keys</param>
-        /// <param name="path">Array of current path</param>
-        public IEnumerable<IEnumerable<char>> GetShortestPath(State state)
-        {
-            var pos = state.pos;
-            var keys = state.keys;
-            // var path = state.path;
-            var depth = state.depth;
+                var moves = GetMoves(pos, keys)
+                    // Exclude visited locations
+                    // .Where(m => !path.Select(p => p.id).Contains(m.id))
+                    .ToArray();
 
-            var moves = GetMoves(pos, keys)
-                // Exclude visited locations
-                // .Where(m => !path.Select(p => p.id).Contains(m.id))
-                .ToArray();
+                // Maybe we're too far in
+                if (depth >= minDistance)
+                    break;
 
-            // Maybe we're too far in
-            if (depth >= minDistance)
-                yield break;
-
-            // Each move has to be valid
-            // Either it's another key, opening, or door that is unlocked
-            foreach(var move in moves)
-            {
-                // Duplicate keys and paths
-                var newKeys = (char[])keys.Clone();
-                // var newPath = (DoorLockPos[])path.Clone();
-
-                // Adding the move
-                // newPath = newPath.Append(move).ToArray();
-
-                // Need our edge cost
-                var success = graph.TryGetEdge(pos, move, out DoorLockPosEdge edge);
-
-                if (!success)
-                    throw new Exception();
-
-                var newDepth = depth + edge.cost;
-
-                // Maybe we're too far in (check again due to >1 weights)
-                if (newDepth >= minDistance)
-                    continue;
-
-                // If this move is a key and we don't have it, pick it up and start fresh!
-                if (97 <= move.value && move.value <= 122 && !keys.Any(c => c == move.value))
+                // Each move has to be valid
+                // Either it's another key, opening, or door that is unlocked
+                foreach (var move in moves)
                 {
-                    newKeys = newKeys.Union(new char[] { move.value }).ToArray();
-                    // newPath = Array.Empty<DoorLockPos>();
+                    // Duplicate keys and paths
+                    var newKeys = (char[])keys.Clone();
+                    // var newPath = (DoorLockPos[])path.Clone();
 
-                    // If this is all of the keys, return our result instead
-                    if (newKeys.Length == keyCount)
-                    {
-                        // Found a new length
-                        minDistance = Math.Min(minDistance, newDepth);
+                    // Adding the move
+                    // newPath = newPath.Append(move).ToArray();
 
-                        yield return newKeys;
+                    // Need our edge cost
+                    var success = graph.TryGetEdge(pos, move, out DoorLockPosEdge edge);
+
+                    if (!success)
+                        throw new Exception();
+
+                    var newDepth = depth + edge.cost;
+
+                    // Maybe we're too far in (check again due to >1 weights)
+                    if (newDepth >= minDistance)
                         continue;
-                    }
-                }
 
-                foreach(var result in GetShortestPath(new()
-                {
-                    pos = move,
-                    keys = newKeys,
-                    // path = newPath,
-                    depth = newDepth
-                }))
-                {
-                    yield return result;
+                    // If this move is a key and we don't have it, pick it up and start fresh!
+                    if (97 <= move.value && move.value <= 122 && !keys.Any(c => c == move.value))
+                    {
+                        newKeys = newKeys.Union(new char[] { move.value }).ToArray();
+                        // newPath = Array.Empty<DoorLockPos>();
+
+                        // If this is all of the keys, return our result instead
+                        if (newKeys.Length == keyCount)
+                        {
+                            // Found a new length
+                            minDistance = Math.Min(minDistance, newDepth);
+                            continue;
+                        }
+                    }
+
+                    queue.Enqueue(new()
+                    {
+                        pos = move,
+                        keys = newKeys,
+                        // path = newPath,
+                        depth = newDepth
+                    });
                 }
             }
+
+            return (minDistance, "");
         }
 
         protected override string? SolvePartOne()
         {
             ResetGrid(Input);
 
-            var paths = GetPaths();
-
-            return paths.FirstOrDefault()?.JoinAsString() ?? string.Empty;
+            return GetShortestPath().minDistance.ToString();
         }
 
         protected override string? SolvePartTwo()
