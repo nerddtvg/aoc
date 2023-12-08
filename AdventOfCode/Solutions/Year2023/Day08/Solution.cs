@@ -19,9 +19,6 @@ namespace AdventOfCode.Solutions.Year2023
         private Dictionary<string, Node> map;
         private string instructions;
 
-        const string startNode = "AAA";
-        const string endNode = "ZZZ";
-
         public Day08() : base(08, 2023, "Haunted Wasteland")
         {
             var groups = Input.SplitByBlankLine();
@@ -41,7 +38,7 @@ namespace AdventOfCode.Solutions.Year2023
             var step = 0;
 
             // Track our node and instruction count
-            var currentNode = startNode;
+            var currentNode = "AAA";
             var currentIdx = 0;
 
             do
@@ -53,7 +50,7 @@ namespace AdventOfCode.Solutions.Year2023
 
                 currentIdx %= instructions.Length;
                 step++;
-            } while (currentNode != endNode);
+            } while (currentNode != "ZZZ");
 
             return step;
         }
@@ -65,7 +62,50 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // First brute force method was taking too long
+            // This indicates we probably need to do this as
+            // a lowest common multiplier solution
+            var step = 0;
+
+            // Find all nodes that end in 'A'
+            var currentNodes = map.Keys.Where(k => k[^1] == 'A').ToArray();
+            var currentIdx = 0;
+
+            // Track the last Z node we found for each path
+            var lastZ = Enumerable.Repeat(0, currentNodes.Length).ToArray();
+
+            // Track the distance between the Z nodes
+            var distances = Enumerable.Repeat((double)0, currentNodes.Length).ToArray();
+
+            do
+            {
+                var instruction = instructions[currentIdx++];
+
+                currentIdx %= instructions.Length;
+                step++;
+
+                for (int i = 0; i<currentNodes.Length; i++)
+                {
+                    if (instruction == 'L')
+                        currentNodes[i] = map[currentNodes[i]].L;
+                    else
+                        currentNodes[i] = map[currentNodes[i]].R;
+
+
+                    // If this node ends in 'Z', we need to record if
+                    if (currentNodes[i][^1] == 'Z')
+                    {
+                        if (lastZ[i] == 0)
+                            lastZ[i] = step;
+                        else if (distances[i] == 0)
+                            distances[i] = (double)step - (double)lastZ[i];
+                    }
+                }
+
+                // If we have found all distances, break out
+            } while (distances.Any(d => d == 0));
+
+            return Utilities.FindLCM(distances).ToString();
         }
     }
 }
