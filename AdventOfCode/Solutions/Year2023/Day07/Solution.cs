@@ -129,7 +129,7 @@ namespace AdventOfCode.Solutions.Year2023
     public class CompareHands : IComparer<char[]>
     {
         public string map = string.Empty;
-        public int Compare(char[] a, char[] b)
+        public int Compare(char[]? a, char[]? b)
         {
             //return positive if a should be higher, return negative if b should be higher
             ArgumentNullException.ThrowIfNull(a);
