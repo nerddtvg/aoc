@@ -33,7 +33,7 @@ namespace AdventOfCode.Solutions.Year2023
             }).ToDictionary();
         }
 
-        private int FindStepsToEnd()
+        protected override string? SolvePartOne()
         {
             var step = 0;
 
@@ -52,12 +52,7 @@ namespace AdventOfCode.Solutions.Year2023
                 step++;
             } while (currentNode != "ZZZ");
 
-            return step;
-        }
-
-        protected override string? SolvePartOne()
-        {
-            return FindStepsToEnd().ToString();
+            return step.ToString();
         }
 
         protected override string? SolvePartTwo()
