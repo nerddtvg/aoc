@@ -344,19 +344,17 @@ namespace AdventOfCode.Solutions.Year2019
                                 // &&
                                 (
                                     // Kick out where we came from
-                                    (edge.Source.id != foundPath[^1].id && edge.Target.id == adjVertex.id)
-                                    ||
-                                    (edge.Target.id != foundPath[^1].id && edge.Source.id == adjVertex.id)
+                                    edge.GetOtherVertex(adjVertex).id != foundPath[^1].id
                                 )
                             )
                             .ToArray();
 
+                        // Track this location
+                        foundPath.Add(adjVertex);
+
                         // If we have found an intersection, stop
                         if (adjEdges.Length != 1)
                             break;
-
-                        // Track this location
-                        foundPath.Add(adjVertex);
 
                         // Second check here, we could have found a dead end
                         // if (adjEdges.Length == 0)
@@ -367,7 +365,7 @@ namespace AdventOfCode.Solutions.Year2019
                             break;
 
                         // Find our next step out
-                        adjVertex = (adjEdges[0].Source.id != adjVertex.id) ? adjEdges[0].Source : adjEdges[0].Target;
+                        adjVertex = adjEdges[0].GetOtherVertex(adjVertex);
                         cost += adjEdges[0].cost;
                     } while (true);
 
