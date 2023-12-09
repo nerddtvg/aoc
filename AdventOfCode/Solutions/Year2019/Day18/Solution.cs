@@ -82,12 +82,12 @@ namespace AdventOfCode.Solutions.Year2019
         {
             var part1Example = new Dictionary<string, int>()
             {
-                {
-                    @"#########
-                    #b.A.@.a#
-                    #########",
-                    8
-                },
+                // {
+                //     @"#########
+                //     #b.A.@.a#
+                //     #########",
+                //     8
+                // },
                 {
                     @"########################
                     #f.D.E.e.C.b.A.@.a.B.c.#
@@ -190,7 +190,7 @@ namespace AdventOfCode.Solutions.Year2019
                         var up = map[y - 1][x];
 
                         if (up.type != DoorKeyType.Wall && up.type != DoorKeyType.Default)
-                            edges.Add(new(up, map[y][x], up.type == DoorKeyType.Passage && map[y][x].type == DoorKeyType.Passage ? 1 : 10000));
+                            edges.Add(new(up, map[y][x], 1));
                     }
                     
                     if (x > 0)
@@ -198,7 +198,7 @@ namespace AdventOfCode.Solutions.Year2019
                         var left = map[y][x - 1];
 
                         if (left.type != DoorKeyType.Wall && left.type != DoorKeyType.Default)
-                            edges.Add(new(left, map[y][x], left.type == DoorKeyType.Passage && map[y][x].type == DoorKeyType.Passage ? 1 : 10000));
+                            edges.Add(new(left, map[y][x], 1));
                     }
                 }
             }
@@ -244,41 +244,53 @@ namespace AdventOfCode.Solutions.Year2019
                     if (adjVertex.id == startVertex.id)
                         continue;
 
+                    // Immediately skip any non-passages
+                    if (adjVertex.type != DoorKeyType.Passage)
+                        continue;
+
                     // Start with a fresh path
-                    var foundIds = new HashSet<int>();
-                    var foundPath = new List<DoorLockPos>();
+                    var foundPath = new List<DoorLockPos>() { startVertex };
+
+                    // if (startVertex.value == 'd')
+                    //     System.Diagnostics.Debugger.Break();
 
                     do
                     {
-                        // Track this location
-                        var tId = adjVertex.id;
-                        foundPath.Add(adjVertex);
-
-                        // If we have found a non-passage, step out
-                        if (adjVertex.type != DoorKeyType.Passage)
-                            break;
-
                         var adjEdges = graph
                             .AdjacentEdges(adjVertex)
-                            // Kick out where we came from
-                            .Where(edge => edge.Source.id != startVertex.id && !foundIds.Contains(edge.Source.id) && edge.Target.id != startVertex.id && !foundIds.Contains(edge.Target.id))
+                            .Where(edge =>
+                                // This may have already been processed
+                                edge.cost == 1
+                                &&
+                                (
+                                    // Kick out where we came from
+                                    (edge.Source.id != foundPath[^1].id && edge.Target.id == adjVertex.id)
+                                    ||
+                                    (edge.Target.id != foundPath[^1].id && edge.Source.id == adjVertex.id)
+                                )
+                            )
                             .ToArray();
 
                         // If we have found an intersection, stop
                         if (adjEdges.Length != 1)
                             break;
 
-                        // Track this location (after using the checks above)
-                        foundIds.Add(tId);
+                        // Track this location
+                        foundPath.Add(adjVertex);
+
+                        // If we have found a non-passage, step out
+                        if (adjVertex.type != DoorKeyType.Passage)
+                            break;
 
                         // Find our next step out
-                        adjVertex = adjEdges[0].Source.id != startVertex.id && !foundIds.Contains(adjEdges[0].Source.id) ? adjEdges[0].Source : adjEdges[0].Target;
+                        adjVertex = (adjEdges[0].Source.id != adjVertex.id) ? adjEdges[0].Source : adjEdges[0].Target;
                     } while (true);
 
-                    if (foundPath.Count > 1)
+                    if (foundPath.Count > 2)
                     {
-                        // If we found a path to remove, let's remove it
+                        // If we found a path to remove, let's remove it and our startVertex
                         var lastVertex = foundPath[^1];
+                        foundPath.RemoveAt(0);
                         foundPath.Remove(lastVertex);
 
                         graph.AddEdge(new DoorLockPosEdge(startVertex, lastVertex, foundPath.Count + 1));
