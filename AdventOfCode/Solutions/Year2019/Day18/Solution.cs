@@ -82,13 +82,14 @@ namespace AdventOfCode.Solutions.Year2019
             public char[] keys;
             public int depth;
             public DoorLockPos[] pos;
+            public int[] lastPosIds;
         }
 
         public UndirectedGraph<DoorLockPos, DoorLockPosEdge> graph = default!;
 
         public Day18() : base(18, 2019, "Many-Worlds Interpretation")
         {
-            var doExamples = false;
+            var doExamples = true;
 
             var part1Example = new Dictionary<string, int>()
             {
@@ -417,7 +418,8 @@ namespace AdventOfCode.Solutions.Year2019
             {
                 pos = start,
                 keys = Array.Empty<char>(),
-                depth = 0
+                depth = 0,
+                lastPosIds = Array.Empty<int>()
             }, (ulong)0);
 
             // Track if we have seen this state before and what depth
@@ -506,13 +508,20 @@ namespace AdventOfCode.Solutions.Year2019
                         // }
                     }
 
+                    // If this new position is our old position
+                    // then we add a weight to make it less attractive
+                    // Need to use the state record so indices line up
+                    var botId = state.pos.ToList().FindIndex(0, itm => itm.id == currentBot.id);
+                    var isLastPos = state.lastPosIds.Length > 0 && move.id == state.lastPosIds[botId];
+
                     queue.Enqueue(new()
                     {
                         pos = bots.Append(move).ToArray(),
                         keys = newKeys,
                         // path = newPath,
-                        depth = newDepth
-                    }, (ulong)(keyCount - newKeys.Length) * (ulong)newDepth);
+                        depth = newDepth,
+                        lastPosIds = state.lastPosIds.Where((itm, idx) => idx != botId).Append(currentBot.id).ToArray()
+                    }, (ulong)(keyCount - newKeys.Length) * ((ulong)newDepth + (ulong)(isLastPos ? 10 : 1)));
                 }
             }
 
