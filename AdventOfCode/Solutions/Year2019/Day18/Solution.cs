@@ -82,7 +82,6 @@ namespace AdventOfCode.Solutions.Year2019
             public char[] keys;
             public int depth;
             public DoorLockPos[] pos;
-            public int[] lastPosIds;
         }
 
         public UndirectedGraph<DoorLockPos, DoorLockPosEdge> graph = default!;
@@ -393,16 +392,16 @@ namespace AdventOfCode.Solutions.Year2019
 
                 foreach (var move in graph.AdjacentVertices(thisPos))
                 {
-                    var hasKey = (move.type == DoorKeyType.Door && keys.Any(c => c == move.value + 32)) || (move.type == DoorKeyType.Key && keys.Any(c => c == move.value));
+                    Func<DoorLockPos, char[], bool> hasKey = (move, keys) => (move.type == DoorKeyType.Door && keys.Any(c => c == move.value + 32)) || (move.type == DoorKeyType.Key && keys.Any(c => c == move.value));
 
                     // If the move is a dead end and not a key that we need don't go there
-                    if (graph.AdjacentVertices(move).Count() == 1 && (move.type != DoorKeyType.Key || hasKey))
+                    if (graph.AdjacentVertices(move).Count() == 1 && (move.type != DoorKeyType.Key || hasKey(move, keys)))
                         continue;
 
                     if (move.type == DoorKeyType.Door)
                     {
                         // If this is a door, make sure we have the corresponding key
-                        if (hasKey)
+                        if (hasKey(move, keys))
                             yield return (thisPos, otherBots, move);
 
                         continue;
@@ -427,8 +426,7 @@ namespace AdventOfCode.Solutions.Year2019
             {
                 pos = start,
                 keys = Array.Empty<char>(),
-                depth = 0,
-                lastPosIds = Array.Empty<int>()
+                depth = 0
             }, (ulong)0);
 
             // Track if we have seen this state before and what depth
@@ -517,20 +515,13 @@ namespace AdventOfCode.Solutions.Year2019
                         // }
                     }
 
-                    // If this new position is our old position
-                    // then we add a weight to make it less attractive
-                    // Need to use the state record so indices line up
-                    var botId = state.pos.ToList().FindIndex(0, itm => itm.id == currentBot.id);
-                    var isLastPos = state.lastPosIds.Length > 0 && move.id == state.lastPosIds[botId];
-
                     queue.Enqueue(new()
                     {
                         pos = bots.Append(move).ToArray(),
                         keys = newKeys,
                         // path = newPath,
-                        depth = newDepth,
-                        lastPosIds = state.lastPosIds.Where((itm, idx) => idx != botId).Append(currentBot.id).ToArray()
-                    }, (ulong)(keyCount - newKeys.Length) * ((ulong)newDepth + (ulong)(isLastPos ? 10 : 1)));
+                        depth = newDepth
+                    }, (ulong)(keyCount - newKeys.Length) * (ulong)newDepth);
                 }
             }
 
