@@ -126,12 +126,12 @@ namespace AdventOfCode.Solutions.Year2019
                 }
             };
 
-            foreach(var exKvp in part1Example)
+            var sw = new Stopwatch();
+            foreach (var exKvp in part1Example)
             {
                 Debug.WriteLine($"Starting Test: {exKvp.Value}");
 
-                var sw = new Stopwatch();
-                sw.Start();
+                sw.Restart();
                 ResetGrid(exKvp.Key);
                 sw.Stop();
                 Debug.WriteLine($"Reset Grid: {sw.Elapsed}");
@@ -146,6 +146,13 @@ namespace AdventOfCode.Solutions.Year2019
 
                 Debug.WriteLine(string.Empty);
             }
+
+            ResetGrid(Input);
+
+            sw.Restart();
+            ResetGrid(Input);
+            sw.Stop();
+            Debug.WriteLine($"Reset Grid Input: {sw.Elapsed}");
         }
 
         private void ResetGrid(string input)
@@ -256,7 +263,6 @@ namespace AdventOfCode.Solutions.Year2019
 
             // New Graph
             graph = edges.ToUndirectedGraph<DoorLockPos, DoorLockPosEdge>();
-
         }
 
         private IEnumerable<DoorLockPos> GetMoves(DoorLockPos pos, char[] keys)
@@ -400,7 +406,6 @@ namespace AdventOfCode.Solutions.Year2019
         protected override string? SolvePartOne()
         {
             return string.Empty;
-            ResetGrid(Input);
 
             return GetShortestPath().minDistance.ToString();
         }
