@@ -38,11 +38,17 @@ namespace AdventOfCode.Solutions.Year2019
         public DoorLockPos() {
             id = new Random().Next();
         }
+
         public DoorLockPos(char v)
         {
             id = new Random().Next();
             type = 65 <= v && v <= 90 ? DoorKeyType.Door : (97 <= v && v <= 122 ? DoorKeyType.Key : (v == '.' ? DoorKeyType.Passage : (v == '@' ? DoorKeyType.Start : DoorKeyType.Wall)));
             value = v;
+        }
+
+        public override string ToString()
+        {
+            return $"{type} {value}";
         }
     }
 
@@ -53,6 +59,11 @@ namespace AdventOfCode.Solutions.Year2019
         public DoorLockPosEdge(DoorLockPos source, DoorLockPos target, int cost) : base(source, target)
         {
             this.cost = cost;
+        }
+
+        public override string ToString()
+        {
+            return $"[{cost}] {Source} -> {Target}";
         }
     }
 
@@ -234,78 +245,7 @@ namespace AdventOfCode.Solutions.Year2019
             Debug.WriteLine($"Before Vertex Count: {graph.VertexCount}");
             Debug.WriteLine($"Before Edge Count: {graph.EdgeCount}");
 
-            foreach (var startVertex in vertices)
-            {
-                // Get the next vertices to this one
-                var adjVertices = graph.AdjacentVertices(startVertex).ToArray();
-
-                foreach(var tAdjVertex in adjVertices)
-                {
-                    var adjVertex = tAdjVertex;
-
-                    // Don't go back
-                    if (adjVertex.id == startVertex.id)
-                        continue;
-
-                    // Immediately skip any non-passages
-                    if (adjVertex.type != DoorKeyType.Passage)
-                        continue;
-
-                    // Start with a fresh path
-                    var foundPath = new List<DoorLockPos>() { startVertex };
-
-                    // if (startVertex.value == 'F')
-                    //     System.Diagnostics.Debugger.Break();
-
-                    do
-                    {
-                        var adjEdges = graph
-                            .AdjacentEdges(adjVertex)
-                            .Where(edge =>
-                                // This may have already been processed
-                                edge.cost == 1
-                                &&
-                                (
-                                    // Kick out where we came from
-                                    (edge.Source.id != foundPath[^1].id && edge.Target.id == adjVertex.id)
-                                    ||
-                                    (edge.Target.id != foundPath[^1].id && edge.Source.id == adjVertex.id)
-                                )
-                            )
-                            .ToArray();
-
-                        // If we have found an intersection, stop
-                        if (adjEdges.Length > 1)
-                            break;
-
-                        // Track this location
-                        foundPath.Add(adjVertex);
-
-                        // Second check here, we could have found a dead end
-                        if (adjEdges.Length == 0)
-                            break;
-
-                        // If we have found a non-passage, step out
-                        if (adjVertex.type != DoorKeyType.Passage)
-                            break;
-
-                        // Find our next step out
-                        adjVertex = (adjEdges[0].Source.id != adjVertex.id) ? adjEdges[0].Source : adjEdges[0].Target;
-                    } while (true);
-
-                    if (foundPath.Count > 2)
-                    {
-                        // If we found a path to remove, let's remove it and our startVertex
-                        var lastVertex = foundPath[^1];
-                        foundPath.RemoveAt(0);
-                        foundPath.Remove(lastVertex);
-
-                        graph.AddEdge(new DoorLockPosEdge(startVertex, lastVertex, foundPath.Count + 1));
-
-                        foundPath.ForEach(removeVertex => graph.RemoveVertex(removeVertex));
-                    }
-                }
-            }
+            ReduceGraph(graph, vertices);
 
             Debug.WriteLine($"Pass 1 Vertex Count: {graph.VertexCount}");
             Debug.WriteLine($"Pass 1 Edge Count: {graph.EdgeCount}");
@@ -366,6 +306,84 @@ namespace AdventOfCode.Solutions.Year2019
 
             Debug.WriteLine($"Final Vertex Count: {graph.VertexCount}");
             Debug.WriteLine($"Final Edge Count: {graph.EdgeCount}");
+        }
+
+        private void ReduceGraph(UndirectedGraph<DoorLockPos, DoorLockPosEdge> graph, DoorLockPos[] vertices)
+        {
+            foreach (var startVertex in vertices)
+            {
+                // Get the next vertices to this one
+                var adjVertices = graph.AdjacentVertices(startVertex).ToArray();
+
+                foreach (var tAdjVertex in adjVertices)
+                {
+                    var adjVertex = tAdjVertex;
+
+                    // Don't go back
+                    if (adjVertex.id == startVertex.id)
+                        continue;
+
+                    // Immediately skip any non-passages
+                    if (adjVertex.type != DoorKeyType.Passage)
+                        continue;
+
+                    // Start with a fresh path
+                    var foundPath = new List<DoorLockPos>() { startVertex };
+                    var cost = graph.AdjacentEdges(adjVertex).First(e => e.Source.id == startVertex.id || e.Target.id == startVertex.id).cost;
+
+                    // if (startVertex.value == 'F')
+                    //     System.Diagnostics.Debugger.Break();
+
+                    do
+                    {
+                        var adjEdges = graph
+                            .AdjacentEdges(adjVertex)
+                            .Where(edge =>
+                                // This may have already been processed
+                                // edge.cost == 1
+                                // &&
+                                (
+                                    // Kick out where we came from
+                                    (edge.Source.id != foundPath[^1].id && edge.Target.id == adjVertex.id)
+                                    ||
+                                    (edge.Target.id != foundPath[^1].id && edge.Source.id == adjVertex.id)
+                                )
+                            )
+                            .ToArray();
+
+                        // If we have found an intersection, stop
+                        if (adjEdges.Length != 1)
+                            break;
+
+                        // Track this location
+                        foundPath.Add(adjVertex);
+
+                        // Second check here, we could have found a dead end
+                        // if (adjEdges.Length == 0)
+                        //     break;
+
+                        // If we have found a non-passage, step out
+                        if (adjVertex.type != DoorKeyType.Passage)
+                            break;
+
+                        // Find our next step out
+                        adjVertex = (adjEdges[0].Source.id != adjVertex.id) ? adjEdges[0].Source : adjEdges[0].Target;
+                        cost += adjEdges[0].cost;
+                    } while (true);
+
+                    if (foundPath.Count > 2)
+                    {
+                        // If we found a path to remove, let's remove it and our startVertex
+                        var lastVertex = foundPath[^1];
+                        foundPath.RemoveAt(0);
+                        foundPath.Remove(lastVertex);
+
+                        graph.AddEdge(new DoorLockPosEdge(startVertex, lastVertex, cost));
+
+                        foundPath.ForEach(removeVertex => graph.RemoveVertex(removeVertex));
+                    }
+                }
+            }
         }
 
         private IEnumerable<DoorLockPos> GetMoves(DoorLockPos pos, char[] keys)
