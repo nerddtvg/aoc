@@ -81,17 +81,16 @@ namespace AdventOfCode.Solutions.Year2019
 
         public struct State
         {
-            public DoorLockPos pos;
             public char[] keys;
-            // public DoorLockPos[] path;
             public int depth;
+            public DoorLockPos[] pos;
         }
 
         public UndirectedGraph<DoorLockPos, DoorLockPosEdge> graph = default!;
 
         public Day18() : base(18, 2019, "Many-Worlds Interpretation")
         {
-            var doExamples = true;
+            var doExamples = false;
 
             var part1Example = new Dictionary<string, int>()
             {
@@ -153,7 +152,7 @@ namespace AdventOfCode.Solutions.Year2019
                     Debug.WriteLine($"Reset Grid: {sw.Elapsed}");
 
                     sw.Restart();
-                    (var minDistance, var keys) = GetShortestPath();
+                    var minDistance = GetShortestPath();
                     sw.Stop();
 
                     Debug.Assert(Debug.Equals(minDistance, exKvp.Value), $"Expected: {exKvp.Value}\nActual: {minDistance}");
@@ -384,46 +383,49 @@ namespace AdventOfCode.Solutions.Year2019
             }
         }
 
-        private IEnumerable<DoorLockPos> GetMoves(DoorLockPos pos, char[] keys)
+        private IEnumerable<(DoorLockPos currentBot, DoorLockPos[] bots, DoorLockPos move)> GetMoves(DoorLockPos[] pos, char[] keys)
         {
             // Found a possible opening, door, or key
-            foreach(var move in graph.AdjacentVertices(pos))
+            foreach (var thisPos in pos)
             {
-                if (move.type == DoorKeyType.Door)
+                var otherBots = pos.Where(pos => pos.id != thisPos.id).ToArray();
+
+                foreach (var move in graph.AdjacentVertices(thisPos))
                 {
-                    // If this is a door, make sure we have the corresponding key
-                    if (keys.Any(c => c == move.value + 32))
-                        yield return move;
+                    if (move.type == DoorKeyType.Door)
+                    {
+                        // If this is a door, make sure we have the corresponding key
+                        if (keys.Any(c => c == move.value + 32))
+                            yield return (thisPos, otherBots, move);
 
-                    continue;
+                        continue;
+                    }
+
+                    // Otherwise it's a key or an opening
+                    yield return (thisPos, otherBots, move);
                 }
-
-                // Otherwise it's a key or an opening
-                yield return move;
             }
         }
 
-        public (int minDistance, string keys) GetShortestPath()
+        public int GetShortestPath()
         {
-            // Loop through the queue from an initial state
-            var start = graph.Vertices.First(v => v.type == DoorKeyType.Start);
+            var queue = new PriorityQueue<State, ulong>();
 
-            var startState = new State()
+            // Loop through the queue from an initial state
+            var start = graph.Vertices
+                .Where(v => v.type == DoorKeyType.Start)
+                .ToArray();
+
+            queue.Enqueue(new State()
             {
                 pos = start,
                 keys = Array.Empty<char>(),
-                // path = new DoorLockPos[] { start },
                 depth = 0
-            };
+            }, (ulong)0);
 
             // Track if we have seen this state before and what depth
             // Dictionary<string, int> seenKeys = new();
-            Dictionary<(int vertexId, string keys), int> seenState = new();
-
-            var queue = new PriorityQueue<State, ulong>();
-            queue.Enqueue(startState, 0);
-
-            var minKeys = string.Empty;
+            Dictionary<(string vertexId, string keys), int> seenState = new();
 
             while(queue.Count > 0)
             {
@@ -434,10 +436,14 @@ namespace AdventOfCode.Solutions.Year2019
                 // var path = state.path;
                 var depth = state.depth;
 
+                // Maybe we're too far in
+                if (depth >= minDistance)
+                    continue;
+
                 // Check if we have seen this state before
                 // If we have gotten to the same position with the same keys
                 // in a lower depth, skip this branch
-                var stateHash = (pos.id, keys.OrderBy(c => c).JoinAsString());
+                var stateHash = (string.Join("-",pos.OrderBy(p => p.id).Select(p => p.id)), keys.OrderBy(c => c).JoinAsString());
                 if (seenState.ContainsKey(stateHash) && seenState[stateHash] < depth)
                 {
                     continue;
@@ -450,13 +456,9 @@ namespace AdventOfCode.Solutions.Year2019
                     // .Where(m => !path.Select(p => p.id).Contains(m.id))
                     .ToArray();
 
-                // Maybe we're too far in
-                if (depth >= minDistance)
-                    continue;
-
                 // Each move has to be valid
                 // Either it's another key, opening, or door that is unlocked
-                foreach (var move in moves)
+                foreach ((var currentBot, var bots, var move) in moves)
                 {
                     // Duplicate keys and paths
                     var newKeys = (char[])keys.Clone();
@@ -466,7 +468,7 @@ namespace AdventOfCode.Solutions.Year2019
                     // newPath = newPath.Append(move).ToArray();
 
                     // Need our edge cost
-                    var success = graph.TryGetEdge(pos, move, out DoorLockPosEdge edge);
+                    var success = graph.TryGetEdge(currentBot, move, out DoorLockPosEdge edge);
 
                     if (!success)
                         throw new Exception();
@@ -488,8 +490,6 @@ namespace AdventOfCode.Solutions.Year2019
                         {
                             // Found a new length
                             minDistance = Math.Min(minDistance, newDepth);
-                            if (minDistance == newDepth)
-                                minKeys = newKeys.JoinAsString();
                             continue;
                         }
 
@@ -511,7 +511,7 @@ namespace AdventOfCode.Solutions.Year2019
 
                     queue.Enqueue(new()
                     {
-                        pos = move,
+                        pos = bots.Append(move).ToArray(),
                         keys = newKeys,
                         // path = newPath,
                         depth = newDepth
@@ -519,7 +519,7 @@ namespace AdventOfCode.Solutions.Year2019
                 }
             }
 
-            return (minDistance, minKeys);
+            return minDistance;
         }
 
         protected override string? SolvePartOne()
@@ -530,12 +530,36 @@ namespace AdventOfCode.Solutions.Year2019
             sw.Stop();
             Debug.WriteLine($"Reset Grid Input: {sw.Elapsed}");
 
-            return GetShortestPath().minDistance.ToString();
+            return GetShortestPath().ToString();
         }
 
         protected override string? SolvePartTwo()
         {
             return string.Empty;
+            var input = Input.SplitByNewline(true)
+                .Select(line => line.ToCharArray())
+                .ToArray();
+            
+            // Replace the center of the grid
+            input[39][39] = '@';
+            input[39][40] = '#';
+            input[39][41] = '@';
+
+            input[40][39] = '#';
+            input[40][40] = '#';
+            input[40][41] = '#';
+
+            input[41][39] = '@';
+            input[41][40] = '#';
+            input[41][41] = '@';
+
+            var sw = new Stopwatch();
+            sw.Restart();
+            ResetGrid(string.Join('\n', input.Select(line => line.JoinAsString())));
+            sw.Stop();
+            Debug.WriteLine($"Reset Grid Input: {sw.Elapsed}");
+
+            return GetShortestPath().ToString();
         }
     }
 }
