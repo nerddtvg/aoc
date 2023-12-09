@@ -293,6 +293,9 @@ namespace AdventOfCode.Solutions.Year2019
                         // Found a path!
                         // Make sure all of the 
                         edges.Add(new(groupStart, groupDestination, path.Sum(edge => edge.cost)));
+
+                        // We can reduce the input graph as we go by removing passage ways immediately
+                        // graph.AddEdge(new(groupStart, groupDestination, path.Sum(edge => edge.cost)));
                     }
                 }
             }
@@ -390,10 +393,16 @@ namespace AdventOfCode.Solutions.Year2019
 
                 foreach (var move in graph.AdjacentVertices(thisPos))
                 {
+                    var hasKey = (move.type == DoorKeyType.Door && keys.Any(c => c == move.value + 32)) || (move.type == DoorKeyType.Key && keys.Any(c => c == move.value));
+
+                    // If the move is a dead end and not a key that we need don't go there
+                    if (graph.AdjacentVertices(move).Count() == 1 && (move.type != DoorKeyType.Key || hasKey))
+                        continue;
+
                     if (move.type == DoorKeyType.Door)
                     {
                         // If this is a door, make sure we have the corresponding key
-                        if (keys.Any(c => c == move.value + 32))
+                        if (hasKey)
                             yield return (thisPos, otherBots, move);
 
                         continue;
