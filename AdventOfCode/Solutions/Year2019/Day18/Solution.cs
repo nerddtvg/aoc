@@ -77,8 +77,6 @@ namespace AdventOfCode.Solutions.Year2019
 
         public int keyCount = 0;
 
-        PriorityQueue<State, int> queue = new();
-
         public struct State
         {
             public char[] keys;
@@ -180,8 +178,6 @@ namespace AdventOfCode.Solutions.Year2019
                         start = (x, y);
 
             keyCount = map.Sum(line => line.Count(c => c.type == DoorKeyType.Key));
-
-            queue.Clear();
 
             // Build the primary graph of all passages, start, keys, and doors
             var edges = new List<DoorLockPosEdge>();
@@ -305,6 +301,7 @@ namespace AdventOfCode.Solutions.Year2019
 
             Debug.WriteLine($"Final Vertex Count: {graph.VertexCount}");
             Debug.WriteLine($"Final Edge Count: {graph.EdgeCount}");
+            Debug.WriteLine($"Final Passage Count: {graph.Vertices.Count(v => v.type == DoorKeyType.Passage)}");
         }
 
         private void ReduceGraph(UndirectedGraph<DoorLockPos, DoorLockPosEdge> graph, DoorLockPos[] vertices)
