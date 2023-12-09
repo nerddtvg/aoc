@@ -55,10 +55,12 @@ namespace AdventOfCode.Solutions.Year2019
     class DoorLockPosEdge : Edge<DoorLockPos>
     {
         public int cost;
+        public string keysRequired;
 
-        public DoorLockPosEdge(DoorLockPos source, DoorLockPos target, int cost) : base(source, target)
+        public DoorLockPosEdge(DoorLockPos source, DoorLockPos target, int cost, string keysRequired) : base(source, target)
         {
             this.cost = cost;
+            this.keysRequired = keysRequired;
         }
 
         public override string ToString()
@@ -92,12 +94,12 @@ namespace AdventOfCode.Solutions.Year2019
 
             var part1Example = new Dictionary<string, int>()
             {
-                {
-                    @"#########
-                    #b.A.@.a#
-                    #########",
-                    8
-                },
+                // {
+                //     @"#########
+                //     #b.A.@.a#
+                //     #########",
+                //     8
+                // },
                 {
                     @"########################
                     #f.D.E.e.C.b.A.@.a.B.c.#
@@ -194,7 +196,7 @@ namespace AdventOfCode.Solutions.Year2019
                         var up = map[y - 1][x];
 
                         if (up.type != DoorKeyType.Wall && up.type != DoorKeyType.Default)
-                            edges.Add(new(up, map[y][x], 1));
+                            edges.Add(new(up, map[y][x], 1, string.Empty));
                     }
                     
                     if (x > 0)
@@ -202,7 +204,7 @@ namespace AdventOfCode.Solutions.Year2019
                         var left = map[y][x - 1];
 
                         if (left.type != DoorKeyType.Wall && left.type != DoorKeyType.Default)
-                            edges.Add(new(left, map[y][x], 1));
+                            edges.Add(new(left, map[y][x], 1, string.Empty));
                     }
                 }
             }
@@ -245,8 +247,10 @@ namespace AdventOfCode.Solutions.Year2019
             Debug.WriteLine($"Pass 1 Vertex Count: {graph.VertexCount}");
             Debug.WriteLine($"Pass 1 Edge Count: {graph.EdgeCount}");
 
+            // Make a graph of just the keys and start
+            // This will track what doors / keys are required for each
             var groups = graph.Vertices
-                .Where(v => new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
+                .Where(v => new DoorKeyType[] { DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
                 .ToArray();
 
             // New edges
@@ -268,30 +272,37 @@ namespace AdventOfCode.Solutions.Year2019
                     // foreach (var destination in group.Select(grp => grp[1]))
                     // {
                     // Weighted to PositiveInfinity should be rejected from shortest paths
-                    Func<DoorLockPosEdge, double> edgeTest = edge =>
-                        (
-                            edge.Source.type != DoorKeyType.Passage
-                            &&
-                            edge.Source.id != groupStart.id
-                            &&
-                            edge.Source.id != groupDestination.id
-                        )
-                        ||
-                        (
-                            edge.Target.type != DoorKeyType.Passage
-                            &&
-                            edge.Target.id != groupStart.id
-                            &&
-                            edge.Target.id != groupDestination.id
-                        ) ? double.PositiveInfinity : edge.cost;
+                    // Func<DoorLockPosEdge, double> edgeTest = edge =>
+                    //     (
+                    //         edge.Source.type != DoorKeyType.Passage
+                    //         &&
+                    //         edge.Source.id != groupStart.id
+                    //         &&
+                    //         edge.Source.id != groupDestination.id
+                    //     )
+                    //     ||
+                    //     (
+                    //         edge.Target.type != DoorKeyType.Passage
+                    //         &&
+                    //         edge.Target.id != groupStart.id
+                    //         &&
+                    //         edge.Target.id != groupDestination.id
+                    //     ) ? double.PositiveInfinity : edge.cost;
 
-                    var tryGetPath = graph.ShortestPathsDijkstra(edgeTest, groupStart);
+                    var tryGetPath = graph.ShortestPathsDijkstra(edge => edge.cost, groupStart);
 
                     if (tryGetPath(groupDestination, out IEnumerable<DoorLockPosEdge> path))
                     {
+                        var keysRequired = path
+                            .SelectMany(e => new DoorLockPos[] { e.Source, e.Target })
+                            .Where(node => node.type == DoorKeyType.Door)
+                            .Select(node => (char)(node.value + 32))
+                            .OrderBy(c => c)
+                            .Distinct().JoinAsString();
+
                         // Found a path!
                         // Make sure all of the 
-                        edges.Add(new(groupStart, groupDestination, path.Sum(edge => edge.cost)));
+                        edges.Add(new(groupStart, groupDestination, path.Sum(edge => edge.cost), keysRequired));
 
                         // We can reduce the input graph as we go by removing passage ways immediately
                         // graph.AddEdge(new(groupStart, groupDestination, path.Sum(edge => edge.cost)));
@@ -375,7 +386,7 @@ namespace AdventOfCode.Solutions.Year2019
                         foundPath.RemoveAt(0);
                         foundPath.Remove(lastVertex);
 
-                        graph.AddEdge(new DoorLockPosEdge(startVertex, lastVertex, cost));
+                        graph.AddEdge(new DoorLockPosEdge(startVertex, lastVertex, cost, string.Empty));
 
                         foundPath.ForEach(removeVertex => graph.RemoveVertex(removeVertex));
                     }
@@ -392,20 +403,22 @@ namespace AdventOfCode.Solutions.Year2019
 
                 foreach (var move in graph.AdjacentVertices(thisPos))
                 {
-                    Func<DoorLockPos, char[], bool> hasKey = (move, keys) => (move.type == DoorKeyType.Door && keys.Any(c => c == move.value + 32)) || (move.type == DoorKeyType.Key && keys.Any(c => c == move.value));
-
-                    // If the move is a dead end and not a key that we need don't go there
-                    if (graph.AdjacentVertices(move).Count() == 1 && (move.type != DoorKeyType.Key || hasKey(move, keys)))
+                    // We should only have keys, including through other keys/doors, and the starts now
+                    // This move is valid if:
+                    // * It is a key
+                    // * We do not have this key already
+                    // * We have all required keys to get there
+                    if (move.type != DoorKeyType.Key)
                         continue;
 
-                    if (move.type == DoorKeyType.Door)
-                    {
-                        // If this is a door, make sure we have the corresponding key
-                        if (hasKey(move, keys))
-                            yield return (thisPos, otherBots, move);
-
+                    if (keys.Contains(move.value))
                         continue;
-                    }
+
+                    // We have a key we need, now check that we have everything
+                    graph.TryGetEdge(thisPos, move, out DoorLockPosEdge edge);
+
+                    if (!edge.keysRequired.All(c => keys.Contains(c)))
+                        continue;
 
                     // Otherwise it's a key or an opening
                     yield return (thisPos, otherBots, move);
@@ -430,8 +443,9 @@ namespace AdventOfCode.Solutions.Year2019
             }, (ulong)0);
 
             // Track if we have seen this state before and what depth
-            // Dictionary<string, int> seenKeys = new();
-            Dictionary<(string vertexId, string keys), int> seenState = new();
+            // We are only traveling to keys we need, order doesn't matter in this key
+            // a,c,d,b => a,b,c,d
+            Dictionary<(int id, string keys), int> seenState = new();
 
             while(queue.Count > 0)
             {
@@ -439,39 +453,32 @@ namespace AdventOfCode.Solutions.Year2019
 
                 var pos = state.pos;
                 var keys = state.keys;
-                // var path = state.path;
                 var depth = state.depth;
 
                 // Maybe we're too far in
                 if (depth >= minDistance)
                     continue;
 
-                // Check if we have seen this state before
-                // If we have gotten to the same position with the same keys
-                // in a lower depth, skip this branch
-                var stateHash = (string.Join("-",pos.OrderBy(p => p.id).Select(p => p.id)), keys.OrderBy(c => c).JoinAsString());
-                if (seenState.ContainsKey(stateHash) && seenState[stateHash] < depth)
-                {
-                    continue;
-                }
-                else
-                    seenState[stateHash] = depth;
-
-                var moves = GetMoves(pos, keys)
-                    // Exclude visited locations
-                    // .Where(m => !path.Select(p => p.id).Contains(m.id))
-                    .ToArray();
+                var moves = GetMoves(pos, keys).ToArray();
 
                 // Each move has to be valid
-                // Either it's another key, opening, or door that is unlocked
+                // All moves are only keys we do not have
                 foreach ((var currentBot, var bots, var move) in moves)
                 {
-                    // Duplicate keys and paths
-                    var newKeys = (char[])keys.Clone();
-                    // var newPath = (DoorLockPos[])path.Clone();
 
-                    // Adding the move
-                    // newPath = newPath.Append(move).ToArray();
+                    // Check if we have seen this state before
+                    // If we have gotten to the same position with the same keys
+                    // in a lower depth, skip this branch
+                    var stateHash = (currentBot.id, keys.OrderBy(c => c).JoinAsString());
+                    if (seenState.ContainsKey(stateHash) && seenState[stateHash] < depth)
+                    {
+                        continue;
+                    }
+                    else
+                        seenState[stateHash] = depth;
+
+                    // Duplicate keys and paths
+                    var newKeys = keys.Union(new char[] { move.value }).ToArray();
 
                     // Need our edge cost
                     var success = graph.TryGetEdge(currentBot, move, out DoorLockPosEdge edge);
@@ -485,43 +492,20 @@ namespace AdventOfCode.Solutions.Year2019
                     if (newDepth >= minDistance)
                         continue;
 
-                    // If this move is a key and we don't have it, pick it up and start fresh!
-                    if (move.type == DoorKeyType.Key && !keys.Any(c => c == move.value))
+                    // If this is all of the keys, return our result instead
+                    if (newKeys.Length == keyCount)
                     {
-                        newKeys = newKeys.Union(new char[] { move.value }).ToArray();
-                        // newPath = Array.Empty<DoorLockPos>();
-
-                        // If this is all of the keys, return our result instead
-                        if (newKeys.Length == keyCount)
-                        {
-                            // Found a new length
-                            minDistance = Math.Min(minDistance, newDepth);
-                            continue;
-                        }
-
-                        // Avoid this if we have seen this key set before
-                        // a,b,c,d and b,d,c,a are identical, we only care about
-                        // the lowest depth to get to that last key
-                        // NOTE: Moved this to before Enqueue because we should only
-                        // check this when adding a new key
-                        // var sortedKeys = newKeys.OrderBy(c => c).JoinAsString();
-                        // if (seenKeys.ContainsKey(sortedKeys) && seenKeys[sortedKeys] < newDepth)
-                        // {
-                        //     continue;
-                        // }
-                        // else
-                        // {
-                        //     seenKeys[sortedKeys] = newDepth;
-                        // }
+                        // Found a new length
+                        minDistance = Math.Min(minDistance, newDepth);
+                        continue;
                     }
 
                     queue.Enqueue(new()
                     {
                         pos = bots.Append(move).ToArray(),
                         keys = newKeys,
-                        // path = newPath,
                         depth = newDepth
-                    }, (ulong)(keyCount - newKeys.Length) * (ulong)newDepth);
+                    }, (ulong)(keyCount - newKeys.Length) + (ulong)newDepth);
                 }
             }
 
@@ -530,6 +514,8 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string? SolvePartOne()
         {
+            return string.Empty;
+
             var sw = new Stopwatch();
             sw.Restart();
             ResetGrid(Input);
