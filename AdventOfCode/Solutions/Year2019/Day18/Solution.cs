@@ -394,35 +394,29 @@ namespace AdventOfCode.Solutions.Year2019
             }
         }
 
-        private IEnumerable<(DoorLockPos currentBot, DoorLockPos[] bots, DoorLockPos move)> GetMoves(DoorLockPos[] pos, char[] keys)
+        private IEnumerable<DoorLockPos> GetMoves(DoorLockPos pos, char[] keys)
         {
-            // Found a possible opening, door, or key
-            foreach (var thisPos in pos)
+            foreach (var move in graph.AdjacentVertices(pos))
             {
-                var otherBots = pos.Where(pos => pos.id != thisPos.id).ToArray();
+                // We should only have keys, including through other keys/doors, and the starts now
+                // This move is valid if:
+                // * It is a key
+                // * We do not have this key already
+                // * We have all required keys to get there
+                if (move.type != DoorKeyType.Key)
+                    continue;
 
-                foreach (var move in graph.AdjacentVertices(thisPos))
-                {
-                    // We should only have keys, including through other keys/doors, and the starts now
-                    // This move is valid if:
-                    // * It is a key
-                    // * We do not have this key already
-                    // * We have all required keys to get there
-                    if (move.type != DoorKeyType.Key)
-                        continue;
+                if (keys.Contains(move.value))
+                    continue;
 
-                    if (keys.Contains(move.value))
-                        continue;
+                // We have a key we need, now check that we have everything
+                graph.TryGetEdge(pos, move, out DoorLockPosEdge edge);
 
-                    // We have a key we need, now check that we have everything
-                    graph.TryGetEdge(thisPos, move, out DoorLockPosEdge edge);
+                if (!edge.keysRequired.All(c => keys.Contains(c)))
+                    continue;
 
-                    if (!edge.keysRequired.All(c => keys.Contains(c)))
-                        continue;
-
-                    // Otherwise it's a key or an opening
-                    yield return (thisPos, otherBots, move);
-                }
+                // Otherwise it's a key or an opening
+                yield return move;
             }
         }
 
@@ -434,6 +428,72 @@ namespace AdventOfCode.Solutions.Year2019
             var start = graph.Vertices
                 .Where(v => v.type == DoorKeyType.Start)
                 .ToArray();
+
+            // Another attempt to shortcut
+            // Make a list of all possible nodes visitable by each start position
+            // Then find all permutations of those
+            // Then find the total distance for all permutations
+            // Add them together and find the shortest distance
+            var possibleNodes = new List<List<DoorLockPos>>();
+
+            foreach(var sNode in start)
+            {
+                possibleNodes.Add(new() { sNode });
+                var added = 0;
+
+                do
+                {
+                    var addNodes = possibleNodes[^1]
+                        .SelectMany(sNode => graph.AdjacentVertices(sNode))
+                        .DistinctBy(sNode => sNode.id)
+                        .Where(sNode => !possibleNodes[^1].Any(pNode => pNode.id == sNode.id))
+                        .ToList();
+                    added = addNodes.Count;
+                    possibleNodes[^1].AddRange(addNodes);
+                } while (added > 0);
+            }
+
+            // Now we have a list of all possible nodes for each starting point
+            // Let's go ahead and see if we can determine the shortest path
+            return possibleNodes.Sum(nodes =>
+            {
+                // Get all permutations that start with a starting point
+                var permutations = nodes
+                    .Permutations()
+                    .Where(p => p.First().type == DoorKeyType.Start);
+
+                // For each pair, get the distance between them
+                // From the above adjacentvertices we know there are good edges
+                return permutations.Min(p =>
+                {
+                    var sum = 0;
+                    var idx = 0;
+                    DoorLockPos lastNode = default;
+                    string keysCollected = "";
+
+                    foreach(var node in p)
+                    {
+                        if (idx == 0)
+                            lastNode = node;
+                        else
+                        {
+                            graph.TryGetEdge(lastNode, node, out DoorLockPosEdge edge);
+
+                            // Have we the keys required?
+                            if (edge.keysRequired.Any(key => !keysCollected.Contains(key)))
+                                return int.MaxValue;
+
+                            sum += edge.cost;
+                            lastNode = node;
+                            keysCollected += node.value;
+                        }
+
+                        idx++;
+                    }
+
+                    return sum;
+                });
+            });
 
             queue.Enqueue(new State()
             {
@@ -459,53 +519,56 @@ namespace AdventOfCode.Solutions.Year2019
                 if (depth >= minDistance)
                     continue;
 
-                var moves = GetMoves(pos, keys).ToArray();
-
-                // Each move has to be valid
-                // All moves are only keys we do not have
-                foreach ((var currentBot, var bots, var move) in moves)
+                foreach (var currentBot in pos)
                 {
-
                     // Check if we have seen this state before
                     // If we have gotten to the same position with the same keys
                     // in a lower depth, skip this branch
-                    var stateHash = (currentBot.id, keys.OrderBy(c => c).JoinAsString());
+                    var stateHash = (currentBot.id, keys.JoinAsString());
                     if (seenState.ContainsKey(stateHash) && seenState[stateHash] < depth)
-                    {
                         continue;
-                    }
                     else
                         seenState[stateHash] = depth;
 
-                    // Duplicate keys and paths
-                    var newKeys = keys.Union(new char[] { move.value }).ToArray();
+                    // Generate an array of the other bots, if any, positions
+                    var bots = pos.Where(b => b.id != currentBot.id).ToArray();
 
-                    // Need our edge cost
-                    var success = graph.TryGetEdge(currentBot, move, out DoorLockPosEdge edge);
+                    var moves = GetMoves(currentBot, keys).ToArray();
 
-                    if (!success)
-                        throw new Exception();
-
-                    var newDepth = depth + edge.cost;
-
-                    // Maybe we're too far in (check again due to >1 weights)
-                    if (newDepth >= minDistance)
-                        continue;
-
-                    // If this is all of the keys, return our result instead
-                    if (newKeys.Length == keyCount)
+                    // Each move has to be valid
+                    // All moves are only keys we do not have
+                    foreach (var move in moves)
                     {
-                        // Found a new length
-                        minDistance = Math.Min(minDistance, newDepth);
-                        continue;
+                        // Duplicate keys and paths
+                        var newKeys = keys.Union(new char[] { move.value }).OrderBy(c => c).ToArray();
+
+                        // Need our edge cost
+                        var success = graph.TryGetEdge(currentBot, move, out DoorLockPosEdge edge);
+
+                        if (!success)
+                            throw new Exception();
+
+                        var newDepth = depth + edge.cost;
+
+                        // Maybe we're too far in (check again due to >1 weights)
+                        if (newDepth >= minDistance)
+                            continue;
+
+                        // If this is all of the keys, return our result instead
+                        if (newKeys.Length == keyCount)
+                        {
+                            // Found a new length
+                            minDistance = Math.Min(minDistance, newDepth);
+                            continue;
+                        }
+
+                        queue.Enqueue(new()
+                        {
+                            pos = bots.Append(move).ToArray(),
+                            keys = newKeys,
+                            depth = newDepth
+                        }, (ulong)(keyCount - newKeys.Length) + (ulong)newDepth);
                     }
-
-                    queue.Enqueue(new()
-                    {
-                        pos = bots.Append(move).ToArray(),
-                        keys = newKeys,
-                        depth = newDepth
-                    }, (ulong)(keyCount - newKeys.Length) + (ulong)newDepth);
                 }
             }
 
