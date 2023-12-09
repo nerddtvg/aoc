@@ -7,6 +7,7 @@ using System.Diagnostics;
 using QuikGraph;
 using QuikGraph.Algorithms;
 using QuikGraph.Algorithms.Search;
+using QuikGraph.Algorithms.ShortestPath;
 
 namespace AdventOfCode.Solutions.Year2019
 {
@@ -207,29 +208,132 @@ namespace AdventOfCode.Solutions.Year2019
 
             // We will now reduce the graph down to remove passages and replace the edge costs with counts
             // Go through every permutation of these combos
+            // var groups = graph.Vertices
+            //     .Where(v => new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
+            //     .GetAllCombos(2)
+            //     // Pre-process the combos
+            //     .Select(combo => combo.ToArray())
+            //     .GroupBy(combo => combo[0])
+            //     .ToList();
+
+            // Can we do a quick reduction of edges that are cost == 1 (passage to passage)
+            // and that each side only has one more connection? (pass through, not a multi-direction intersection)
+            // Method:
+            // 1. Find all verices that are _not_ passages
+            // 2. Go out one and find all connected vertices
+            //    * Track: Start point, edges between start and current
+            // 3. If the count is more than 2, reduce the path to that point
+            //    * Remove tracked edges / vertices
+            var vertices = graph.Vertices
+                .Where(v => new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
+                .ToArray();
+
+            Debug.WriteLine($"Before Vertex Count: {graph.VertexCount}");
+            Debug.WriteLine($"Before Edge Count: {graph.EdgeCount}");
+
+            foreach (var startVertex in vertices)
+            {
+                // Get the next vertices to this one
+                var adjVertices = graph.AdjacentVertices(startVertex).ToArray();
+
+                foreach(var tAdjVertex in adjVertices)
+                {
+                    var adjVertex = tAdjVertex;
+
+                    // Don't go back
+                    if (adjVertex.id == startVertex.id)
+                        continue;
+
+                    // Start with a fresh path
+                    var foundIds = new HashSet<int>();
+                    var foundPath = new List<DoorLockPos>();
+
+                    do
+                    {
+                        // Track this location
+                        var tId = adjVertex.id;
+                        foundPath.Add(adjVertex);
+
+                        // If we have found a non-passage, step out
+                        if (adjVertex.type != DoorKeyType.Passage)
+                            break;
+
+                        var adjEdges = graph
+                            .AdjacentEdges(adjVertex)
+                            // Kick out where we came from
+                            .Where(edge => edge.Source.id != startVertex.id && !foundIds.Contains(edge.Source.id) && edge.Target.id != startVertex.id && !foundIds.Contains(edge.Target.id))
+                            .ToArray();
+
+                        // If we have found an intersection, stop
+                        if (adjEdges.Length != 1)
+                            break;
+
+                        // Track this location (after using the checks above)
+                        foundIds.Add(tId);
+
+                        // Find our next step out
+                        adjVertex = adjEdges[0].Source.id != startVertex.id && !foundIds.Contains(adjEdges[0].Source.id) ? adjEdges[0].Source : adjEdges[0].Target;
+                    } while (true);
+
+                    if (foundPath.Count > 1)
+                    {
+                        // If we found a path to remove, let's remove it
+                        var lastVertex = foundPath[^1];
+                        foundPath.Remove(lastVertex);
+
+                        graph.AddEdge(new DoorLockPosEdge(startVertex, lastVertex, foundPath.Count + 1));
+
+                        foundPath.ForEach(removeVertex => graph.RemoveVertex(removeVertex));
+                    }
+                }
+            }
+
+            Debug.WriteLine($"After Vertex Count: {graph.VertexCount}");
+            Debug.WriteLine($"After Edge Count: {graph.EdgeCount}");
+
             var groups = graph.Vertices
                 .Where(v => new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
-                .GetAllCombos(2)
-                // Pre-process the combos
-                .Select(combo => combo.ToArray())
-                .GroupBy(combo => combo[0])
-                .ToList();
+                .ToArray();
 
             // New edges
             edges = new List<DoorLockPosEdge>();
 
             // Go through each group (Key is the start, then a list of destinations)
-            foreach (var group in groups)
+            for(int iGroup = 0; iGroup<groups.Length-1; iGroup++)
             {
-                // We can't simply rely on the base algorithm class because it doesn't return
-                // the path, only the distance, and we need to filter it
-                // We manipulate the edge cost such that if the target node is a door or key, increase the cost significantly
-                // This way any additional door or key is seen as too expensive
-                var tryGetPath = graph.ShortestPathsDijkstra(edge => edge.cost, group.Key);
+                var groupStart = groups[iGroup];
 
-                foreach (var destination in group.Select(grp => grp[1]))
+                for(int qGroup = iGroup+1; qGroup<groups.Length; qGroup++)
                 {
-                    if (tryGetPath(destination, out IEnumerable<DoorLockPosEdge> path))
+                    var groupDestination = groups[qGroup];
+
+                    // We can't simply rely on the base algorithm class because it doesn't return
+                    // the path, only the distance, and we need to filter it
+                    // We manipulate the edge cost such that if the target node is a door or key, increase the cost significantly
+                    // This way any additional door or key is seen as too expensive
+                    // foreach (var destination in group.Select(grp => grp[1]))
+                    // {
+                    // Weighted to PositiveInfinity should be rejected from shortest paths
+                    Func<DoorLockPosEdge, double> edgeTest = edge =>
+                        (
+                            edge.Source.type != DoorKeyType.Passage
+                            &&
+                            edge.Source.id != groupStart.id
+                            &&
+                            edge.Source.id != groupDestination.id
+                        )
+                        ||
+                        (
+                            edge.Target.type != DoorKeyType.Passage
+                            &&
+                            edge.Target.id != groupStart.id
+                            &&
+                            edge.Target.id != groupDestination.id
+                        ) ? double.PositiveInfinity : edge.cost;
+
+                    var tryGetPath = graph.ShortestPathsDijkstra(edgeTest, groupStart);
+
+                    if (tryGetPath(groupDestination, out IEnumerable<DoorLockPosEdge> path))
                     {
                         // Found a path!
                         // Make sure we do not include another key or door
@@ -239,24 +343,24 @@ namespace AdventOfCode.Solutions.Year2019
                                 (
                                     edge.Source.type != DoorKeyType.Passage
                                     &&
-                                    edge.Source.id != group.Key.id
+                                    edge.Source.id != groupStart.id
                                     &&
-                                    edge.Source.id != destination.id
+                                    edge.Source.id != groupDestination.id
                                 )
                                 ||
                                 (
                                     edge.Target.type != DoorKeyType.Passage
                                     &&
-                                    edge.Target.id != group.Key.id
+                                    edge.Target.id != groupStart.id
                                     &&
-                                    edge.Target.id != destination.id
+                                    edge.Target.id != groupDestination.id
                                 )
                             )
                         )
                             continue;
 
                         // Make sure all of the 
-                        edges.Add(new(group.Key, destination, pathList.Count));
+                        edges.Add(new(groupStart, groupDestination, pathList.Sum(edge => edge.cost)));
                     }
                 }
             }
