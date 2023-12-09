@@ -80,14 +80,16 @@ namespace AdventOfCode.Solutions.Year2019
 
         public Day18() : base(18, 2019, "Many-Worlds Interpretation")
         {
+            var doExamples = false;
+
             var part1Example = new Dictionary<string, int>()
             {
-                // {
-                //     @"#########
-                //     #b.A.@.a#
-                //     #########",
-                //     8
-                // },
+                {
+                    @"#########
+                    #b.A.@.a#
+                    #########",
+                    8
+                },
                 {
                     @"########################
                     #f.D.E.e.C.b.A.@.a.B.c.#
@@ -127,33 +129,29 @@ namespace AdventOfCode.Solutions.Year2019
                 }
             };
 
-            var sw = new Stopwatch();
-            foreach (var exKvp in part1Example)
+            if (doExamples)
             {
-                Debug.WriteLine($"Starting Test: {exKvp.Value}");
+                var sw = new Stopwatch();
+                foreach (var exKvp in part1Example)
+                {
+                    Debug.WriteLine($"Starting Test: {exKvp.Value}");
 
-                sw.Restart();
-                ResetGrid(exKvp.Key);
-                sw.Stop();
-                Debug.WriteLine($"Reset Grid: {sw.Elapsed}");
+                    sw.Restart();
+                    ResetGrid(exKvp.Key);
+                    sw.Stop();
+                    Debug.WriteLine($"Reset Grid: {sw.Elapsed}");
 
-                sw.Restart();
-                (var minDistance, var keys) = GetShortestPath();
-                sw.Stop();
+                    sw.Restart();
+                    (var minDistance, var keys) = GetShortestPath();
+                    sw.Stop();
 
-                Debug.Assert(Debug.Equals(minDistance, exKvp.Value), $"Expected: {exKvp.Value}\nActual: {minDistance}");
-                Debug.WriteLine($"Test Results: Expected: {exKvp.Value}, Actual: {minDistance}");
-                Debug.WriteLine($"Shortest Path: {sw.Elapsed}");
+                    Debug.Assert(Debug.Equals(minDistance, exKvp.Value), $"Expected: {exKvp.Value}\nActual: {minDistance}");
+                    Debug.WriteLine($"Test Results: Expected: {exKvp.Value}, Actual: {minDistance}");
+                    Debug.WriteLine($"Shortest Path: {sw.Elapsed}");
 
-                Debug.WriteLine(string.Empty);
+                    Debug.WriteLine(string.Empty);
+                }
             }
-
-            ResetGrid(Input);
-
-            sw.Restart();
-            ResetGrid(Input);
-            sw.Stop();
-            Debug.WriteLine($"Reset Grid Input: {sw.Elapsed}");
         }
 
         private void ResetGrid(string input)
@@ -225,7 +223,12 @@ namespace AdventOfCode.Solutions.Year2019
             // 3. If the count is more than 2, reduce the path to that point
             //    * Remove tracked edges / vertices
             var vertices = graph.Vertices
-                .Where(v => new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
+                .Where(v =>
+                    new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type)
+                    ||
+                    // Also start at intersections
+                    (v.type == DoorKeyType.Passage && graph.AdjacentEdges(v).Count() > 2)
+                )
                 .ToArray();
 
             Debug.WriteLine($"Before Vertex Count: {graph.VertexCount}");
@@ -251,7 +254,7 @@ namespace AdventOfCode.Solutions.Year2019
                     // Start with a fresh path
                     var foundPath = new List<DoorLockPos>() { startVertex };
 
-                    // if (startVertex.value == 'd')
+                    // if (startVertex.value == 'F')
                     //     System.Diagnostics.Debugger.Break();
 
                     do
@@ -272,11 +275,15 @@ namespace AdventOfCode.Solutions.Year2019
                             .ToArray();
 
                         // If we have found an intersection, stop
-                        if (adjEdges.Length != 1)
+                        if (adjEdges.Length > 1)
                             break;
 
                         // Track this location
                         foundPath.Add(adjVertex);
+
+                        // Second check here, we could have found a dead end
+                        if (adjEdges.Length == 0)
+                            break;
 
                         // If we have found a non-passage, step out
                         if (adjVertex.type != DoorKeyType.Passage)
@@ -303,82 +310,82 @@ namespace AdventOfCode.Solutions.Year2019
             Debug.WriteLine($"After Vertex Count: {graph.VertexCount}");
             Debug.WriteLine($"After Edge Count: {graph.EdgeCount}");
 
-            var groups = graph.Vertices
-                .Where(v => new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
-                .ToArray();
+            // var groups = graph.Vertices
+            //     .Where(v => new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
+            //     .ToArray();
 
-            // New edges
-            edges = new List<DoorLockPosEdge>();
+            // // New edges
+            // edges = new List<DoorLockPosEdge>();
 
-            // Go through each group (Key is the start, then a list of destinations)
-            for(int iGroup = 0; iGroup<groups.Length-1; iGroup++)
-            {
-                var groupStart = groups[iGroup];
+            // // Go through each group (Key is the start, then a list of destinations)
+            // for(int iGroup = 0; iGroup<groups.Length-1; iGroup++)
+            // {
+            //     var groupStart = groups[iGroup];
 
-                for(int qGroup = iGroup+1; qGroup<groups.Length; qGroup++)
-                {
-                    var groupDestination = groups[qGroup];
+            //     for(int qGroup = iGroup+1; qGroup<groups.Length; qGroup++)
+            //     {
+            //         var groupDestination = groups[qGroup];
 
-                    // We can't simply rely on the base algorithm class because it doesn't return
-                    // the path, only the distance, and we need to filter it
-                    // We manipulate the edge cost such that if the target node is a door or key, increase the cost significantly
-                    // This way any additional door or key is seen as too expensive
-                    // foreach (var destination in group.Select(grp => grp[1]))
-                    // {
-                    // Weighted to PositiveInfinity should be rejected from shortest paths
-                    Func<DoorLockPosEdge, double> edgeTest = edge =>
-                        (
-                            edge.Source.type != DoorKeyType.Passage
-                            &&
-                            edge.Source.id != groupStart.id
-                            &&
-                            edge.Source.id != groupDestination.id
-                        )
-                        ||
-                        (
-                            edge.Target.type != DoorKeyType.Passage
-                            &&
-                            edge.Target.id != groupStart.id
-                            &&
-                            edge.Target.id != groupDestination.id
-                        ) ? double.PositiveInfinity : edge.cost;
+            //         // We can't simply rely on the base algorithm class because it doesn't return
+            //         // the path, only the distance, and we need to filter it
+            //         // We manipulate the edge cost such that if the target node is a door or key, increase the cost significantly
+            //         // This way any additional door or key is seen as too expensive
+            //         // foreach (var destination in group.Select(grp => grp[1]))
+            //         // {
+            //         // Weighted to PositiveInfinity should be rejected from shortest paths
+            //         Func<DoorLockPosEdge, double> edgeTest = edge =>
+            //             (
+            //                 edge.Source.type != DoorKeyType.Passage
+            //                 &&
+            //                 edge.Source.id != groupStart.id
+            //                 &&
+            //                 edge.Source.id != groupDestination.id
+            //             )
+            //             ||
+            //             (
+            //                 edge.Target.type != DoorKeyType.Passage
+            //                 &&
+            //                 edge.Target.id != groupStart.id
+            //                 &&
+            //                 edge.Target.id != groupDestination.id
+            //             ) ? double.PositiveInfinity : edge.cost;
 
-                    var tryGetPath = graph.ShortestPathsDijkstra(edgeTest, groupStart);
+            //         var tryGetPath = graph.ShortestPathsDijkstra(edgeTest, groupStart);
 
-                    if (tryGetPath(groupDestination, out IEnumerable<DoorLockPosEdge> path))
-                    {
-                        // Found a path!
-                        // Make sure we do not include another key or door
-                        var pathList = path.ToList();
-                        if (pathList.Any(
-                            edge =>
-                                (
-                                    edge.Source.type != DoorKeyType.Passage
-                                    &&
-                                    edge.Source.id != groupStart.id
-                                    &&
-                                    edge.Source.id != groupDestination.id
-                                )
-                                ||
-                                (
-                                    edge.Target.type != DoorKeyType.Passage
-                                    &&
-                                    edge.Target.id != groupStart.id
-                                    &&
-                                    edge.Target.id != groupDestination.id
-                                )
-                            )
-                        )
-                            continue;
+            //         if (tryGetPath(groupDestination, out IEnumerable<DoorLockPosEdge> path))
+            //         {
+            //             // Found a path!
+            //             // Make sure we do not include another key or door
+            //             var pathList = path.ToList();
+            //             if (pathList.Any(
+            //                 edge =>
+            //                     (
+            //                         edge.Source.type != DoorKeyType.Passage
+            //                         &&
+            //                         edge.Source.id != groupStart.id
+            //                         &&
+            //                         edge.Source.id != groupDestination.id
+            //                     )
+            //                     ||
+            //                     (
+            //                         edge.Target.type != DoorKeyType.Passage
+            //                         &&
+            //                         edge.Target.id != groupStart.id
+            //                         &&
+            //                         edge.Target.id != groupDestination.id
+            //                     )
+            //                 )
+            //             )
+            //                 continue;
 
-                        // Make sure all of the 
-                        edges.Add(new(groupStart, groupDestination, pathList.Sum(edge => edge.cost)));
-                    }
-                }
-            }
+            //             // Make sure all of the 
+            //             edges.Add(new(groupStart, groupDestination, pathList.Sum(edge => edge.cost)));
+            //         }
+            //     }
+            // }
 
-            // New Graph
-            graph = edges.ToUndirectedGraph<DoorLockPos, DoorLockPosEdge>();
+            // // New Graph
+            // graph = edges.ToUndirectedGraph<DoorLockPos, DoorLockPosEdge>();
         }
 
         private IEnumerable<DoorLockPos> GetMoves(DoorLockPos pos, char[] keys)
@@ -521,7 +528,11 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string? SolvePartOne()
         {
-            return string.Empty;
+            var sw = new Stopwatch();
+            sw.Restart();
+            ResetGrid(Input);
+            sw.Stop();
+            Debug.WriteLine($"Reset Grid Input: {sw.Elapsed}");
 
             return GetShortestPath().minDistance.ToString();
         }
