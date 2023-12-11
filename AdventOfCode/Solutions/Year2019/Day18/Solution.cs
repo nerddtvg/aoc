@@ -98,7 +98,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         public Day18() : base(18, 2019, "Many-Worlds Interpretation")
         {
-            var doExamples = true;
+            var doExamples = false;
 
             var part1Example = new Dictionary<string, int>()
             {
@@ -136,15 +136,15 @@ namespace AdventOfCode.Solutions.Year2019
                     #################",
                     136
                 },
-                // {
-                //     @"########################
-                //     #@..............ac.GI.b#
-                //     ###d#e#f################
-                //     ###A#B#C################
-                //     ###g#h#i################
-                //     ########################",
-                //     81
-                // }
+                {
+                    @"########################
+                    #@..............ac.GI.b#
+                    ###d#e#f################
+                    ###A#B#C################
+                    ###g#h#i################
+                    ########################",
+                    81
+                }
             };
 
             if (doExamples)
@@ -220,16 +220,6 @@ namespace AdventOfCode.Solutions.Year2019
             // Build a full graph of walkable objects
             graph = edges.ToUndirectedGraph<DoorLockPos, DoorLockPosEdge>();
 
-            // We will now reduce the graph down to remove passages and replace the edge costs with counts
-            // Go through every permutation of these combos
-            // var groups = graph.Vertices
-            //     .Where(v => new DoorKeyType[] { DoorKeyType.Door, DoorKeyType.Key, DoorKeyType.Start }.Contains(v.type))
-            //     .GetAllCombos(2)
-            //     // Pre-process the combos
-            //     .Select(combo => combo.ToArray())
-            //     .GroupBy(combo => combo[0])
-            //     .ToList();
-
             // Can we do a quick reduction of edges that are cost == 1 (passage to passage)
             // and that each side only has one more connection? (pass through, not a multi-direction intersection)
             // Method:
@@ -273,30 +263,6 @@ namespace AdventOfCode.Solutions.Year2019
                 {
                     var groupDestination = groups[qGroup];
 
-                    // We can't simply rely on the base algorithm class because it doesn't return
-                    // the path, only the distance, and we need to filter it
-                    // We manipulate the edge cost such that if the target node is a door or key, increase the cost significantly
-                    // This way any additional door or key is seen as too expensive
-                    // foreach (var destination in group.Select(grp => grp[1]))
-                    // {
-                    // Weighted to PositiveInfinity should be rejected from shortest paths
-                    // Func<DoorLockPosEdge, double> edgeTest = edge =>
-                    //     (
-                    //         edge.Source.type != DoorKeyType.Passage
-                    //         &&
-                    //         edge.Source.id != groupStart.id
-                    //         &&
-                    //         edge.Source.id != groupDestination.id
-                    //     )
-                    //     ||
-                    //     (
-                    //         edge.Target.type != DoorKeyType.Passage
-                    //         &&
-                    //         edge.Target.id != groupStart.id
-                    //         &&
-                    //         edge.Target.id != groupDestination.id
-                    //     ) ? double.PositiveInfinity : edge.cost;
-
                     var tryGetPath = graph.ShortestPathsDijkstra(edge => edge.cost, groupStart);
 
                     if (tryGetPath(groupDestination, out IEnumerable<DoorLockPosEdge> path))
@@ -309,9 +275,6 @@ namespace AdventOfCode.Solutions.Year2019
                         // Found a path!
                         // Make sure all of the 
                         edges.Add(new(groupStart, groupDestination, path.Sum(edge => edge.cost), keysRequired));
-
-                        // We can reduce the input graph as we go by removing passage ways immediately
-                        // graph.AddEdge(new(groupStart, groupDestination, path.Sum(edge => edge.cost)));
                     }
                 }
             }
@@ -348,9 +311,6 @@ namespace AdventOfCode.Solutions.Year2019
                     graph.TryGetEdge(startVertex, adjVertex, out DoorLockPosEdge startEdge);
                     var cost = startEdge.cost;
 
-                    // if (startVertex.value == 'F')
-                    //     System.Diagnostics.Debugger.Break();
-
                     do
                     {
                         var adjEdges = graph
@@ -367,10 +327,6 @@ namespace AdventOfCode.Solutions.Year2019
                         // If we have found an intersection, stop
                         if (adjEdges.Length != 1)
                             break;
-
-                        // Second check here, we could have found a dead end
-                        // if (adjEdges.Length == 0)
-                        //     break;
 
                         // If we have found a non-passage, step out
                         if (adjVertex.type != DoorKeyType.Passage)
@@ -505,7 +461,7 @@ namespace AdventOfCode.Solutions.Year2019
                             pos = bots.Append(move).ToArray(),
                             keys = newKeys,
                             depth = newDepth
-                        }, (ulong)(keyCount - thisKeysCount));
+                        }, (ulong)(keyCount - thisKeysCount) * (ulong)newDepth);
                     }
                 }
             }
