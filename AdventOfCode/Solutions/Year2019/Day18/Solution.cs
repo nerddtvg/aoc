@@ -462,14 +462,18 @@ namespace AdventOfCode.Solutions.Year2019
                     .Permutations()
                     .Where(p => p.First().type == DoorKeyType.Start);
 
+                int minDistance = int.MaxValue;
+                int nodeCount = nodes.Count;
+
                 // For each pair, get the distance between them
                 // From the above adjacentvertices we know there are good edges
-                return permutations.Min(p =>
+                permutations.ForEach(p =>
                 {
                     var sum = 0;
                     var idx = 0;
                     DoorLockPos lastNode = default;
                     string keysCollected = "";
+                    bool valid = true;
 
                     foreach(var node in p)
                     {
@@ -481,18 +485,30 @@ namespace AdventOfCode.Solutions.Year2019
 
                             // Have we the keys required?
                             if (edge.keysRequired.Any(key => !keysCollected.Contains(key)))
-                                return int.MaxValue;
+                            {
+                                valid = false;
+                                break;
+                            }
 
                             sum += edge.cost;
                             lastNode = node;
                             keysCollected += node.value;
+
+                            if (sum > minDistance)
+                            {
+                                valid = false;
+                                break;
+                            }
                         }
 
                         idx++;
                     }
 
-                    return sum;
+                    if (valid)
+                        minDistance = Math.Min(minDistance, sum);
                 });
+
+                return minDistance;
             });
 
             queue.Enqueue(new State()
@@ -577,7 +593,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string? SolvePartOne()
         {
-            return string.Empty;
+            Debug.WriteLine("Starting Part 1");
 
             var sw = new Stopwatch();
             sw.Restart();
@@ -590,7 +606,8 @@ namespace AdventOfCode.Solutions.Year2019
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            Debug.WriteLine("Starting Part 2");
+
             var input = Input.SplitByNewline(true)
                 .Select(line => line.ToCharArray())
                 .ToArray();
