@@ -75,8 +75,8 @@ namespace AdventOfCode.Solutions.Year2023
             int y1 = Math.Min(a.y, b.y);
             int y2 = Math.Max(a.y, b.y);
 
-            ret += (muli - 1) * new BigInteger(EmptyCols.Count(x => x1 < x && x < x2));
-            ret += (muli - 1) * new BigInteger(EmptyRows.Count(y => y1 < y && y < y2));
+            ret += muli * new BigInteger(EmptyCols.Count(x => x1 < x && x < x2));
+            ret += muli * new BigInteger(EmptyRows.Count(y => y1 < y && y < y2));
 
             return ret;
         }
@@ -87,7 +87,7 @@ namespace AdventOfCode.Solutions.Year2023
 
             Galaxies
                 .GetAllCombos()
-                .ForEach(combo => ret += ExpandDistance(combo[0], combo[1], new BigInteger(2)));
+                .ForEach(combo => ret += ExpandDistance(combo[0], combo[1], BigInteger.One));
 
             return ret.ToString();
         }
@@ -98,7 +98,7 @@ namespace AdventOfCode.Solutions.Year2023
 
             Galaxies
                 .GetAllCombos()
-                .ForEach(combo => ret += ExpandDistance(combo[0], combo[1], new BigInteger(1000000)));
+                .ForEach(combo => ret += ExpandDistance(combo[0], combo[1], new BigInteger(999999)));
 
             return ret.ToString();
         }
