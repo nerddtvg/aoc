@@ -90,7 +90,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         public Day18() : base(18, 2019, "Many-Worlds Interpretation")
         {
-            var doExamples = false;
+            var doExamples = true;
 
             var part1Example = new Dictionary<string, int>()
             {
@@ -100,22 +100,22 @@ namespace AdventOfCode.Solutions.Year2019
                 //     #########",
                 //     8
                 // },
-                {
-                    @"########################
-                    #f.D.E.e.C.b.A.@.a.B.c.#
-                    ######################.#
-                    #d.....................#
-                    ########################",
-                    86
-                },
-                {
-                    @"########################
-                    #...............b.C.D.f#
-                    #.######################
-                    #.....@.a.B.c.d.A.e.F.g#
-                    ########################",
-                    132
-                },
+                // {
+                //     @"########################
+                //     #f.D.E.e.C.b.A.@.a.B.c.#
+                //     ######################.#
+                //     #d.....................#
+                //     ########################",
+                //     86
+                // },
+                // {
+                //     @"########################
+                //     #...............b.C.D.f#
+                //     #.######################
+                //     #.....@.a.B.c.d.A.e.F.g#
+                //     ########################",
+                //     132
+                // },
                 {
                     @"#################
                     #i.G..c...e..H.p#
@@ -128,15 +128,15 @@ namespace AdventOfCode.Solutions.Year2019
                     #################",
                     136
                 },
-                {
-                    @"########################
-                    #@..............ac.GI.b#
-                    ###d#e#f################
-                    ###A#B#C################
-                    ###g#h#i################
-                    ########################",
-                    81
-                }
+                // {
+                //     @"########################
+                //     #@..............ac.GI.b#
+                //     ###d#e#f################
+                //     ###A#B#C################
+                //     ###g#h#i################
+                //     ########################",
+                //     81
+                // }
             };
 
             if (doExamples)
@@ -442,7 +442,7 @@ namespace AdventOfCode.Solutions.Year2019
             // Track if we have seen this state before and what depth
             // We are only traveling to keys we need, order doesn't matter in this key
             // a,c,d,b => a,b,c,d
-            Dictionary<(int id, string keys), int> seenState = new();
+            Dictionary<(char key, string keys), int> seenState = new();
 
             while(queue.Count > 0)
             {
@@ -461,7 +461,7 @@ namespace AdventOfCode.Solutions.Year2019
                     // Check if we have seen this state before
                     // If we have gotten to the same position with the same keys
                     // in a lower depth, skip this branch
-                    var stateHash = (currentBot.id, keys.JoinAsString());
+                    var stateHash = (currentBot.value, keys.JoinAsString());
                     if (seenState.ContainsKey(stateHash) && seenState[stateHash] < depth)
                         continue;
                     else
