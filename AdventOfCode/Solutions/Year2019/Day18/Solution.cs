@@ -90,7 +90,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         public Day18() : base(18, 2019, "Many-Worlds Interpretation")
         {
-            var doExamples = true;
+            var doExamples = false;
 
             var part1Example = new Dictionary<string, int>()
             {
@@ -339,7 +339,8 @@ namespace AdventOfCode.Solutions.Year2019
 
                     // Start with a fresh path
                     var foundPath = new List<DoorLockPos>() { startVertex };
-                    var cost = graph.AdjacentEdges(adjVertex).First(e => e.Source.id == startVertex.id || e.Target.id == startVertex.id).cost;
+                    graph.TryGetEdge(startVertex, adjVertex, out DoorLockPosEdge startEdge);
+                    var cost = startEdge.cost;
 
                     // if (startVertex.value == 'F')
                     //     System.Diagnostics.Debugger.Break();
@@ -349,13 +350,8 @@ namespace AdventOfCode.Solutions.Year2019
                         var adjEdges = graph
                             .AdjacentEdges(adjVertex)
                             .Where(edge =>
-                                // This may have already been processed
-                                // edge.cost == 1
-                                // &&
-                                (
-                                    // Kick out where we came from
-                                    edge.GetOtherVertex(adjVertex).id != foundPath[^1].id
-                                )
+                                // Kick out where we came from
+                                edge.GetOtherVertex(adjVertex).id != foundPath[^1].id
                             )
                             .ToArray();
 
@@ -394,7 +390,7 @@ namespace AdventOfCode.Solutions.Year2019
             }
         }
 
-        private IEnumerable<DoorLockPos> GetMoves(DoorLockPos pos, char[] keys)
+        private IEnumerable<(DoorLockPos move, DoorLockPosEdge edge)> GetMoves(DoorLockPos pos, char[] keys)
         {
             foreach (var move in graph.AdjacentVertices(pos))
             {
@@ -412,11 +408,11 @@ namespace AdventOfCode.Solutions.Year2019
                 // We have a key we need, now check that we have everything
                 graph.TryGetEdge(pos, move, out DoorLockPosEdge edge);
 
-                if (!edge.keysRequired.All(c => keys.Contains(c)))
+                if (edge.keysRequired.Any(c => !keys.Contains(c)))
                     continue;
 
                 // Otherwise it's a key or an opening
-                yield return move;
+                yield return (move, edge);
             }
         }
 
@@ -435,81 +431,6 @@ namespace AdventOfCode.Solutions.Year2019
             // Then find the total distance for all permutations
             // Add them together and find the shortest distance
             var possibleNodes = new List<List<DoorLockPos>>();
-
-            foreach(var sNode in start)
-            {
-                possibleNodes.Add(new() { sNode });
-                var added = 0;
-
-                do
-                {
-                    var addNodes = possibleNodes[^1]
-                        .SelectMany(sNode => graph.AdjacentVertices(sNode))
-                        .DistinctBy(sNode => sNode.id)
-                        .Where(sNode => !possibleNodes[^1].Any(pNode => pNode.id == sNode.id))
-                        .ToList();
-                    added = addNodes.Count;
-                    possibleNodes[^1].AddRange(addNodes);
-                } while (added > 0);
-            }
-
-            // Now we have a list of all possible nodes for each starting point
-            // Let's go ahead and see if we can determine the shortest path
-            return possibleNodes.Sum(nodes =>
-            {
-                // Get all permutations that start with a starting point
-                var permutations = nodes
-                    .Permutations()
-                    .Where(p => p.First().type == DoorKeyType.Start);
-
-                int minDistance = int.MaxValue;
-                int nodeCount = nodes.Count;
-
-                // For each pair, get the distance between them
-                // From the above adjacentvertices we know there are good edges
-                permutations.ForEach(p =>
-                {
-                    var sum = 0;
-                    var idx = 0;
-                    DoorLockPos lastNode = default;
-                    string keysCollected = "";
-                    bool valid = true;
-
-                    foreach(var node in p)
-                    {
-                        if (idx == 0)
-                            lastNode = node;
-                        else
-                        {
-                            graph.TryGetEdge(lastNode, node, out DoorLockPosEdge edge);
-
-                            // Have we the keys required?
-                            if (edge.keysRequired.Any(key => !keysCollected.Contains(key)))
-                            {
-                                valid = false;
-                                break;
-                            }
-
-                            sum += edge.cost;
-                            lastNode = node;
-                            keysCollected += node.value;
-
-                            if (sum > minDistance)
-                            {
-                                valid = false;
-                                break;
-                            }
-                        }
-
-                        idx++;
-                    }
-
-                    if (valid)
-                        minDistance = Math.Min(minDistance, sum);
-                });
-
-                return minDistance;
-            });
 
             queue.Enqueue(new State()
             {
@@ -553,16 +474,10 @@ namespace AdventOfCode.Solutions.Year2019
 
                     // Each move has to be valid
                     // All moves are only keys we do not have
-                    foreach (var move in moves)
+                    foreach ((var move, var edge) in moves)
                     {
                         // Duplicate keys and paths
                         var newKeys = keys.Union(new char[] { move.value }).OrderBy(c => c).ToArray();
-
-                        // Need our edge cost
-                        var success = graph.TryGetEdge(currentBot, move, out DoorLockPosEdge edge);
-
-                        if (!success)
-                            throw new Exception();
 
                         var newDepth = depth + edge.cost;
 
