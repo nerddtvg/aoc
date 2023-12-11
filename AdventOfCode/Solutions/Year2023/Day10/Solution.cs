@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using System.Linq;
+using System.Diagnostics;
 
 
 namespace AdventOfCode.Solutions.Year2023
@@ -66,10 +67,37 @@ namespace AdventOfCode.Solutions.Year2023
         public Tile StartTile = Tile.Start;
         public string[] Grid;
 
+        /// <summary>
+        /// Track our loop tiles
+        /// </summary>
+        public List<Point> Loop = new();
+
         public Day10() : base(10, 2023, "Pipe Maze")
         {
+            // DebugInput = @"FF7FSF7F7F7F7F7F---7
+            //                L|LJ||||||||||||F--J
+            //                FL-7LJLJ||||||LJL-77
+            //                F--JF--7||LJLJ7F7FJ-
+            //                L---JF-JLJ.||-FJLJJ7
+            //                |F|F-JF---7F7-L7L|7|
+            //                |FFJF7L7F-JF7|JL---7
+            //                7-L-JL7||F7|L7F-7F7|
+            //                L.L7LFJ|||||FJL7||LJ
+            //                L7JLJL-JLJLJL--JLJ.L";
+
+            // DebugInput = @".F----7F7F7F7F-7....
+            //                .|F--7||||||||FJ....
+            //                .||.FJ||||||||L7....
+            //                FJL7L7LJLJ||LJ.L-7..
+            //                L--J.L7...LJS7F-7L7.
+            //                ....F-J..F7FJ|L7L7L7
+            //                ....L7.F7||L7|.L7L7|
+            //                .....|FJLJ|FJ|F7|.LJ
+            //                ....FJL-7.||.||||...
+            //                ....L---J.LJ.LJLJ...";
+
             // Find our starting point
-            Grid = Input.SplitByNewline().ToArray();
+            Grid = Input.SplitByNewline(true).ToArray();
 
             if (TileMap[Grid[0][0]] != Tile.Start)
                 for(int y=0; y<Grid.Length && Start == (0, 0); y++)
@@ -79,13 +107,13 @@ namespace AdventOfCode.Solutions.Year2023
 
             // Now identify what the start tile is
             // Look at neighboring tiles and see if they can move into Start
-            var north = TileMap[Grid[Start.y - 1][Start.x]];
+            var north = GetTile((Start.x, Start.y - 1));
             var canNorth = Directions[north].Contains((0, 1));
 
-            var east = TileMap[Grid[Start.y][Start.x + 1]];
+            var east = GetTile((Start.x + 1, Start.y));
             var canEast = Directions[east].Contains((-1, 0));
 
-            var west = TileMap[Grid[Start.y][Start.x - 1]];
+            var west = GetTile((Start.x - 1, Start.y));
             var canWest = Directions[west].Contains((1, 0));
 
             if (canNorth)
@@ -115,6 +143,9 @@ namespace AdventOfCode.Solutions.Year2023
             {
                 StartTile = Tile.SouthWest;
             }
+
+            // Replace the start tile
+            Grid[Start.y] = Grid[Start.y].Replace('S', TileMap.First(kvp => kvp.Value == StartTile).Key);
         }
 
         public Point[] GetMoves(Point point)
@@ -127,25 +158,24 @@ namespace AdventOfCode.Solutions.Year2023
             return points.ToArray();
         }
 
-        public char GetGridPoint(Point point) => Grid[point.y][point.x];
+        public char GetGridPoint(Point point) => point.y >= 0 && point.y < Grid.Length && point.x >= 0 && point.x < Grid[point.y].Length ? Grid[point.y][point.x] : '.';
         public Tile GetTile(Point point) => TileMap[GetGridPoint(point)];
 
         protected override string? SolvePartOne()
         {
-            int distance = 1;
-            var lastPos = Start;
+            int distance = 0;
+            Loop.Clear();
 
             // Make our first move
-            var pos = Directions[GetTile(Start)].First().Add(Start);
+            var pos = Start;
 
             do
             {
                 // For each pos, get our moves
                 // Check this against lastPos
                 // Choose to move to the one that is not lastPos
-                var move = GetMoves(pos).First(m => m != lastPos);
-
-                lastPos = pos;
+                var move = GetMoves(pos).First(m => Loop.Count == 0 || m != Loop[^1]);
+                Loop.Add(pos);
                 pos = move;
                 distance++;
             } while (pos != Start);
@@ -153,9 +183,90 @@ namespace AdventOfCode.Solutions.Year2023
             return (distance / 2).ToString();
         }
 
+        private string GetColumn(Point point, bool up = true)
+        {
+            string ret = string.Empty;
+
+            for(int y=point.y + (up ? -1 : 1); y>=0 && y<Grid.Length; )
+            {
+                if (up)
+                {
+                    ret = string.Concat(Grid[y][point.x], ret);
+                    y--;
+                }
+                else
+                {
+                    ret += Grid[y][point.x];
+                    y++;
+                }
+            }
+
+            return ret;
+        }
+
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Find all tiles that are not a part of the loop
+            // Took a hint from the megathread to use the even-odd rule
+            // And we need to consider that F-7 and L-J traveling horizontally and
+            // Vertically:
+            // 7     F
+            // | and |
+            // J     L
+            // do not count as crossing a pipe
+            // Valid combinations:
+            // Horizontal: |, F---J, L---7
+            // Vertical: -
+            // 7     F
+            // | and |
+            // L and J
+            int insideCount = 0;
+
+            // I can try to use regular expressions to do the magic stuff
+            var horizRegex = new Regex(@"\||F\-*J|L\-*7");
+            var vertRegex = new Regex(@"\-|7\|*L|F\|*J");
+
+            // For a proper count, we need to clear out the junk pieces
+            // Anything not in the loop needs to be reset to Ground
+            var resetGrid = new List<string>();
+            for (int y = 0; y < Grid.Length; y++)
+            {
+                var str = string.Empty;
+
+                for (int x = 0; x < Grid[y].Length; x++)
+                    if (Loop.Contains((x, y)))
+                        str += Grid[y][x];
+                    else
+                        str += '.';
+
+                resetGrid.Add(str);
+            }
+
+            // Reset our grid
+            Grid = resetGrid.ToArray();
+
+            // For each direction, count the number of matches
+            // If all directions are odd, then we are inside
+            for(int y=1; y<Grid.Length-1; y++)
+            {
+                for(int x=1; x<Grid[y].Length-1; x++)
+                {
+                    if (Grid[y][x] != '.') continue;
+
+                    if (
+                        horizRegex.Matches(Grid[y].Substring(0, x)).Count % 2 == 1
+                        &&
+                        horizRegex.Matches(Grid[y].Substring(x + 1)).Count % 2 == 1
+                        &&
+                        vertRegex.Matches(GetColumn((x, y), true)).Count % 2 == 1
+                        &&
+                        vertRegex.Matches(GetColumn((x, y), false)).Count % 2 == 1
+                    )
+                        insideCount++;
+                }
+            }
+
+            return insideCount.ToString();
         }
     }
 }
