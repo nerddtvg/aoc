@@ -31,7 +31,7 @@ namespace AdventOfCode.Solutions.Year2019
         /// What character is this door or key
         /// </summary>
         /// <value></value>
-        public char value { get; set; }
+        public uint value { get; set; } = 0;
 
         public int id { get; set; }
 
@@ -43,7 +43,15 @@ namespace AdventOfCode.Solutions.Year2019
         {
             id = new Random().Next();
             type = 65 <= v && v <= 90 ? DoorKeyType.Door : (97 <= v && v <= 122 ? DoorKeyType.Key : (v == '.' ? DoorKeyType.Passage : (v == '@' ? DoorKeyType.Start : DoorKeyType.Wall)));
-            value = v;
+
+            if (type == DoorKeyType.Door)
+            {
+                value = (uint)1 << (90 - v);
+            }
+            else if (type == DoorKeyType.Key)
+            {
+                value = (uint)1 << (122 - v);
+            }
         }
 
         public override string ToString()
@@ -55,9 +63,9 @@ namespace AdventOfCode.Solutions.Year2019
     class DoorLockPosEdge : Edge<DoorLockPos>
     {
         public int cost;
-        public string keysRequired;
+        public uint keysRequired;
 
-        public DoorLockPosEdge(DoorLockPos source, DoorLockPos target, int cost, string keysRequired) : base(source, target)
+        public DoorLockPosEdge(DoorLockPos source, DoorLockPos target, int cost, uint keysRequired) : base(source, target)
         {
             this.cost = cost;
             this.keysRequired = keysRequired;
@@ -81,7 +89,7 @@ namespace AdventOfCode.Solutions.Year2019
 
         public struct State
         {
-            public char[] keys;
+            public uint keys;
             public int depth;
             public DoorLockPos[] pos;
         }
@@ -94,28 +102,28 @@ namespace AdventOfCode.Solutions.Year2019
 
             var part1Example = new Dictionary<string, int>()
             {
-                // {
-                //     @"#########
-                //     #b.A.@.a#
-                //     #########",
-                //     8
-                // },
-                // {
-                //     @"########################
-                //     #f.D.E.e.C.b.A.@.a.B.c.#
-                //     ######################.#
-                //     #d.....................#
-                //     ########################",
-                //     86
-                // },
-                // {
-                //     @"########################
-                //     #...............b.C.D.f#
-                //     #.######################
-                //     #.....@.a.B.c.d.A.e.F.g#
-                //     ########################",
-                //     132
-                // },
+                {
+                    @"#########
+                    #b.A.@.a#
+                    #########",
+                    8
+                },
+                {
+                    @"########################
+                    #f.D.E.e.C.b.A.@.a.B.c.#
+                    ######################.#
+                    #d.....................#
+                    ########################",
+                    86
+                },
+                {
+                    @"########################
+                    #...............b.C.D.f#
+                    #.######################
+                    #.....@.a.B.c.d.A.e.F.g#
+                    ########################",
+                    132
+                },
                 {
                     @"#################
                     #i.G..c...e..H.p#
@@ -196,7 +204,7 @@ namespace AdventOfCode.Solutions.Year2019
                         var up = map[y - 1][x];
 
                         if (up.type != DoorKeyType.Wall && up.type != DoorKeyType.Default)
-                            edges.Add(new(up, map[y][x], 1, string.Empty));
+                            edges.Add(new(up, map[y][x], 1, 0));
                     }
                     
                     if (x > 0)
@@ -204,7 +212,7 @@ namespace AdventOfCode.Solutions.Year2019
                         var left = map[y][x - 1];
 
                         if (left.type != DoorKeyType.Wall && left.type != DoorKeyType.Default)
-                            edges.Add(new(left, map[y][x], 1, string.Empty));
+                            edges.Add(new(left, map[y][x], 1, 0));
                     }
                 }
             }
@@ -296,9 +304,7 @@ namespace AdventOfCode.Solutions.Year2019
                         var keysRequired = path
                             .SelectMany(e => new DoorLockPos[] { e.Source, e.Target })
                             .Where(node => node.type == DoorKeyType.Door)
-                            .Select(node => (char)(node.value + 32))
-                            .OrderBy(c => c)
-                            .Distinct().JoinAsString();
+                            .Aggregate((uint)0, (x, y) => x |= y.value);
 
                         // Found a path!
                         // Make sure all of the 
@@ -382,7 +388,7 @@ namespace AdventOfCode.Solutions.Year2019
                         foundPath.RemoveAt(0);
                         foundPath.Remove(lastVertex);
 
-                        graph.AddEdge(new DoorLockPosEdge(startVertex, lastVertex, cost, string.Empty));
+                        graph.AddEdge(new DoorLockPosEdge(startVertex, lastVertex, cost, 0));
 
                         foundPath.ForEach(removeVertex => graph.RemoveVertex(removeVertex));
                     }
@@ -390,7 +396,7 @@ namespace AdventOfCode.Solutions.Year2019
             }
         }
 
-        private IEnumerable<(DoorLockPos move, DoorLockPosEdge edge)> GetMoves(DoorLockPos pos, char[] keys)
+        private IEnumerable<(DoorLockPos move, DoorLockPosEdge edge)> GetMoves(DoorLockPos pos, uint keys)
         {
             foreach (var move in graph.AdjacentVertices(pos))
             {
@@ -402,13 +408,13 @@ namespace AdventOfCode.Solutions.Year2019
                 if (move.type != DoorKeyType.Key)
                     continue;
 
-                if (keys.Contains(move.value))
+                if ((keys & move.value) == move.value)
                     continue;
 
                 // We have a key we need, now check that we have everything
                 graph.TryGetEdge(pos, move, out DoorLockPosEdge edge);
 
-                if (edge.keysRequired.Any(c => !keys.Contains(c)))
+                if ((edge.keysRequired & keys) != edge.keysRequired)
                     continue;
 
                 // Otherwise it's a key or an opening
@@ -435,14 +441,14 @@ namespace AdventOfCode.Solutions.Year2019
             queue.Enqueue(new State()
             {
                 pos = start,
-                keys = Array.Empty<char>(),
+                keys = 0,
                 depth = 0
             }, (ulong)0);
 
             // Track if we have seen this state before and what depth
             // We are only traveling to keys we need, order doesn't matter in this key
             // a,c,d,b => a,b,c,d
-            Dictionary<(char key, string keys), int> seenState = new();
+            Dictionary<(uint key, uint keys), int> seenState = new();
 
             while(queue.Count > 0)
             {
@@ -461,7 +467,7 @@ namespace AdventOfCode.Solutions.Year2019
                     // Check if we have seen this state before
                     // If we have gotten to the same position with the same keys
                     // in a lower depth, skip this branch
-                    var stateHash = (currentBot.value, keys.JoinAsString());
+                    var stateHash = (currentBot.value, keys);
                     if (seenState.ContainsKey(stateHash) && seenState[stateHash] < depth)
                         continue;
                     else
@@ -477,7 +483,7 @@ namespace AdventOfCode.Solutions.Year2019
                     foreach ((var move, var edge) in moves)
                     {
                         // Duplicate keys and paths
-                        var newKeys = keys.Union(new char[] { move.value }).OrderBy(c => c).ToArray();
+                        var newKeys = keys | move.value;
 
                         var newDepth = depth + edge.cost;
 
@@ -486,19 +492,20 @@ namespace AdventOfCode.Solutions.Year2019
                             continue;
 
                         // If this is all of the keys, return our result instead
-                        if (newKeys.Length == keyCount)
+                        var thisKeysCount = (int)System.Runtime.Intrinsics.X86.Popcnt.X64.PopCount(newKeys);
+                        if (thisKeysCount == keyCount)
                         {
                             // Found a new length
                             minDistance = Math.Min(minDistance, newDepth);
                             continue;
                         }
 
-                        queue.Enqueue(new()
+                        queue.Enqueue(new State()
                         {
                             pos = bots.Append(move).ToArray(),
                             keys = newKeys,
                             depth = newDepth
-                        }, (ulong)(keyCount - newKeys.Length) + (ulong)newDepth);
+                        }, (ulong)(keyCount - thisKeysCount) * (ulong)newDepth);
                     }
                 }
             }
