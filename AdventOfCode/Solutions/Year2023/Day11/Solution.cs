@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 
 using System.Linq;
 using AdventOfCode.Solutions.Year2019;
+using System.Numerics;
 
 
 namespace AdventOfCode.Solutions.Year2023
@@ -63,33 +64,43 @@ namespace AdventOfCode.Solutions.Year2023
                 .ToArray();
         }
 
-        public uint ExpandDistance(Point a, Point b)
+        public BigInteger ExpandDistance(Point a, Point b, BigInteger muli)
         {
-            uint ret = a.ManhattanDistance(b);
+            var ret = new BigInteger(a.ManhattanDistance(b));
 
-            // For each col/row that is empty, increase by 1
+            // For each col/row that is empty, increase by muli times
+            // Part 2 makes this 1,000,000
             int x1 = Math.Min(a.x, b.x);
             int x2 = Math.Max(a.x, b.x);
             int y1 = Math.Min(a.y, b.y);
             int y2 = Math.Max(a.y, b.y);
 
-            ret += (uint)EmptyCols.Count(x => x1 < x && x < x2);
-            ret += (uint)EmptyRows.Count(y => y1 < y && y < y2);
+            ret += (muli - 1) * new BigInteger(EmptyCols.Count(x => x1 < x && x < x2));
+            ret += (muli - 1) * new BigInteger(EmptyRows.Count(y => y1 < y && y < y2));
 
             return ret;
         }
 
         protected override string? SolvePartOne()
         {
-            return Galaxies
+            BigInteger ret = 0;
+
+            Galaxies
                 .GetAllCombos()
-                .Sum(combo => ExpandDistance(combo[0], combo[1]))
-                .ToString();
+                .ForEach(combo => ret += ExpandDistance(combo[0], combo[1], new BigInteger(2)));
+
+            return ret.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            BigInteger ret = 0;
+
+            Galaxies
+                .GetAllCombos()
+                .ForEach(combo => ret += ExpandDistance(combo[0], combo[1], new BigInteger(1000000)));
+
+            return ret.ToString();
         }
     }
 }
