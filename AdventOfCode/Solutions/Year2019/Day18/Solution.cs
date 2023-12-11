@@ -505,7 +505,7 @@ namespace AdventOfCode.Solutions.Year2019
                             pos = bots.Append(move).ToArray(),
                             keys = newKeys,
                             depth = newDepth
-                        }, (ulong)(keyCount - thisKeysCount) * (ulong)newDepth);
+                        }, (ulong)(keyCount - thisKeysCount));
                     }
                 }
             }
