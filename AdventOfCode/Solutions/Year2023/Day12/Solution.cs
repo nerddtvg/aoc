@@ -28,14 +28,13 @@ namespace AdventOfCode.Solutions.Year2023
                 .ToArray();
         }
 
-        private bool IsValid(string input, int[] counts)
+        private string BuildRegex(int[] counts)
         {
-            // Check that we have the correct number and length of groups of '#'
             var regStr = @"^\.*";
             counts.ForEach((count, idx) => regStr += @"#{" + count.ToString() + @"}\." + (idx == counts.Length - 1 ? "*" : "+"));
             regStr += "$";
 
-            return new Regex(regStr).IsMatch(input);
+            return regStr;
         }
 
         private IEnumerable<string> GetStrings(char[] chars)
@@ -69,6 +68,14 @@ namespace AdventOfCode.Solutions.Year2023
             }
         }
 
+        private int CountValids(char[] chars, int[] counts)
+        {
+            // Do this only once per line will save cycles
+            var regex = new Regex(BuildRegex(counts));
+
+            return GetStrings(chars).Count(regex.IsMatch);
+        }
+
         protected override string? SolvePartOne()
         {
             // lines.ForEach(line =>
@@ -85,12 +92,14 @@ namespace AdventOfCode.Solutions.Year2023
             // });
 
             return lines
-                .Sum(line => GetStrings(line.chars).Count(str => IsValid(str, line.counts)))
+                .Sum(line => CountValids(line.chars, line.counts))
                 .ToString();
         }
 
         protected override string? SolvePartTwo()
         {
+            // Expand the lines
+
             return string.Empty;
         }
     }
