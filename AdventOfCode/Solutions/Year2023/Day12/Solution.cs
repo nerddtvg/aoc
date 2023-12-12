@@ -98,9 +98,29 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartTwo()
         {
+            // Figured this would be too long/complex to run
+            // It was and didn't complete after 15 minutes
+            // Need to actually refactor this into something logical
+            
             // Expand the lines
+            lines = lines.Select(line =>
+            {
+                int duplicationCount = 5;
 
-            return string.Empty;
+                var chars = (char[])Array.CreateInstance(typeof(char), line.chars.Length * duplicationCount);
+                var counts = (int[])Array.CreateInstance(typeof(int), line.chars.Length * duplicationCount);
+                for (int i = 0; i < duplicationCount; i++)
+                {
+                    Array.Copy(line.chars, 0, chars, i * line.chars.Length, line.chars.Length);
+                    Array.Copy(line.counts, 0, counts, i * line.counts.Length, line.counts.Length);
+                }
+
+                return (chars, counts);
+            }).ToArray();
+
+            return lines
+                .Sum(line => CountValids(line.chars, line.counts))
+                .ToString();
         }
     }
 }
