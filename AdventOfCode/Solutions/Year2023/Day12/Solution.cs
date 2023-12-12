@@ -29,7 +29,12 @@ namespace AdventOfCode.Solutions.Year2023
             // DebugInput = @".?##???.#? 3,2";
             // DebugInput = @"??.#? 2";
 
-            lines = Input.SplitByNewline(true)
+            lines = ParseInput(Input);
+        }
+
+        private (string chars, int[] counts)[] ParseInput(string input)
+        {
+            return input.SplitByNewline(true)
                 .Select(line => line.Split(' '))
                 .Select(row => (chars: row[0], counts: row[1].Split(',').Select(d => int.Parse(d)).ToArray()))
                 .ToArray();
@@ -89,66 +94,68 @@ namespace AdventOfCode.Solutions.Year2023
                 .Sum(line =>
                 {
                     cache.Clear();
-                    return CountValid(line.chars, line.counts, 0);
+                    return CountValid(line.chars, line.counts, 0, 0, 0);
                 })
                 .ToString();
         }
 
-        private Dictionary<(string chars, int[] counts, int currentLength), int> cache = new();
+        private Dictionary<(int iChars, int iCounts, int currentLength), ulong> cache = new();
 
         /// <param name="chars">The current pattern to check for matches</param>
         /// <param name="counts">The counts to look for</param>
         /// <param name="currentLength">The current block length</param>
-        private int CountValid(string chars, int[] counts, int currentLength)
+        private ulong CountValid(string chars, int[] counts, int currentLength, int iChars, int iCounts)
         {
-            var cacheHash = (chars, counts, currentLength);
+            // If we are in the same place, same count, and same currentLength
+            // we may have a duplicate
+            var cacheHash = (iChars, iCounts, currentLength);
 
-            if (cache.TryGetValue(cacheHash, out int value))
+            if (cache.TryGetValue(cacheHash, out ulong value))
                 return value;
 
             // Check if we are at the end, if so we return 1 or 0 directly
-            if (chars.Length == 0 || counts.Length == 0)
+            if (iChars == chars.Length)
             {
-                if (counts.Length == 0 && currentLength == 0 && (chars.Length == 0 || chars.All(c => c != '#')))
+                if (iCounts == counts.Length && currentLength == 0)
                 {
-                    // Ended with an empty or 'working' string, empty array, and no extra
+                    // Ended outside the string and no count, this was the end of the string
                     return 1;
                 }
-                else if (counts.Length == 1 && counts[0] == currentLength)
+                else if (iCounts == counts.Length - 1 && counts[iCounts] == currentLength)
                 {
                     // Last block, last character, we matched
                     return 1;
                 }
-                
+
                 // Invalid match
                 return 0;
             }
 
-            int result = 0;
+            ulong result = 0;
 
             // Check each possible character
             foreach (var c in new char[] { '.', '#' })
             {
                 // If the character matches OR the character in question is '?'
                 // proceed with checking
-                if (chars[0] == '?' || chars[0] == c)
+                if (chars[iChars] == '?' || chars[iChars] == c)
                 {
                     // If this is a dot, we may need to reset our blocks
                     if (c == '.' && currentLength == 0)
                     {
                         // Beginning of string, so let's move forward and count from there
-                        result += CountValid(chars[1..], counts, 0);
+                        result += CountValid(chars, counts, 0, iChars + 1, iCounts);
                     }
-                    else if (c == '.' && currentLength > 0 && counts[0] == currentLength)
+                    else if (c == '.' && currentLength > 0 && iCounts < counts.Length && counts[iCounts] == currentLength)
                     {
                         // We have ended a block and it matches the expected length
                         // Move forward
-                        result += CountValid(chars[1..], counts[1..], 0);
+                        result += CountValid(chars, counts, 0, iChars + 1, iCounts + 1);
                     }
-                    else if (c == '#' && currentLength < counts[0])
+                    else if (c == '#' && iCounts < counts.Length && currentLength < counts[iCounts])
                     {
                         // Increase the current block count
-                        result += CountValid(chars[1..], counts, currentLength + 1);
+                        result += CountValid(chars, counts, currentLength + 1, iChars + 1, iCounts);
                     }
 
                     // If c == '.' and counts[0] != currentLength:
@@ -184,26 +191,27 @@ namespace AdventOfCode.Solutions.Year2023
             // return string.Empty;
 
             // Expand the lines
-            lines = lines.Select(line =>
+            lines = ParseInput(Input.SplitByNewline().Select(line =>
             {
-                int duplicationCount = 5;
+                // Repeat each section 5 times
+                var pattern = string.Empty;
+                var count = string.Empty;
+                var split = line.Split(' ');
 
-                var chars = string.Empty;
-                var counts = (int[])Array.CreateInstance(typeof(int), line.chars.Length * duplicationCount);
-                for (int i = 0; i < duplicationCount; i++)
+                for (int i = 0; i < 5; i++)
                 {
-                    chars += (i > 0 ? "?" : "") + line.chars;
-                    Array.Copy(line.counts, 0, counts, i * line.counts.Length, line.counts.Length);
+                    pattern += split[0] + "?";
+                    count += split[1] + ",";
                 }
 
-                return (chars, counts);
-            }).ToArray();
+                return $"{pattern[..^1]} {count[..^1]}\n";
+            }).JoinAsString());
 
             return lines
                 .Sum(line =>
                 {
                     cache.Clear();
-                    return CountValid(line.chars, line.counts, 0);
+                    return CountValid(line.chars, line.counts, 0, 0, 0);
                 })
                 .ToString();
         }
