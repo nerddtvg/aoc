@@ -378,7 +378,7 @@ namespace AdventOfCode.Solutions.Year2019
             }
         }
 
-        public int GetShortestPath()
+        public int GetShortestPath(int part = 1)
         {
             var queue = new PriorityQueue<State, ulong>();
 
@@ -461,7 +461,7 @@ namespace AdventOfCode.Solutions.Year2019
                             pos = bots.Append(move).ToArray(),
                             keys = newKeys,
                             depth = newDepth
-                        }, (ulong)(keyCount - thisKeysCount) * (ulong)newDepth);
+                        }, part == 1 ? ((ulong)(keyCount - thisKeysCount) + (ulong)newDepth) : ((ulong)(keyCount - thisKeysCount) * (ulong)newDepth));
                     }
                 }
             }
@@ -509,7 +509,7 @@ namespace AdventOfCode.Solutions.Year2019
             sw.Stop();
             Debug.WriteLine($"Reset Grid Input: {sw.Elapsed}");
 
-            return GetShortestPath().ToString();
+            return GetShortestPath(2).ToString();
         }
     }
 }
