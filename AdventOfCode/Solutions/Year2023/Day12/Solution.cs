@@ -11,7 +11,7 @@ namespace AdventOfCode.Solutions.Year2023
 
     class Day12 : ASolution
     {
-        (char[] chars, int[] counts)[] lines;
+        (string chars, int[] counts)[] lines;
 
         public Day12() : base(12, 2023, "Hot Springs")
         {
@@ -24,7 +24,7 @@ namespace AdventOfCode.Solutions.Year2023
 
             lines = Input.SplitByNewline(true)
                 .Select(line => line.Split(' '))
-                .Select(row => (chars: row[0].ToCharArray(), counts: row[1].Split(',').Select(d => int.Parse(d)).ToArray()))
+                .Select(row => (chars: row[0], counts: row[1].Split(',').Select(d => int.Parse(d)).ToArray()))
                 .ToArray();
         }
 
@@ -37,7 +37,7 @@ namespace AdventOfCode.Solutions.Year2023
             return regStr;
         }
 
-        private IEnumerable<string> GetStrings(char[] chars)
+        private IEnumerable<string> GetStrings(string chars)
         {
             if (chars.Length > 0)
             {
@@ -48,7 +48,7 @@ namespace AdventOfCode.Solutions.Year2023
                 }
                 else
                 {
-                    foreach (var suffix in GetStrings(chars.Skip(1).ToArray()))
+                    foreach (var suffix in GetStrings(chars[1..]))
                     {
                         if (chars[0] == '?')
                         {
@@ -68,7 +68,7 @@ namespace AdventOfCode.Solutions.Year2023
             }
         }
 
-        private int CountValids(char[] chars, int[] counts)
+        private int CountValids(string chars, int[] counts)
         {
             // Do this only once per line will save cycles
             var regex = new Regex(BuildRegex(counts));
@@ -78,19 +78,6 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartOne()
         {
-            // lines.ForEach(line =>
-            // {
-            //     Console.WriteLine($"  {line.chars.JoinAsString()}:  {string.Join(",", line.counts)}");
-            //     GetStrings(line.chars).ForEach(str =>
-            //     {
-            //         if (IsValid(str, line.counts))
-            //             Console.WriteLine($"* {str}");
-            //         else
-            //             Console.WriteLine($"  {str}");
-            //     });
-            //     Console.WriteLine($"");
-            // });
-
             return lines
                 .Sum(line => CountValids(line.chars, line.counts))
                 .ToString();
@@ -101,17 +88,18 @@ namespace AdventOfCode.Solutions.Year2023
             // Figured this would be too long/complex to run
             // It was and didn't complete after 15 minutes
             // Need to actually refactor this into something logical
-            
+            return string.Empty;
+
             // Expand the lines
             lines = lines.Select(line =>
             {
                 int duplicationCount = 5;
 
-                var chars = (char[])Array.CreateInstance(typeof(char), line.chars.Length * duplicationCount);
+                var chars = string.Empty;
                 var counts = (int[])Array.CreateInstance(typeof(int), line.chars.Length * duplicationCount);
                 for (int i = 0; i < duplicationCount; i++)
                 {
-                    Array.Copy(line.chars, 0, chars, i * line.chars.Length, line.chars.Length);
+                    chars += line.chars;
                     Array.Copy(line.counts, 0, counts, i * line.counts.Length, line.counts.Length);
                 }
 
