@@ -16,10 +16,13 @@ namespace AdventOfCode.Solutions.Year2023
 
         public Day13() : base(13, 2023, "Point of Incidence")
         {
-            groups = Input.SplitByBlankLine(true);
+            // For Part 2, make these 0/1 strings so we can convert to numbers quickly
+            groups = Input.SplitByBlankLine(true)
+                .Select(group => group.Select(line => line.Replace('.', '0').Replace('#', '1')).ToArray())
+                .ToArray();
         }
 
-        private int GetMirrorPosition(string[] rows)
+        private int GetMirrorPosition(uint[] rows, int part)
         {
             int ret = 0;
 
@@ -32,14 +35,28 @@ namespace AdventOfCode.Solutions.Year2023
             for (int i = 0, q = 1; i < rows.Length-1; i++, q++)
             {
                 // If rows[i] and rows[q] match, then we need to work backwards
-                if (rows[i] == rows[q])
+                if (rows[i] == rows[q] || (part == 2 && Part2Match(rows[i], rows[q])))
                 {
                     // Keep track if things have matched
                     bool matched = true;
 
+                    // Need to track if we have used the "smudge"
+                    // For part 1, we keep this true to prevent issues later
+                    var usedPart2 = part == 1 || rows[i] != rows[q];
+
                     for (int i2 = i - 1, q2 = q + 1; matched && 0 <= i2 && q2 < rows.Length; i2--, q2++)
+                    {
                         if (rows[i2] != rows[q2])
+                        {
+                            if (!usedPart2 && Part2Match(rows[i2], rows[q2]))
+                            {
+                                usedPart2 = true;
+                                continue;
+                            }
+
                             matched = false;
+                        }
+                    }
 
                     // Return the 1-indexed position
                     // Not starting from zero
@@ -50,6 +67,12 @@ namespace AdventOfCode.Solutions.Year2023
             return ret;
         }
 
+        private bool Part2Match(uint a, uint b)
+        {
+            // Allow for one bit to be different
+            return System.Numerics.BitOperations.PopCount(a ^ b) == 1;
+        }
+
         private string[] RowsToColums(string[] group)
         {
             return Enumerable.Range(0, group[0].Length)
@@ -57,17 +80,23 @@ namespace AdventOfCode.Solutions.Year2023
                 .ToArray();
         }
 
-        private int FindMirror(string[] group)
+        private uint[] StringsToInts(string[] group)
+        {
+            // Convert from base2 to decimal integers
+            return group.Select(line => Convert.ToUInt32(line, 2)).ToArray();
+        }
+
+        private int FindMirror(string[] group, int part)
         {
             // Provided a group of rows, find the mirror position
-            var cols = RowsToColums(group);
+            var cols = StringsToInts(RowsToColums(group));
 
-            var mirror = GetMirrorPosition(cols);
+            var mirror = GetMirrorPosition(cols, part);
 
             if (mirror > 0)
                 return mirror;
 
-            mirror = GetMirrorPosition(group);
+            mirror = GetMirrorPosition(StringsToInts(group), part);
 
             if (mirror == 0)
                 throw new Exception();
@@ -77,12 +106,12 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartOne()
         {
-            return groups.Sum(FindMirror).ToString();
+            return groups.Sum(group => FindMirror(group, 1)).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            return groups.Sum(group => FindMirror(group, 2)).ToString();
         }
     }
 }
