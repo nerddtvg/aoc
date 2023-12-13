@@ -176,5 +176,51 @@ namespace AdventOfCode.Solutions
                 yield return str[i].ToString() + str[i + 1];
             }
         }
+
+        /// <summary>
+        /// Returns the character from the same index of each string, emulating a column select
+        /// </summary>
+        /// <param name="strings">Strings to source from</param>
+        /// <param name="column">The index for the character for each row</param>
+        /// <returns>The column returned</returns>
+        public static string GetColumn(this string[] strings, int column)
+        {
+            ArgumentNullException.ThrowIfNull(strings);
+            ArgumentNullException.ThrowIfNull(column);
+            ArgumentOutOfRangeException.ThrowIfLessThan(column, 0, nameof(column));
+
+            var ret = string.Empty;
+
+            for(int i=0;i<strings.Length; i++)
+            {
+                ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(column, strings[i].Length, nameof(column));
+                ret += strings[i];
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Transposes rows of strings into the equivalent columns
+        /// </summary>
+        /// <param name="strings">Strings to source from</param>
+        /// <returns>The columns returned</returns>
+        public static string[] GetColumns(this string[] strings)
+        {
+            ArgumentNullException.ThrowIfNull(strings);
+
+            var length = strings[0].Length;
+            if (!strings.All(s => s.Length == length))
+                throw new ArgumentException(message: "The strings are not of the same length.", nameof(strings));
+
+            // Seed a list with the first character of each
+            var ret = strings[0].Select(c => c.ToString()).ToList();
+
+            for (int i = 1; i < strings.Length; i++)
+                for (int c = 0; c < length; c++)
+                    ret[c] += strings[i][c];
+
+            return ret.ToArray();
+        }
     }
 }

@@ -44,5 +44,51 @@ namespace AdventOfCode.Solutions
             // Return the character
             return (char)o;
         }
+
+        /// <summary>
+        /// Returns the character from the same index of each char array, emulating a column select
+        /// </summary>
+        /// <param name="chars">Char arrays to source from</param>
+        /// <param name="column">The index for the character for each row</param>
+        /// <returns>The column returned</returns>
+        public static char[] GetColumn(this char[][] chars, int column)
+        {
+            ArgumentNullException.ThrowIfNull(chars);
+            ArgumentNullException.ThrowIfNull(column);
+            ArgumentOutOfRangeException.ThrowIfLessThan(column, 0, nameof(column));
+
+            var ret = new List<char>();
+
+            for (int i = 0; i < chars.Length; i++)
+            {
+                ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(column, chars[i].Length, nameof(column));
+                ret.Add(chars[i][column]);
+            }
+
+            return ret.ToArray();
+        }
+
+        /// <summary>
+        /// Transposes rows of chars into the equivalent columns
+        /// </summary>
+        /// <param name="chars">Char arrays to source from</param>
+        /// <returns>The columns returned</returns>
+        public static char[][] GetColumns(this char[][] chars)
+        {
+            ArgumentNullException.ThrowIfNull(chars);
+
+            var length = chars[0].Length;
+            if (!chars.All(s => s.Length == length))
+                throw new ArgumentException(message: "The char arrays are not of the same length.", nameof(chars));
+
+            // Seed a list with the first character of each
+            var ret = chars[0].Select(c => new List<char>(c)).ToList();
+
+            for (int i = 1; i < chars.Length; i++)
+                for (int c = 0; c < length; c++)
+                    ret[c].Add(chars[i][c]);
+
+            return ret.Select(col => col.ToArray()).ToArray();
+        }
     }
 }
