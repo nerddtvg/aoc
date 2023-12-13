@@ -18,22 +18,6 @@ namespace AdventOfCode.Solutions.Year2023
 
         public Day13() : base(13, 2023, "Point of Incidence")
         {
-            // DebugInput = @"#.##..##.
-            //                ..#.##.#.
-            //                ##......#
-            //                ##......#
-            //                ..#.##.#.
-            //                ..##..##.
-            //                #.#.##.#.
-
-            //                #...##..#
-            //                #....#..#
-            //                ..##..###
-            //                #####.##.
-            //                #####.##.
-            //                ..##..###
-            //                #....#..#";
-
             // For Part 2, make these 0/1 strings so we can convert to numbers quickly
             groups = Input.SplitByBlankLine(true)
                 .Select(group => group.Select(line => line.Replace('.', '0').Replace('#', '1')).ToArray())
@@ -48,6 +32,11 @@ namespace AdventOfCode.Solutions.Year2023
             // * Work backwards and check if those rows match
             // * Until reaching the end of the rows list in either direction
             // * If the end is reached and rows matched, return the original row index
+
+            // Part 2: Only change is a "smudge"
+            // One smudge per group, so flag if we have used that and if so and
+            // there is any other row that doesn't match, this isn't a match
+            // We also MUST ignore the original result from part 1 (cache)
             for (int i = 0, q = 1; i < rows.Length-1; i++, q++)
             {
                 // If we have a cache and we match, skip this for part 2
@@ -82,6 +71,7 @@ namespace AdventOfCode.Solutions.Year2023
 
                     // Return the 1-indexed position
                     // Not starting from zero
+                    // usedSmudge is always true for part 1
                     // usedSmudge makes sure in part 2 we have used a "smudge"
                     if (matched && usedSmudge) return i + 1;
                 }
