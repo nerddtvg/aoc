@@ -86,13 +86,6 @@ namespace AdventOfCode.Solutions.Year2023
             return System.Numerics.BitOperations.PopCount(a ^ b) == 1;
         }
 
-        private string[] RowsToColums(string[] group)
-        {
-            return Enumerable.Range(0, group[0].Length)
-                .Select(idx => group.Select(line => line[idx]).JoinAsString())
-                .ToArray();
-        }
-
         private uint[] StringsToInts(string[] group)
         {
             // Convert from base2 to decimal integers
@@ -106,7 +99,7 @@ namespace AdventOfCode.Solutions.Year2023
             int part = cache == 0 ? 1 : 2;
 
             // Provided a group of rows, find the mirror position
-            var cols = StringsToInts(RowsToColums(group));
+            var cols = StringsToInts(group.GetColumns());
 
             var mirror = GetMirrorPosition(cols, cache, part);
 
