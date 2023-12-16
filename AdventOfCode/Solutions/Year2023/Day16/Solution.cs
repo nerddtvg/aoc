@@ -41,14 +41,17 @@ namespace AdventOfCode.Solutions.Year2023
             grid = Input.SplitByNewline(shouldTrim: true).Select(line => line.ToCharArray()).ToArray();
         }
 
-        private void RunGrid()
+        private void RunGrid(Point start, Point dir)
         {
-            // Start in the top left moving right
-            queue.Enqueue(((0, 0), right));
+            // Set our starting point
+            queue.Enqueue((start, dir));
+
+            engergized.Clear();
+            seen.Clear();
 
             while(queue.Count > 0)
             {
-                (var pos, var dir) = queue.Dequeue();
+                (var pos, dir) = queue.Dequeue();
 
                 // Check that we're not in a loop
                 // This matters if we've been in the same position and direction
@@ -151,14 +154,38 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartOne()
         {
-            RunGrid();
+            RunGrid((0, 0), right);
 
             return engergized.Count.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            int max = 0;
+
+            // For every starting point, find the largest number of tiles possible
+            for (int y=0; y<grid.Length; y++)
+            {
+                if (y == 0 || y == grid.Length-1)
+                {
+                    for (int x = 0; x < grid[0].Length; x++)
+                    {
+                        // Top and bottoms
+                        RunGrid((x, y), y == 0 ? down : up);
+
+                        max = Math.Max(max, engergized.Count);
+                    }
+                }
+
+                // Left and right
+                RunGrid((0, y), right);
+                max = Math.Max(max, engergized.Count);
+
+                RunGrid((grid[0].Length-1, y), left);
+                max = Math.Max(max, engergized.Count);
+            }
+
+            return max.ToString();
         }
     }
 }
