@@ -34,6 +34,14 @@ namespace AdventOfCode.Solutions.Year2023
             { Direction.Left, (-1, 0) }
         };
 
+        private Dictionary<Direction, char> chars = new()
+        {
+            { Direction.Up, '^' },
+            { Direction.Right, '>' },
+            { Direction.Down, 'v' },
+            { Direction.Left, '<' }
+        };
+
         public Day17() : base(17, 2023, "Clumsy Crucible")
         {
             // DebugInput = @"2413432311323
@@ -61,23 +69,33 @@ namespace AdventOfCode.Solutions.Year2023
             // Using a priority queue based on heatLoss ensures
             // our first end will be the lowest hestLoss possible
             // Our seen only needs to know if this has been visited
-            // ever in the past
-            var seen = new HashSet<Point>();
+            // plus direction and number of straight steps
+            var seen = new HashSet<(Point pos, Direction dir, int straight)>();
 
             // Track our queue of work
             // Priority is heatLoss so the lowest heatLoss is always tried next
-            var queue = new PriorityQueue<(Point pos, Direction dir, int straightCount), int>();
+            var queue = new PriorityQueue<(Point pos, Direction dir, int straightCount, List<(Point pos, Direction dir)> path), int>();
 
-            queue.Enqueue((start, Direction.Right, 0), 0);
-            queue.Enqueue((start, Direction.Down, 0), 0);
+            queue.Enqueue((start, Direction.Right, 0, new List<(Point pos, Direction dir)>()), 0);
+            queue.Enqueue((start, Direction.Down, 0, new List<(Point pos, Direction dir)>()), 0);
 
             while (queue.TryDequeue(out var item, out var thisHeatLoss))
             {
-                (var thisPos, var thisDir, var thisStraight) = item;
+                (var thisPos, var thisDir, var thisStraight, var thisPath) = item;
+
+                thisPath.Add((thisPos, thisDir));
 
                 // If we are at the end, skip out
                 if (thisPos == end)
                 {
+                    // var test = new HashSet<Point>(thisPath.Select(itm => itm.pos));
+                    // for (int y = 0; y <= maxY; y++)
+                    // {
+                    //     for (int x = 0; x <= maxX; x++)
+                    //         Console.Write(thisPath.Any(itm => itm.pos == (x, y)) ? chars[thisPath.First(itm => itm.pos == (x, y)).dir] : '.');
+
+                    //     Console.WriteLine();
+                    // }
                     return thisHeatLoss;
                 }
 
@@ -95,19 +113,21 @@ namespace AdventOfCode.Solutions.Year2023
 
                 foreach((var newPos, var newDir) in newPoints)
                 {
+                    var newStraight = newDir == thisDir ? (thisStraight + 1) : 0;
+
                     // Make sure it is in the grid
                     // Make sure the move is valid
                     // Make sure we add it to the HashSet (this is false if already visited)
-                    if (IsInGrid(newPos) && (newDir != thisDir || thisStraight < 3) && seen.Add(newPos))
+                    if (IsInGrid(newPos) && (newDir != thisDir || thisStraight < 2) && seen.Add((newPos, newDir, newStraight)))
                     {
                         var newHeatLoss = thisHeatLoss + grid[newPos.y][newPos.x];
 
-                        queue.Enqueue((newPos, newDir, newDir == thisDir ? (thisStraight + 1) : 0), newHeatLoss);
+                        queue.Enqueue((newPos, newDir, newStraight, new List<(Point pos, Direction dir)>(thisPath)), newHeatLoss);
                     }
                 }
             }
 
-            return int.MaxValue;
+            return 0;
         }
 
         private bool IsInGrid(Point point) => 0 <= point.y && point.y <= maxY && 0 <= point.x && point.x <= maxX;
