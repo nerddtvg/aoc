@@ -74,45 +74,58 @@ namespace AdventOfCode.Solutions.Year2023
 
             while (queue.Count > 0)
             {
-                (var pos, var dir, var tempStraight, var tempHeatLoss) = queue.Dequeue();
+                (var thisPos, var thisDir, var thisStraight, var thisHeatLoss) = queue.Dequeue();
 
                 // If we are at the end, skip out
-                if (pos == end)
+                if (thisPos == end)
                 {
-                    heatLoss = Math.Min(tempHeatLoss, heatLoss);
+                    heatLoss = Math.Min(thisHeatLoss, heatLoss);
                     continue;
                 }
 
-                // This is BFS so we only care that we don't backtrack ever
-                if (seen.TryGetValue(pos, out int seenHeatLoss) && seenHeatLoss < tempHeatLoss)
+                // If we're already over the minimum, get out of here
+                // Not using <= here because we already checked for the end
+                // position which means we are always going to increase
+                // on the next iteration in this loop
+                if (heatLoss < thisHeatLoss)
                     continue;
 
-                seen[pos] = tempHeatLoss;
+                // Making sure if we have been here before we have a reason to continue
+                if (seen.TryGetValue(thisPos, out int seenHeatLoss) && seenHeatLoss < thisHeatLoss)
+                    continue;
+
+                seen[thisPos] = thisHeatLoss;
 
                 // Get our next steps
                 // Add heat loss in the queue because the start
                 // does not incur loss
-                var left = (Direction)(((int)dir + 3) % 4);
-                var right = (Direction)(((int)dir + 1) % 4);
+                var left = (Direction)(((int)thisDir + 3) % 4);
+                var right = (Direction)(((int)thisDir + 1) % 4);
 
-                Point posLeft = pos.Add(deltas[left]);
-                Point posStraight = pos.Add(deltas[dir]);
-                Point posRight = pos.Add(deltas[right]);
+                Point posLeft = thisPos.Add(deltas[left]);
+                Point posStraight = thisPos.Add(deltas[thisDir]);
+                Point posRight = thisPos.Add(deltas[right]);
 
                 var newPoints = new (Point newPos, Direction newDir)[] {
                     (posLeft, left),
-                    (posStraight, dir),
+                    (posStraight, thisDir),
                     (posRight, right)
                 };
 
                 foreach((var newPos, var newDir) in newPoints)
                 {
-                    if (IsInGrid(newPos) && (newDir != dir || tempStraight < 3))
+                    if (IsInGrid(newPos) && (newDir != thisDir || thisStraight < 3))
                     {
-                        var newHeatLoss = tempHeatLoss + grid[newPos.y][newPos.x];
-                        var priority = (int)newPos.ManhattanDistance(end);
+                        var newHeatLoss = thisHeatLoss + grid[newPos.y][newPos.x];
 
-                        queue.Enqueue((newPos, newDir, newDir == dir ? (tempStraight + 1) : 0, newHeatLoss), priority);
+                        // Weight the priority so that we are always moving down and to the right if possible
+                        var priority = (int)newPos.ManhattanDistance(end) + (newDir == Direction.Up || newDir == Direction.Left ? 5 : 0);
+
+                        // Skip ahead just to not pollute the queue
+                        if (newHeatLoss > heatLoss)
+                            continue;
+
+                        queue.Enqueue((newPos, newDir, newDir == thisDir ? (thisStraight + 1) : 0, newHeatLoss), priority);
                     }
                 }
             }
