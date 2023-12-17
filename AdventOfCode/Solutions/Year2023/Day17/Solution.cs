@@ -44,28 +44,18 @@ namespace AdventOfCode.Solutions.Year2023
 
         public Day17() : base(17, 2023, "Clumsy Crucible")
         {
-            // DebugInput = @"2413432311323
-            //                3215453535623
-            //                3255245654254
-            //                3446585845452
-            //                4546657867536
-            //                1438598798454
-            //                4457876987766
-            //                3637877979653
-            //                4654967986887
-            //                4564679986453
-            //                1224686865563
-            //                2546548887735
-            //                4322674655533";
-
             // Load the grid
             grid = Input.SplitByNewline(shouldTrim: true).Select(line => line.Select(c => int.Parse(c.ToString())).ToArray()).ToArray();
             maxY = grid.Length - 1;
             maxX = grid[0].Length - 1;
         }
 
-        private int RunGrid(Point start, Point end)
+        private int RunGrid(int minStraightSteps, int maxStraightSteps)
         {
+            // Start and end locations
+            Point start = (0, 0);
+            Point end = (maxX, maxY);
+
             // Using a priority queue based on heatLoss ensures
             // our first end will be the lowest hestLoss possible
             // Our seen only needs to know if this has been visited
@@ -87,38 +77,53 @@ namespace AdventOfCode.Solutions.Year2023
 
                 // If we are at the end, skip out
                 if (thisPos == end)
-                {
-                    // var test = new HashSet<Point>(thisPath.Select(itm => itm.pos));
-                    // for (int y = 0; y <= maxY; y++)
-                    // {
-                    //     for (int x = 0; x <= maxX; x++)
-                    //         Console.Write(thisPath.Any(itm => itm.pos == (x, y)) ? chars[thisPath.First(itm => itm.pos == (x, y)).dir] : '.');
-
-                    //     Console.WriteLine();
-                    // }
                     return thisHeatLoss;
-                }
 
                 // Get our next steps
                 // Add heat loss in the queue because the start
                 // does not incur loss
-                var left = (Direction)(((int)thisDir + 3) % 4);
-                var right = (Direction)(((int)thisDir + 1) % 4);
+                (Point newPos, Direction newDir, int newSteps)[] newPoints = [];
 
-                var newPoints = new (Point newPos, Direction newDir)[] {
-                    (thisPos.Add(deltas[left]), left),
-                    (thisPos.Add(deltas[thisDir]), thisDir),
-                    (thisPos.Add(deltas[right]), right)
-                };
-
-                foreach((var newPos, var newDir) in newPoints)
+                // If we have no straight steps, we may need to go a minimum distance first
+                // This will occur after every turn
+                if (thisStraight == 0 && minStraightSteps > 0)
                 {
-                    var newStraight = newDir == thisDir ? (thisStraight + 1) : 0;
+                    var tmpPos = thisPos.Clone();
+                    var isInGrid = true;
+                    for (int i = 0; i < minStraightSteps - 1 && isInGrid; i++)
+                    {
+                        tmpPos = tmpPos.Add(deltas[thisDir]);
 
+                        // If it is outside the grid, it will be ignored later
+                        isInGrid = IsInGrid(tmpPos);
+
+                        // Increase our heatloss
+                        // We don't include the last position because it is added later
+                        if (i < minStraightSteps - 2 && isInGrid)
+                            thisHeatLoss += grid[tmpPos.y][tmpPos.x];
+                    }
+
+                    if (isInGrid)
+                        newPoints = [(tmpPos, thisDir, minStraightSteps - 1)];
+                }
+                else
+                {
+                    var left = (Direction)(((int)thisDir + 3) % 4);
+                    var right = (Direction)(((int)thisDir + 1) % 4);
+
+                    newPoints = [
+                        (thisPos.Add(deltas[left]), left, 0),
+                        (thisPos.Add(deltas[thisDir]), thisDir, thisStraight+1),
+                        (thisPos.Add(deltas[right]), right, 0)
+                    ];
+                }
+
+                foreach ((var newPos, var newDir, var newStraight) in newPoints)
+                {
                     // Make sure it is in the grid
                     // Make sure the move is valid
                     // Make sure we add it to the HashSet (this is false if already visited)
-                    if (IsInGrid(newPos) && (newDir != thisDir || thisStraight < 2) && seen.Add((newPos, newDir, newStraight)))
+                    if (IsInGrid(newPos) && newStraight < maxStraightSteps && seen.Add((newPos, newDir, newStraight)))
                     {
                         var newHeatLoss = thisHeatLoss + grid[newPos.y][newPos.x];
 
@@ -134,12 +139,12 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartOne()
         {
-            return RunGrid((0, 0), (maxX, maxY)).ToString();
+            return RunGrid(0, 3).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            return RunGrid(4, 10).ToString();
         }
     }
 }
