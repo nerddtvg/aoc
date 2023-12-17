@@ -37,19 +37,19 @@ namespace AdventOfCode.Solutions.Year2023
 
         public Day17() : base(17, 2023, "Clumsy Crucible")
         {
-            // DebugInput = @"2413432311323
-            //                3215453535623
-            //                3255245654254
-            //                3446585845452
-            //                4546657867536
-            //                1438598798454
-            //                4457876987766
-            //                3637877979653
-            //                4654967986887
-            //                4564679986453
-            //                1224686865563
-            //                2546548887735
-            //                4322674655533";
+            DebugInput = @"2413432311323
+                           3215453535623
+                           3255245654254
+                           3446585845452
+                           4546657867536
+                           1438598798454
+                           4457876987766
+                           3637877979653
+                           4654967986887
+                           4564679986453
+                           1224686865563
+                           2546548887735
+                           4322674655533";
 
             // Load the grid
             grid = Input.SplitByNewline(shouldTrim: true).Select(line => line.Select(c => int.Parse(c.ToString())).ToArray()).ToArray();
@@ -68,9 +68,9 @@ namespace AdventOfCode.Solutions.Year2023
             var seen = new Dictionary<Point, int>();
 
             // Track our queue of work
-            var queue = new Queue<(Point pos, Direction dir, int straightCount, int heatLoss)>();
+            var queue = new PriorityQueue<(Point pos, Direction dir, int straightCount, int heatLoss), int>();
 
-            queue.Enqueue((start, Direction.Right, 0, 0));
+            queue.Enqueue((start, Direction.Right, 0, 0), 0);
 
             while (queue.Count > 0)
             {
@@ -95,18 +95,18 @@ namespace AdventOfCode.Solutions.Year2023
                 var left = (Direction)(((int)dir + 3) % 4);
                 var right = (Direction)(((int)dir + 1) % 4);
 
-                var posLeft = pos.Add(deltas[left]);
-                var posStraight = pos.Add(deltas[dir]);
-                var posRight = pos.Add(deltas[right]);
+                Point posLeft = pos.Add(deltas[left]);
+                Point posStraight = pos.Add(deltas[dir]);
+                Point posRight = pos.Add(deltas[right]);
 
                 if (IsInGrid(posLeft))
-                    queue.Enqueue((posLeft, left, 0, tempHeatLoss + grid[pos.y][pos.x]));
+                    queue.Enqueue((posLeft, left, 0, tempHeatLoss + grid[posLeft.y][posLeft.x]), tempHeatLoss + grid[posLeft.y][posLeft.x]);
 
                 if (IsInGrid(posStraight) && tempStraight < 3)
-                    queue.Enqueue((posStraight, dir, tempStraight + 1, tempHeatLoss + grid[pos.y][pos.x]));
+                    queue.Enqueue((posStraight, dir, tempStraight + 1, tempHeatLoss + grid[posStraight.y][posStraight.x]), tempHeatLoss + grid[posStraight.y][posStraight.x]);
 
                 if (IsInGrid(posRight))
-                    queue.Enqueue((posRight, right, 0, tempHeatLoss + grid[pos.y][pos.x]));
+                    queue.Enqueue((posRight, right, 0, tempHeatLoss + grid[posRight.y][posRight.x]), tempHeatLoss + grid[posRight.y][posRight.x]);
             }
         }
 
