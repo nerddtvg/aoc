@@ -68,9 +68,9 @@ namespace AdventOfCode.Solutions.Year2023
             var seen = new Dictionary<Point, int>();
 
             // Track our queue of work
-            var queue = new Queue<(Point pos, Direction dir, int straightCount, int heatLoss)>();
+            var queue = new PriorityQueue<(Point pos, Direction dir, int straightCount, int heatLoss), int>();
 
-            queue.Enqueue((start, Direction.Right, 0, 0));
+            queue.Enqueue((start, Direction.Right, 0, 0), 0);
 
             while (queue.Count > 0)
             {
@@ -99,14 +99,22 @@ namespace AdventOfCode.Solutions.Year2023
                 Point posStraight = pos.Add(deltas[dir]);
                 Point posRight = pos.Add(deltas[right]);
 
-                if (IsInGrid(posLeft))
-                    queue.Enqueue((posLeft, left, 0, tempHeatLoss + grid[posLeft.y][posLeft.x]));
+                var newPoints = new (Point newPos, Direction newDir)[] {
+                    (posLeft, left),
+                    (posStraight, dir),
+                    (posRight, right)
+                };
 
-                if (IsInGrid(posStraight) && tempStraight < 3)
-                    queue.Enqueue((posStraight, dir, tempStraight + 1, tempHeatLoss + grid[posStraight.y][posStraight.x]));
+                foreach((var newPos, var newDir) in newPoints)
+                {
+                    if (IsInGrid(newPos) && (newDir != dir || tempStraight < 3))
+                    {
+                        var newHeatLoss = tempHeatLoss + grid[newPos.y][newPos.x];
+                        var priority = (int)newPos.ManhattanDistance(end);
 
-                if (IsInGrid(posRight))
-                    queue.Enqueue((posRight, right, 0, tempHeatLoss + grid[posRight.y][posRight.x]));
+                        queue.Enqueue((newPos, newDir, newDir == dir ? (tempStraight + 1) : 0, newHeatLoss), priority);
+                    }
+                }
             }
         }
 
