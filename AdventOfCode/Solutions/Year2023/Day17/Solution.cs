@@ -37,19 +37,19 @@ namespace AdventOfCode.Solutions.Year2023
 
         public Day17() : base(17, 2023, "Clumsy Crucible")
         {
-            DebugInput = @"2413432311323
-                           3215453535623
-                           3255245654254
-                           3446585845452
-                           4546657867536
-                           1438598798454
-                           4457876987766
-                           3637877979653
-                           4654967986887
-                           4564679986453
-                           1224686865563
-                           2546548887735
-                           4322674655533";
+            // DebugInput = @"2413432311323
+            //                3215453535623
+            //                3255245654254
+            //                3446585845452
+            //                4546657867536
+            //                1438598798454
+            //                4457876987766
+            //                3637877979653
+            //                4654967986887
+            //                4564679986453
+            //                1224686865563
+            //                2546548887735
+            //                4322674655533";
 
             // Load the grid
             grid = Input.SplitByNewline(shouldTrim: true).Select(line => line.Select(c => int.Parse(c.ToString())).ToArray()).ToArray();
@@ -61,16 +61,16 @@ namespace AdventOfCode.Solutions.Year2023
         {
             heatLoss = int.MaxValue;
 
-            // Track if we've been in this position and not direction and heat loss
-            // If we have and have more heat loss, then skip it
-            // notDir == The only direction we can't go
-            // This is because we could get to this position from 3 ways 
+            // BFS: Never backtrack, know if we have been somewhere
+            // But we need to account for the heatLoss quantity and
+            // if we have been to the same point but have less heatLoss
+            // then we should continue
             var seen = new Dictionary<Point, int>();
 
             // Track our queue of work
-            var queue = new PriorityQueue<(Point pos, Direction dir, int straightCount, int heatLoss), int>();
+            var queue = new Queue<(Point pos, Direction dir, int straightCount, int heatLoss)>();
 
-            queue.Enqueue((start, Direction.Right, 0, 0), 0);
+            queue.Enqueue((start, Direction.Right, 0, 0));
 
             while (queue.Count > 0)
             {
@@ -84,7 +84,7 @@ namespace AdventOfCode.Solutions.Year2023
                 }
 
                 // This is BFS so we only care that we don't backtrack ever
-                if (seen.TryGetValue(pos, out int seenLoss) && seenLoss < tempHeatLoss)
+                if (seen.TryGetValue(pos, out int seenHeatLoss) && seenHeatLoss < tempHeatLoss)
                     continue;
 
                 seen[pos] = tempHeatLoss;
@@ -100,13 +100,13 @@ namespace AdventOfCode.Solutions.Year2023
                 Point posRight = pos.Add(deltas[right]);
 
                 if (IsInGrid(posLeft))
-                    queue.Enqueue((posLeft, left, 0, tempHeatLoss + grid[posLeft.y][posLeft.x]), tempHeatLoss + grid[posLeft.y][posLeft.x]);
+                    queue.Enqueue((posLeft, left, 0, tempHeatLoss + grid[posLeft.y][posLeft.x]));
 
                 if (IsInGrid(posStraight) && tempStraight < 3)
-                    queue.Enqueue((posStraight, dir, tempStraight + 1, tempHeatLoss + grid[posStraight.y][posStraight.x]), tempHeatLoss + grid[posStraight.y][posStraight.x]);
+                    queue.Enqueue((posStraight, dir, tempStraight + 1, tempHeatLoss + grid[posStraight.y][posStraight.x]));
 
                 if (IsInGrid(posRight))
-                    queue.Enqueue((posRight, right, 0, tempHeatLoss + grid[posRight.y][posRight.x]), tempHeatLoss + grid[posRight.y][posRight.x]);
+                    queue.Enqueue((posRight, right, 0, tempHeatLoss + grid[posRight.y][posRight.x]));
             }
         }
 
