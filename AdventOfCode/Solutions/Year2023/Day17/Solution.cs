@@ -4,22 +4,119 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using System.Linq;
+using System.Collections;
+using System.Runtime.InteropServices;
 
 
 namespace AdventOfCode.Solutions.Year2023
 {
+    using Point = (int x, int y);
+
+    public enum Direction
+    {
+        Up,
+        Right,
+        Down,
+        Left
+    }
 
     class Day17 : ASolution
     {
+        private int[][] grid;
+        private int maxX;
+        private int maxY;
+        private int heatLoss;
 
-        public Day17() : base(17, 2023, "")
+        private Dictionary<Direction, Point> deltas = new()
         {
+            { Direction.Up, (0, -1) },
+            { Direction.Right, (1, 0) },
+            { Direction.Down, (0, 1) },
+            { Direction.Left, (-1, 0) }
+        };
 
+        public Day17() : base(17, 2023, "Clumsy Crucible")
+        {
+            DebugInput = @"2413432311323
+                           3215453535623
+                           3255245654254
+                           3446585845452
+                           4546657867536
+                           1438598798454
+                           4457876987766
+                           3637877979653
+                           4654967986887
+                           4564679986453
+                           1224686865563
+                           2546548887735
+                           4322674655533";
+
+            // Load the grid
+            grid = Input.SplitByNewline(shouldTrim: true).Select(line => line.Select(c => int.Parse(c.ToString())).ToArray()).ToArray();
+            maxY = grid.Length - 1;
+            maxX = grid[0].Length - 1;
         }
+
+        private void RunGrid(Point start, Point end)
+        {
+            heatLoss = int.MaxValue;
+
+            // Track if we've been in this position and not direction and heat loss
+            // If we have and have more heat loss, then skip it
+            // notDir == The only direction we can't go
+            // This is because we could get to this position from 3 ways 
+            // var seen = new Dictionary<(Point pos, Direction notDir), int>();
+
+            // Track our queue of work
+            var queue = new Queue<(Point pos, Direction dir, List<Point> path, int straightCount, int heatLoss)>();
+
+            queue.Enqueue((start, Direction.Right, new List<Point>(), 0, 0));
+
+            while (queue.Count > 0)
+            {
+                (var pos, var dir, var path, var tempStraight, var tempHeatLoss) = queue.Dequeue();
+
+                // If we are at the end, skip out
+                if (pos == end)
+                {
+                    heatLoss = Math.Min(tempHeatLoss, heatLoss);
+                    return;
+                }
+
+                // This is BFS so we only care that we don't backtrack ever
+                if (path.Contains(pos))
+                    continue;
+
+                path.Add(pos);
+
+                // Get our next steps
+                // Add heat loss in the queue because the start
+                // does not incur loss
+                var left = (Direction)(((int)dir + 3) % 4);
+                var right = (Direction)(((int)dir + 1) % 4);
+
+                var posLeft = pos.Add(deltas[left]);
+                var posStraight = pos.Add(deltas[dir]);
+                var posRight = pos.Add(deltas[right]);
+
+                if (IsInGrid(posLeft) && !path.Contains(posLeft))
+                    queue.Enqueue((posLeft, left, new List<Point>(path), 0, tempHeatLoss + grid[pos.y][pos.x]));
+
+                if (IsInGrid(posStraight) && !path.Contains(posStraight) && tempStraight < 3)
+                    queue.Enqueue((posStraight, dir, new List<Point>(path), tempStraight + 1, tempHeatLoss + grid[pos.y][pos.x]));
+
+                if (IsInGrid(posRight) && !path.Contains(posRight))
+                    queue.Enqueue((posRight, right, new List<Point>(path), 0, tempHeatLoss + grid[pos.y][pos.x]));
+            }
+        }
+
+        private bool IsInGrid(Point point) => 0 <= point.y && point.y <= maxY && 0 <= point.x && point.x <= maxX;
 
         protected override string? SolvePartOne()
         {
-            return string.Empty;
+            RunGrid((0, 0), (maxX, maxY));
+
+            return heatLoss.ToString();
         }
 
         protected override string? SolvePartTwo()
