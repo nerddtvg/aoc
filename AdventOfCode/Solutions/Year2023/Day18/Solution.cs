@@ -86,13 +86,6 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartOne()
         {
-            // https://www.mathopenref.com/coordpolygonarea2.html
-            // 2D Polygon math
-            // How does it work?
-            // Magic.
-
-            // The points are going clockwise so this works as-is
-
             var points = GetPoints(instructions);
 
             return GetArea(points).ToString();
