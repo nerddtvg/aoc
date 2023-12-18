@@ -145,7 +145,8 @@ namespace AdventOfCode.Solutions.Year2023
 
             // That was just the internal area, we need to count our line lengths as well
             // This also needs to be divided by 2
-            // We'll be off by one at the end because we didn't count the starting point
+            // We'll be off by one at the end because we didn't count the starting point twice
+            // which will be chopped off in integer division
             area += (lineLength / 2) + 1;
 
             return area;
