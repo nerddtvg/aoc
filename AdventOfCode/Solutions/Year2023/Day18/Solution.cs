@@ -107,7 +107,7 @@ namespace AdventOfCode.Solutions.Year2023
                 var lastPoint = points[points.Count - 1];
                 var delta = deltas[instruction.dir];
 
-                points.Add((lastPoint.x + (delta.x * instruction.length), lastPoint.y + (delta.y * instruction.length)));
+                points.Add(lastPoint.Add(deltas[instruction.dir], instruction.length));
             }
 
             return points;
