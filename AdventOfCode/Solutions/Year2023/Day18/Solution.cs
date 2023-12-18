@@ -6,25 +6,25 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Reflection;
 using System.Diagnostics;
+using System.Numerics;
 
 
 namespace AdventOfCode.Solutions.Year2023
 {
-    using Point = (int x, int y);
+    using Point = (long x, long y);
 
     class Day18 : ASolution
     {
-        private List<(char dir, int length, string rgb, byte r, byte g, byte b)> instructions;
+        private List<(char dir, int length)> instructions;
+        private List<(char dir, int length)> instructions2;
 
         private readonly Dictionary<char, Point> deltas = new()
         {
-            { 'U', (0, -1) },
+            { 'U', (0, 1) },
             { 'R', (1, 0) },
-            { 'D', (0, 1) },
+            { 'D', (0, -1) },
             { 'L', (-1, 0) },
         };
-
-        private HashSet<Point> pit = new();
 
         public Day18() : base(18, 2023, "Lavaduct Lagoon")
         {
@@ -48,88 +48,119 @@ namespace AdventOfCode.Solutions.Year2023
                 {
                     var split = line.Split(' ', 3);
 
-                    return (split[0][0], int.Parse(split[1]), split[2][2..^1], Convert.ToByte(split[2][2..4], 16), Convert.ToByte(split[2][4..6], 16), Convert.ToByte(split[2][6..8], 16));
+                    return (split[0][0], int.Parse(split[1]));
+                })
+                .ToList();
+
+            // Part 2 is a different parse
+            instructions2 = Input.SplitByNewline(shouldTrim: true)
+                .Select(line =>
+                {
+                    var split = line.Split(' ', 3);
+                    var rgb = split[2][2..^1];
+                    var dir = 'U';
+
+                    switch (rgb[^1])
+                    {
+                        case '0':
+                            dir = 'R';
+                            break;
+
+                        case '1':
+                            dir = 'D';
+                            break;
+
+                        case '2':
+                            dir = 'L';
+                            break;
+
+                        case '3':
+                            dir = 'U';
+                            break;
+                    }
+
+                    return (dir, Convert.ToInt32(rgb[..^1], 16));
                 })
                 .ToList();
         }
 
         protected override string? SolvePartOne()
         {
-            pit.Clear();
+            // https://www.mathopenref.com/coordpolygonarea2.html
+            // 2D Polygon math
+            // How does it work?
+            // Magic.
 
-            Point pos = (0, 0);
-            pit.Add(pos);
+            // The points are going clockwise so this works as-is
 
-            // Follow the instructions
-            foreach(var instruction in instructions)
-            {
-                var move = deltas[instruction.dir];
-                Utilities.Repeat(() =>
-                {
-                    pos = pos.Add(move);
-                    pit.Add(pos);
-                }, instruction.length);
-            }
+            var points = GetPoints(instructions);
 
-            FillPit();
-
-            return pit.Count.ToString();
+            return GetArea(points).ToString();
         }
 
-        private void FillPit()
+        private List<Point> GetPoints(List<(char dir, int length)> instructions)
         {
-            // Fill method will be a basic search method
-            // Start with the first known "in pit" point
-            // This will be the corner inside the top points
-            Point topLeftCorner = pit.OrderBy(itm => itm.y).ThenBy(itm => itm.x).First();
-            topLeftCorner = (topLeftCorner.x + 1, topLeftCorner.y + 1);
+            var points = new List<Point>() { (0, 0) };
 
-            // Make sure that we have a true corner
-            Debug.Assert(pit.Contains((topLeftCorner.x - 1, topLeftCorner.y)));
-            Debug.Assert(pit.Contains((topLeftCorner.x, topLeftCorner.y - 1)));
-            Debug.Assert(!pit.Contains((topLeftCorner.x, topLeftCorner.y)));
-
-            // For each point up, down, left, right
-            // If the point is in the pit: skip
-            // If not, add to the pit and keep going
-            var queue = new Queue<Point>();
-            queue.Enqueue(topLeftCorner);
-
-            while(queue.TryDequeue(out Point point))
+            foreach (var instruction in instructions)
             {
-                if (pit.Contains(point))
-                    continue;
+                var lastPoint = points[points.Count - 1];
+                var delta = deltas[instruction.dir];
 
-                pit.Add(point);
-
-                queue.Enqueue(point.Add(deltas['U']));
-                queue.Enqueue(point.Add(deltas['R']));
-                queue.Enqueue(point.Add(deltas['D']));
-                queue.Enqueue(point.Add(deltas['L']));
+                points.Add((lastPoint.x + (delta.x * instruction.length), lastPoint.y + (delta.y * instruction.length)));
             }
+
+            return points;
         }
 
-        private void DrawPit()
+        private BigInteger GetArea(List<Point> points)
         {
-            var minX = pit.Min(itm => itm.x);
-            var minY = pit.Min(itm => itm.y);
-            var maxX = pit.Max(itm => itm.x);
-            var maxY = pit.Max(itm => itm.y);
+            // Requires: Y positive is up
+            // https://jeremytammik.github.io/tbc/a/0053_2d_polygon_area_outer_loop.htm
+            // https://www.mathopenref.com/coordpolygonarea2.html
+            // 2D Polygon math
+            // How does it work?
+            // Magic.
 
-            Console.WriteLine("Pit:");
+            // Remove the final point, if it is a duplicate
+            if (points[0] == points[^1])
+                points.RemoveAt(points.Count - 1);
 
-            for (int y = minY; y <= maxY; y++)
+            // We now have a list of points
+            BigInteger area = 0;
+            BigInteger lineLength = 0;
+            for (int i = 0, j = points.Count - 1; i < points.Count; i++)
             {
-                for (int x = minX; x <= maxX; x++)
-                    Console.Write(pit.Contains((x, y)) ? "#" : ".");
+                area += (points[j].x + points[i].x) * (points[j].y - points[i].y);
 
-                Console.WriteLine();
+                lineLength += points[j].ManhattanDistance(points[i]);
+
+                j = i;
             }
+
+            // If the points were counter-clockwise, the answer is negative
+            area = BigInteger.Abs(area);
+
+            area /= 2;
+
+            // That was just the internal area, we need to count our line lengths as well
+            // This also needs to be divided by 2
+            // We'll be off by one at the end because we didn't count the starting point
+            area += (lineLength / 2) + 1;
+
+            return area;
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Part 2 required:
+            // * Implementing polygon math
+            // * Changing from int to long
+            // * Removing old fill/draw methods
+
+            var points = GetPoints(instructions2);
+
+            return GetArea(points).ToString();
         }
     }
 }
