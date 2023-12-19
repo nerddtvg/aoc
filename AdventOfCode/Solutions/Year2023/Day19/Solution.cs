@@ -159,6 +159,26 @@ namespace AdventOfCode.Solutions.Year2023
                     else
                     {
                         // Generating a split here
+                        // This is the new range that will be inspected using the rule destination
+                        // lessThan:
+                        //          range.x1
+                        //  -----]-----x-----]-----
+                        //  x1:  0           range.x1
+                        // 
+                        // greaterThan:
+                        //          range.x1
+                        //  -----[-----x-----[-----
+                        //  x1:  range.x1    value+1
+
+                        // lessThan:
+                        //          range.x2
+                        //  -----]-----x-----]-----
+                        //  x2:  value-1     range.x2
+                        // 
+                        // greaterThan:
+                        //          range.x2
+                        //  -----[-----x-----[-----
+                        //  x2:  range.x2    0
                         ItemRange split = (
                             x1: rule.property == "x" ? (rule.lessThan ? (rule.value < range.x1 ? 0 : range.x1) : (range.x1 < rule.value ? rule.value + 1 : range.x1)) : range.x1,
                             x2: rule.property == "x" ? (rule.lessThan ? (rule.value < range.x2 ? rule.value - 1 : range.x2) : (range.x2 < rule.value ? 0 : range.x2)) : range.x2,
