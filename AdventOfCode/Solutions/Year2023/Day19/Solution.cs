@@ -10,6 +10,7 @@ namespace AdventOfCode.Solutions.Year2023
 {
     using Test = (string property, bool lessThan, int value, bool isDefault, string destination);
     using Item = (int x, int m, int a, int s);
+    using ItemRange = (int x1, int x2, int m1, int m2, int a1, int a2, int s1, int s2);
 
     class Day19 : ASolution
     {
@@ -127,9 +128,127 @@ namespace AdventOfCode.Solutions.Year2023
             return items.Where(ProcessItem).Sum(GetSums).ToString();
         }
 
+        private bool IsValidRange(ItemRange range) =>
+            range.x1 != 0 && range.x2 != 0
+            &&
+            range.m1 != 0 && range.m2 != 0
+            &&
+            range.a1 != 0 && range.a2 != 0
+            &&
+            range.s1 != 0 && range.s2 != 0
+            && range.x1 <= range.x2 && range.m1 <= range.m2 && range.a1 <= range.a2 && range.s1 <= range.s2;
+
+        private IEnumerable<ItemRange> GetAcceptedRanges(ItemRange range, Test[] rules)
+        {
+            foreach(var rule in rules)
+            {
+                if (IsValidRange(range))
+                {
+                    if (rule.isDefault)
+                    {
+                        if (rule.destination == "A")
+                        {
+                            yield return range;
+                        }
+                        else if (rule.destination != "R")
+                        {
+                            foreach (var t in GetAcceptedRanges(range, workflows[rule.destination]))
+                                yield return t;
+                        }
+                    }
+                    else
+                    {
+                        // Generating a split here
+                        ItemRange split = (
+                            x1: rule.property == "x" ? (rule.lessThan ? (rule.value < range.x1 ? 0 : range.x1) : (range.x1 < rule.value ? rule.value + 1 : range.x1)) : range.x1,
+                            x2: rule.property == "x" ? (rule.lessThan ? (rule.value < range.x2 ? rule.value - 1 : range.x2) : (range.x2 < rule.value ? 0 : range.x2)) : range.x2,
+
+                            m1: rule.property == "m" ? (rule.lessThan ? (rule.value < range.m1 ? 0 : range.m1) : (range.m1 < rule.value ? rule.value + 1 : range.m1)) : range.m1,
+                            m2: rule.property == "m" ? (rule.lessThan ? (rule.value < range.m2 ? rule.value - 1 : range.m2) : (range.m2 < rule.value ? 0 : range.m2)) : range.m2,
+
+                            a1: rule.property == "a" ? (rule.lessThan ? (rule.value < range.a1 ? 0 : range.a1) : (range.a1 < rule.value ? rule.value + 1 : range.a1)) : range.a1,
+                            a2: rule.property == "a" ? (rule.lessThan ? (rule.value < range.a2 ? rule.value - 1 : range.a2) : (range.a2 < rule.value ? 0 : range.a2)) : range.a2,
+
+                            s1: rule.property == "s" ? (rule.lessThan ? (rule.value < range.s1 ? 0 : range.s1) : (range.s1 < rule.value ? rule.value + 1 : range.s1)) : range.s1,
+                            s2: rule.property == "s" ? (rule.lessThan ? (rule.value < range.s2 ? rule.value - 1 : range.s2) : (range.s2 < rule.value ? 0 : range.s2)) : range.s2
+                        );
+
+                        // Process the range if valid
+                        if (IsValidRange(split))
+                        {
+                            if (rule.destination == "A")
+                            {
+                                yield return split;
+                            }
+                            else if (rule.destination != "R")
+                            {
+                                foreach (var t in GetAcceptedRanges(split, workflows[rule.destination]))
+                                    yield return t;
+                            }
+                        }
+
+                        // Reduce our working range for the parent loop
+                        range = (
+                            x1: rule.property == "x" ? (rule.lessThan ? (rule.value < range.x1 ? range.x1 : rule.value) : (range.x1 < rule.value ? range.x1 : 0)) : range.x1,
+                            x2: rule.property == "x" ? (rule.lessThan ? (rule.value < range.x2 ? range.x2 : 0) : (range.x2 < rule.value ? range.x2 : rule.value)) : range.x2,
+
+                            m1: rule.property == "m" ? (rule.lessThan ? (rule.value < range.m1 ? range.m1 : rule.value) : (range.m1 < rule.value ? range.m1 : 0)) : range.m1,
+                            m2: rule.property == "m" ? (rule.lessThan ? (rule.value < range.m2 ? range.m2 : 0) : (range.m2 < rule.value ? range.m2 : rule.value)) : range.m2,
+
+                            a1: rule.property == "a" ? (rule.lessThan ? (rule.value < range.a1 ? range.a1 : rule.value) : (range.a1 < rule.value ? range.a1 : 0)) : range.a1,
+                            a2: rule.property == "a" ? (rule.lessThan ? (rule.value < range.a2 ? range.a2 : 0) : (range.a2 < rule.value ? range.a2 : rule.value)) : range.a2,
+
+                            s1: rule.property == "s" ? (rule.lessThan ? (rule.value < range.s1 ? range.s1 : rule.value) : (range.s1 < rule.value ? range.s1 : 0)) : range.s1,
+                            s2: rule.property == "s" ? (rule.lessThan ? (rule.value < range.s2 ? range.s2 : 0) : (range.s2 < rule.value ? range.s2 : rule.value)) : range.s2
+                        );
+                    }
+                }
+            }
+        }
+
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            /*************************************************************************************
+            // The following code was removed because, while effective and did its job properly,
+            // the speed of the math alone negated the need for this optimization
+            // With reduction:    00:00:00.0282129 (takes longer to re-process rules)
+            // Without reduction: 00:00:00.0030995
+
+            // Let's start by reducing our inputs
+            // There are many cases where:
+            // abc{?>1234:R,R} => everything is rejected (or similar for accepted)
+            int changed = 1;
+            while(changed > 0)
+            {
+                var remove = workflows.Where(kvp => kvp.Value.All(rule => rule.destination == "A") || kvp.Value.All(rule => rule.destination == "R")).ToList();
+                changed = remove.Count;
+
+                remove.ForEach(kvp => workflows.Remove(kvp.Key));
+
+                // Now we go through and replace the references
+                foreach (var toRemove in remove)
+                {
+                    workflows = workflows.Select(kvp =>
+                    {
+                        return new KeyValuePair<string, Test[]>(kvp.Key, kvp
+                            .Value
+                            .Select(itm => (itm.property, itm.lessThan, itm.value, itm.isDefault, destination: itm.destination == toRemove.Key ? toRemove.Value[^1].destination : itm.destination))
+                            .ToArray()
+                        );
+                    }).ToDictionary();
+                }
+            }
+            *************************************************************************************/
+
+            // Start with a single range of 1-4000 for all values
+            ItemRange range = (1, 4000, 1, 4000, 1, 4000, 1, 4000);
+            
+            // We're going to go through every possibility to find our ranges
+            // Each time we hit a condition, we will split and start over
+            return GetAcceptedRanges(range, workflows["in"])
+                // The ranges (ex. x2-x1) are not inclusive, add one to account for the start
+                .Sum(range => (ulong)(range.x2 - range.x1 + 1) * (ulong)(range.m2 - range.m1 + 1) * (ulong)(range.a2 - range.a1 + 1) * (ulong)(range.s2 - range.s1 + 1))
+                .ToString();
         }
     }
 }
