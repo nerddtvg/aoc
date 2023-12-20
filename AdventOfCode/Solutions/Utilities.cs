@@ -75,11 +75,11 @@ namespace AdventOfCode.Solutions
         /// <returns>The discovered LCM</returns>
         public static double FindLCM(params double[] list)
         {
-            if (list == null)
-                throw new ArgumentNullException(nameof(list));
+            ArgumentNullException.ThrowIfNull(list);
+            ArgumentOutOfRangeException.ThrowIfLessThan(list.Length, 2, nameof(list));
 
-            if (list.Length < 2)
-                throw new ArgumentOutOfRangeException(nameof(list));
+            if (list.Any(c => c == 0))
+                throw new ArgumentOutOfRangeException(nameof(list), "No numbers can be equal to zero.");
 
             if (list.Length == 2)
             {
