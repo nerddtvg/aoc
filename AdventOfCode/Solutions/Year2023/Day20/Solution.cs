@@ -4,6 +4,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using System.Linq;
+using System.Text.Json.Nodes;
+using System.Text.Json;
 
 
 namespace AdventOfCode.Solutions.Year2023
@@ -26,16 +28,13 @@ namespace AdventOfCode.Solutions.Year2023
             Conjunction
         }
 
-        public int LowSignals = 0;
-        public int HighSignals = 0;
-
         public class Node
         {
-            public required string name;
-            public required NodeType type;
-            public required string[] outputs;
-            public Dictionary<string, SignalType> inputs = new();
-            public bool onOff = false;
+            public required string name { get; set; }
+            public required NodeType type { get; set; }
+            public required string[] outputs { get; set; }
+            public Dictionary<string, SignalType> inputs { get; set; } = new();
+            public bool onOff { get; set; } = false;
 
             /// <summary>
             /// Default to low
@@ -43,6 +42,72 @@ namespace AdventOfCode.Solutions.Year2023
             public void AddInput(string input)
             {
                 inputs[input] = SignalType.Low;
+            }
+
+            public string GetState()
+            {
+                return JsonSerializer.Serialize(this);
+            }
+
+            public IEnumerable<Node> GetStates()
+            {
+                if (type == NodeType.Broadcast)
+                {
+                    yield return new Node()
+                    {
+                        name = name,
+                        type = type,
+                        outputs = outputs
+                    };
+                }
+                else if (type == NodeType.FlipFlop)
+                {
+                    // Flip flops have two states with onOff
+                    yield return new Node()
+                    {
+                        name = name,
+                        type = type,
+                        outputs = outputs,
+                        onOff = false
+                    };
+
+                    yield return new Node()
+                    {
+                        name = name,
+                        type = type,
+                        outputs = outputs,
+                        onOff = true
+                    };
+                }
+                else if (type == NodeType.Conjunction)
+                {
+                    // Get every state of inputs
+                    // which can be High/Low
+                    // Start with alternating High/Low on the first input
+                    var keys = inputs.Keys.OrderBy(k => k).ToArray();
+
+                    var ret = Enumerable.Range(0, inputs.Count * 2)
+                        .Select(idx => new List<(string input, SignalType signal)>() { (keys[0], idx % 2 == 0 ? SignalType.Low : SignalType.High) })
+                        .ToList();
+
+                    for(int i=1; i<keys.Length; i++)
+                    {
+                        Enumerable.Range(0, inputs.Count * 2)
+                            .ForEach(idx => ret[idx].Add((keys[i], idx % 2 == 0 ? SignalType.Low : SignalType.High)));
+                    }
+
+                    // Now that we have a combination of High/Low for all inputs, make new nodes
+                    foreach(var combo in ret)
+                    {
+                        yield return new Node()
+                        {
+                            name = name,
+                            type = type,
+                            outputs = outputs,
+                            inputs = combo.ToDictionary(itm => itm.input, itm => itm.signal)
+                        };
+                    }
+                }
             }
 
             /// <summary>
@@ -88,6 +153,10 @@ namespace AdventOfCode.Solutions.Year2023
 
         public Queue<Signal> signals = new();
         public Dictionary<string, Node> nodes = new();
+        public Dictionary<string, string> maps = new();
+
+        public int LowSignals = 0;
+        public int HighSignals = 0;
 
         public Day20() : base(20, 2023, "Pulse Propagation")
         {
@@ -96,6 +165,14 @@ namespace AdventOfCode.Solutions.Year2023
             //                &inv -> b
             //                %b -> con
             //                &con -> output";
+        }
+
+        public void ResetInput()
+        {
+            nodes.Clear();
+            signals.Clear();
+            LowSignals = 0;
+            HighSignals = 0;
 
             var regex = new Regex(@"^(?<type>[%&])*(?<name>[a-z]+) \-> ((?<destination>[a-z]+)(, )*)+$");
 
@@ -127,8 +204,21 @@ namespace AdventOfCode.Solutions.Year2023
             });
         }
 
-        public void RunQueue()
+        public bool RunQueue()
         {
+            // Save our current state
+            var state = GetState(nodes.Values);
+
+            // If the state exists in our dictionary, then skip ahead
+            string newState = string.Empty;
+            if (maps.TryGetValue(state, out newState))
+            {
+                nodes = (JsonSerializer.Deserialize<Node[]>(newState) ?? throw new Exception())
+                    .ToDictionary(node => node.name, node => node);
+
+                return false;
+            }
+
             // Put the initial signal in the queue
             signals.Enqueue(("button", "broadcaster", SignalType.Low));
 
@@ -140,6 +230,10 @@ namespace AdventOfCode.Solutions.Year2023
                 else
                     HighSignals++;
 
+                // If the signal is going to rx and Low, end early
+                if (signal.desintation == "rx" && signal.signal == SignalType.Low)
+                    return true;
+
                 // If the destination doesn't exist, it may be a test 'output'
                 if (nodes.TryGetValue(signal.desintation, out Node node))
                 {
@@ -150,18 +244,65 @@ namespace AdventOfCode.Solutions.Year2023
                     outSignals.ForEach(signals.Enqueue);
                 }
             }
+
+            // We have a new state!
+            newState = GetState(nodes.Values);
+            maps[state] = newState;
+
+            return false;
         }
 
         protected override string? SolvePartOne()
         {
-            Utilities.Repeat(RunQueue, 1000);
+            ResetInput();
+            Utilities.Repeat(() => RunQueue(), 1000);
 
             return (HighSignals * LowSignals).ToString();
         }
 
+        public string GetState(IEnumerable<Node> nodes)
+        {
+            return JsonSerializer.Serialize(nodes.OrderBy(node => node.name).ToArray());
+        }
+
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            ResetInput();
+
+            // Commit Note: Tried to precalculate the states but there are too many
+            // Tried to hash the states and skip ahead, again too many
+
+            // // Gather all possible states and pre-process the outcomes
+            // var individualNodeStates = nodes.Keys.Select(k => nodes[k].GetStates().ToList()).ToList();
+
+            // // Build a list of all states starting with the first
+            // var totalStates = individualNodeStates.Aggregate((long)1, (x, y) => x * y.Count);
+            // var allNodeStates = new List<List<Node>>();
+
+            // for (long idx = 0; idx < totalStates; idx++)
+            //     allNodeStates.Add(new List<Node>() { individualNodeStates[0][(int)(idx % individualNodeStates.Count)] });
+
+            // // Append the rest of them
+            // foreach(var newNode in individualNodeStates[1..])
+            // {
+            //     for(long idx=0; idx<totalStates; idx++)
+            //         allNodeStates[idx].Add(newNode[idx % newNode.Count]));
+            // }
+
+            int buttonPresses = 0;
+
+            // Sends to rx, used to determine end
+            // Assumes 1
+            var sendsToEnd = nodes.Single(node => node.Value.outputs.Contains("rx")).Key;
+
+            while (true)
+            {
+                buttonPresses++;
+                if (RunQueue())
+                    break;
+            }
+
+            return buttonPresses.ToString();
         }
     }
 }
