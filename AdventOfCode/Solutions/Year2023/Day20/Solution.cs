@@ -91,6 +91,8 @@ namespace AdventOfCode.Solutions.Year2023
 
         public int LowSignals = 0;
         public int HighSignals = 0;
+        public Dictionary<string, ulong> cycles = new();
+        public string finalNode = string.Empty;
 
         public Day20() : base(20, 2023, "Pulse Propagation")
         {
@@ -136,9 +138,12 @@ namespace AdventOfCode.Solutions.Year2023
                         }
                     });
             });
+
+            finalNode = nodes.Single(node => node.Value.outputs.Contains("rx")).Key;
+            cycles = nodes[finalNode].inputs.ToDictionary(kvp => kvp.Key, kvp => (ulong)0);
         }
 
-        public void RunQueue()
+        public void RunQueue(uint step = 0)
         {
             // Put the initial signal in the queue
             signals.Enqueue(("button", "broadcaster", SignalType.Low));
@@ -150,6 +155,9 @@ namespace AdventOfCode.Solutions.Year2023
                     LowSignals++;
                 else
                     HighSignals++;
+
+                if (signal.desintation == "zg" && signal.signal == SignalType.High && cycles[signal.source] == 0)
+                    cycles[signal.source] = step;
 
                 // If the destination doesn't exist, it may be a test 'output'
                 if (nodes.TryGetValue(signal.desintation, out Node node))
@@ -166,7 +174,7 @@ namespace AdventOfCode.Solutions.Year2023
         protected override string? SolvePartOne()
         {
             ResetInput();
-            Utilities.Repeat(RunQueue, 1000);
+            Utilities.Repeat(() => RunQueue(), 1000);
 
             return (HighSignals * LowSignals).ToString();
         }
@@ -177,37 +185,19 @@ namespace AdventOfCode.Solutions.Year2023
             // but I was hoping to figure out an efficient way to do it in code
             // Unfortunately that didn't happen
             // This is a great visualization: https://old.reddit.com/r/adventofcode/comments/18mypla/2023_day_20_input_data_plot/
+            // Also: https://old.reddit.com/r/adventofcode/comments/18msq8g/2023_day_20_part_2python_terminal_visualization/
 
-            // We need to identify the inputs that feed into (4-5) -> (1) -> rx
-            // All of those inputs need to be "high"
-            // Find the cycle for these and we will use LCM to find the actual answer
-            var finalNode = nodes.Single(node => node.Value.outputs.Contains("rx")).Value;
-            var feedsToRx = nodes.Single(node => node.Value.outputs.Contains("rx")).Value.inputs.Keys;
+            // Starting from Part 1's end means we're on step 1001
 
-            // Now we know what nodes need to be "high" and we can find the cycles required
-            var cycles = feedsToRx.ToDictionary(k => k, k => (double)0);
-            int counted = 0;
+            // The cycles should be 2^12 = 4095 or less
+            // There are 12 bits in the integer values
+            for(uint i=1001; i<5000 && cycles.Values.Any(c => c == 0); i++)
+                RunQueue(i);
 
-            ResetInput();
-            for(int i=0; i<1000000; i++)
-            {
-                RunQueue();
-
-                cycles.Where(kvp => kvp.Value == 0 && finalNode.inputs[kvp.Key] == SignalType.High)
-                    .ForEach(kvp =>
-                    {
-                        cycles[kvp.Key] = i;
-                        counted++;
-                    });
-
-                if (counted == cycles.Count)
-                    break;
-            }
-
-            if (cycles.Values.Any(v => v == 0))
+            if (cycles.Values.Any(c => c == 0))
                 return string.Empty;
 
-            return Utilities.FindLCM(cycles.Values.ToArray()).ToString();
+            return Utilities.FindLCM(cycles.Values.Select(c => (double)c).ToArray()).ToString();
         }
     }
 }
