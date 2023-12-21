@@ -15,6 +15,7 @@ namespace AdventOfCode.Solutions.Year2023
     {
         public required char[][] grid;
         public Point start;
+        public Dictionary<Point, int> distances = new();
 
         public Day21() : base(21, 2023, "Step Counter")
         {
@@ -41,11 +42,13 @@ namespace AdventOfCode.Solutions.Year2023
                         start = (x, y);
         }
 
-        private List<Point> GetPoints(int maxDistance)
+        private void GetPoints()
         {
             // Work from start through the points and get what we can
             var queue = new Queue<(Point pos, int distance)>();
-            var seen = new Dictionary<Point, int>();
+
+            // For Part 2, we save this information
+            distances.Clear();
 
             // Our start
             queue.Enqueue((start, 0));
@@ -55,18 +58,14 @@ namespace AdventOfCode.Solutions.Year2023
                 (var pos, int distance) = queue.Dequeue();
 
                 // Check if we have been here before
-                if (seen.TryGetValue(pos, out int seenDistance))
+                if (distances.TryGetValue(pos, out int seenDistance))
                 {
                     if (seenDistance <= distance)
                         continue;
                 }
 
                 // Save our distance
-                seen[pos] = distance;
-
-                // If we have hit our maxDistance, stop here
-                if (distance >= maxDistance)
-                    continue;
+                distances[pos] = distance;
 
                 // Get the possible moves
                 var moves = GetMoves(pos);
@@ -82,12 +81,6 @@ namespace AdventOfCode.Solutions.Year2023
                     }
                 }
             }
-
-            // DrawGrid(seen, maxDistance);
-
-            // This will generate a "seen" list of the distances to get to those positions
-            // Return the list
-            return seen.Where(kvp => IsValidDistance(kvp.Value, maxDistance)).Select(kvp => kvp.Key).ToList();
         }
 
         private bool IsValidDistance(int distance, int desiredDistance)
@@ -98,7 +91,7 @@ namespace AdventOfCode.Solutions.Year2023
             return distance == desiredDistance || (distance < desiredDistance && (distance % 2) == 0);
         }
 
-        private void DrawGrid(Dictionary<Point, int> distances, int showDistance)
+        private void DrawGrid(int showDistance)
         {
             Console.WriteLine();
 
@@ -130,7 +123,18 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartOne()
         {
-            return GetPoints(64).Count.ToString();
+            var desiredDistance = 64;
+
+            // Calculate the distances
+            GetPoints();
+
+            DrawGrid(desiredDistance);
+
+            return distances
+                .Where(kvp => IsValidDistance(kvp.Value, desiredDistance))
+                .Select(kvp => kvp.Key)
+                .Count()
+                .ToString();
         }
 
         protected override string? SolvePartTwo()
