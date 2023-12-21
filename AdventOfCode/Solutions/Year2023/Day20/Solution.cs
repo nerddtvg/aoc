@@ -31,11 +31,11 @@ namespace AdventOfCode.Solutions.Year2023
 
         public class Node
         {
-            public required string name { get; set; }
-            public required NodeType type { get; set; }
-            public required string[] outputs { get; set; }
-            public Dictionary<string, SignalType> inputs { get; set; } = new();
-            public bool onOff { get; set; } = false;
+            public required string name;
+            public required NodeType type;
+            public required string[] outputs;
+            public Dictionary<string, SignalType> inputs = new();
+            public bool onOff = false;
 
             /// <summary>
             /// Default to low
@@ -132,7 +132,7 @@ namespace AdventOfCode.Solutions.Year2023
                     .ForEach(output =>
                     {
                         // If the destination doesn't exist, it may be a test 'output'
-                        if (nodes.TryGetValue(output, out Node node))
+                        if (nodes.TryGetValue(output, out Node? node) && node != default)
                         {
                             node.AddInput(kvp.Key);
                         }
@@ -160,7 +160,7 @@ namespace AdventOfCode.Solutions.Year2023
                     cycles[signal.source] = step;
 
                 // If the destination doesn't exist, it may be a test 'output'
-                if (nodes.TryGetValue(signal.desintation, out Node node))
+                if (nodes.TryGetValue(signal.desintation, out Node? node) && node != default)
                 {
                     // Run the signal process
                     var outSignals = node.ProcessInput(signal.source, signal.signal);
