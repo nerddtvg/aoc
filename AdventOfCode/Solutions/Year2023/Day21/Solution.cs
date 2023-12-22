@@ -125,7 +125,7 @@ namespace AdventOfCode.Solutions.Year2023
         {
             var desiredDistance = 64;
 
-            // Calculate the distances
+            // Calculate the distances in a 3x3 grid with extra
             GetPoints();
 
             DrawGrid(desiredDistance);
@@ -139,7 +139,36 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // My original plan was to figure out the distances from edge to edge in all directions for the original grid
+            // Then use those numbers to calculate the possible values from 1 to n
+            // That was a bad idea
+
+            // There is a pattern but I was quite lazy and didn't want to figure it out
+            // This was a great writeup from /u/:
+            // https://github.com/villuna/aoc23/wiki/A-Geometric-solution-to-advent-of-code-2023,-day-21
+            // total = (n+1)^2 * odd_square + n^2 * even_square - (n+1) * odd_corners + n * even_corners
+            // where n = (26501365 - grid.Length)/grid.Length
+            // This is the number of squares from the start to the end
+            var desiredDistance = 26501365;
+            desiredDistance -= start.x;
+            desiredDistance /= grid.Length;
+
+            var odd_square = distances.Count(kvp => kvp.Value % 2 == 1);
+            var even_square = distances.Count(kvp => kvp.Value % 2 == 0);
+
+            var odd_square_corners = distances.Count(kvp => kvp.Value > 65 && kvp.Value % 2 == 1);
+            var even_square_corners = distances.Count(kvp => kvp.Value > 65 && kvp.Value % 2 == 0);
+
+            var count =
+                (Math.Pow(desiredDistance + 1, 2) * odd_square)
+                +
+                (Math.Pow(desiredDistance, 2) * even_square)
+                -
+                ((desiredDistance + 1) * odd_square_corners)
+                +
+                (desiredDistance * even_square_corners);
+
+            return count.ToString();
         }
     }
 }
