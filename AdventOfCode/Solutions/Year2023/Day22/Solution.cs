@@ -20,7 +20,9 @@ namespace AdventOfCode.Solutions.Year2023
         /// <summary>
         /// Contains a list of the bricks that hold up the Key brick
         /// </summary>
-        public Dictionary<Brick, List<Brick>> intersects = new();
+        public Dictionary<Brick, List<Brick>> heldUpBy = new();
+
+        public Dictionary<Brick, List<Brick>> holdsUp = new();
 
         public Day22() : base(22, 2023, "Sand Slabs")
         {
@@ -101,17 +103,17 @@ namespace AdventOfCode.Solutions.Year2023
                     if (falling.a.z == 0)
                     {
                         settled.Add(brick);
-                        intersects[brick] = [];
+                        heldUpBy[brick] = [];
                     }
                     else
                     {
-                        // Track who we intersect with
+                        // Track who we are held up by
                         var intersect = settled.Where(b => BricksIntersect(b, falling)).ToList();
 
                         if (intersect.Count > 0)
                         {
                             settled.Add(brick);
-                            intersects[brick] = intersect;
+                            heldUpBy[brick] = intersect;
                         }
                         else
                         {
@@ -122,17 +124,17 @@ namespace AdventOfCode.Solutions.Year2023
             }
 
             bricks = settled;
+
+            // Our heldUpBy dict tells us what bricks
+            // hold up the Key brick
+            // but we need to convert that to be a ditionary
+            // of what bricks the Key brick is holding up
+            holdsUp = bricks.ToDictionary(brick => brick, brick => heldUpBy.Where(kvp => kvp.Value.Contains(brick)).Select(kvp => kvp.Key).ToList());
         }
 
         protected override string? SolvePartOne()
         {
             FallBricks();
-
-            // Our intersects dict tells us what bricks
-            // hold up the Key brick
-            // but we need to convert that to be a ditionary
-            // of what bricks the Key brick is holding up
-            var holdsUp = bricks.ToDictionary(brick => brick, brick => intersects.Where(kvp => kvp.Value.Contains(brick)).Select(kvp => kvp.Key).ToList());
 
             // Now we can work both dictionaries
             // Going through holdsUp, we can ensure that any brick being held has another supporting brick (2+ in intersects dictionary)
@@ -141,13 +143,44 @@ namespace AdventOfCode.Solutions.Year2023
                 if (holding.Value.Count == 0) return true;
 
                 // For any brick that we are holding up, ensure it is supported by another
-                return holding.Value.All(held => intersects[held].Count > 1);
+                return holding.Value.All(held => heldUpBy[held].Count > 1);
             }).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // This is a directed graph (holdsUp and heldUpBy)
+            // We can use this information to determine what gets moved
+            // With a starting brick:
+            // 1. Look at the bricks it holds up
+            //    a. If that brick is held by no other bricks, add to the moved pile
+            //    b. Otherwise, that brick does not count
+
+            // This would be a lot faster if it was processed as a tree or graph
+            // However 4 seconds is not too bad for being a brute force check
+
+            return bricks.Sum(brick =>
+                {
+                    var moved = new HashSet<Brick>();
+                    var queue = new Queue<Brick>();
+
+                    holdsUp[brick].ForEach(b => queue.Enqueue(b));
+
+                    while (queue.TryDequeue(out Brick heldUp))
+                    {
+                        if (heldUpBy[heldUp].All(b => b == brick || moved.Contains(b)))
+                        {
+                            // This brick will fall
+                            moved.Add(heldUp);
+
+                            // Add the bricks being held up by heldUp to the queue to analyze
+                            holdsUp[heldUp].ForEach(b => queue.Enqueue(b));
+                        }
+                    }
+
+                    return moved.Count;
+                })
+                .ToString();
         }
     }
 }
