@@ -39,6 +39,38 @@ namespace AdventOfCode.Solutions
         public static (UInt64, UInt64) Add(this (UInt64 x, UInt64 y) a, (UInt64 x, UInt64 y) b) => a.Add(b, 1);
 
         /// <summary>
+        /// Add two (x, y, z) points together
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y, z) values</param>
+        /// <param name="b">A tuple of integer (x, y, z) values</param>
+        /// <returns>A tuple of integer (x, y, z) values</returns>
+        public static (int, int, int) Add(this (int x, int y, int z) a, (int x, int y, int z) b) => a.Add(b, 1);
+
+        /// <summary>
+        /// Add two (x, y, z) points together
+        /// </summary>
+        /// <param name="a">A tuple of unsigned integer (x, y, z) values</param>
+        /// <param name="b">A tuple of unsigned integer (x, y, z) values</param>
+        /// <returns>A tuple of integer (x, y, z) values</returns>
+        public static (uint, uint, uint) Add(this (uint x, uint y, uint z) a, (uint x, uint y, uint z) b) => a.Add(b, 1);
+
+        /// <summary>
+        /// Add two (x, y, z) points together
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y, z) values</param>
+        /// <param name="b">A tuple of integer (x, y, z) values</param>
+        /// <returns>A tuple of integer (x, y, z) values</returns>
+        public static (Int64, Int64, Int64) Add(this (Int64 x, Int64 y, Int64 z) a, (Int64 x, Int64 y, Int64 z) b) => a.Add(b, 1);
+
+        /// <summary>
+        /// Add two (x, y, z) points together
+        /// </summary>
+        /// <param name="a">A tuple of unsigned integer (x, y, z) values</param>
+        /// <param name="b">A tuple of unsigned integer (x, y, z) values</param>
+        /// <returns>A tuple of integer (x, y, z) values</returns>
+        public static (UInt64, UInt64, UInt64) Add(this (UInt64 x, UInt64 y, UInt64 z) a, (UInt64 x, UInt64 y, UInt64 z) b) => a.Add(b, 1);
+
+        /// <summary>
         /// Add two (x, y) points together
         /// </summary>
         /// <param name="a">A tuple of integer (x, y) values</param>
@@ -73,6 +105,43 @@ namespace AdventOfCode.Solutions
         /// <param name=""multiple">How many times to add this vector on.</param>
         /// <returns>A tuple of unsigned integer (x, y) values</returns>
         public static (UInt64, UInt64) Add(this (UInt64 x, UInt64 y) a, (UInt64 x, UInt64 y) b, UInt64 multiple) => (a.x + (b.x * multiple), a.y + (b.y * multiple));
+
+
+        /// <summary>
+        /// Add two (x, y, z) points together
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y, z) values</param>
+        /// <param name="b">A tuple of integer (x, y, z) values</param>
+        /// <param name=""multiple">How many times to add this vector on.</param>
+        /// <returns>A tuple of integer (x, y, z) values</returns>
+        public static (int, int, int) Add(this (int x, int y, int z) a, (int x, int y, int z) b, int multiple) => (a.x + (b.x * multiple), a.y + (b.y * multiple), a.z + (b.z * multiple));
+
+        /// <summary>
+        /// Add two (x, y, z) points together
+        /// </summary>
+        /// <param name="a">A tuple of unsigned integer (x, y, z) values</param>
+        /// <param name="b">A tuple of unsigned integer (x, y, z) values</param>
+        /// <param name=""multiple">How many times to add this vector on.</param>
+        /// <returns>A tuple of unsigned integer (x, y, z) values</returns>
+        public static (uint, uint, uint) Add(this (uint x, uint y, uint z) a, (uint x, uint y, uint z) b, uint multiple) => (a.x + (b.x * multiple), a.y + (b.y * multiple), a.z + (b.z * multiple));
+
+        /// <summary>
+        /// Add two (x, y, z) points together
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y, z) values</param>
+        /// <param name="b">A tuple of integer (x, y, z) values</param>
+        /// <param name=""multiple">How many times to add this vector on.</param>
+        /// <returns>A tuple of integer (x, y, z) values</returns>
+        public static (Int64, Int64, Int64) Add(this (Int64 x, Int64 y, Int64 z) a, (Int64 x, Int64 y, Int64 z) b, Int64 multiple) => (a.x + (b.x * multiple), a.y + (b.y * multiple), a.z + (b.z * multiple));
+
+        /// <summary>
+        /// Add two (x, y, z) points together
+        /// </summary>
+        /// <param name="a">A tuple of unsigned integer (x, y, z) values</param>
+        /// <param name="b">A tuple of unsigned integer (x, y, z) values</param>
+        /// <param name=""multiple">How many times to add this vector on.</param>
+        /// <returns>A tuple of unsigned integer (x, y, z) values</returns>
+        public static (UInt64, UInt64, UInt64) Add(this (UInt64 x, UInt64 y, UInt64 z) a, (UInt64 x, UInt64 y, UInt64 z) b, UInt64 multiple) => (a.x + (b.x * multiple), a.y + (b.y * multiple), a.z + (b.z * multiple));
 
         /// <summary>
         /// Returns all points between <paramref name="a"/> and <paramref name="b"/> inclusive of the endpoints
