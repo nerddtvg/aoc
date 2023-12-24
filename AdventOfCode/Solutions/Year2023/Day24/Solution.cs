@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 
 using System.Linq;
 using Microsoft.Z3;
+using System.Numerics;
 
 namespace AdventOfCode.Solutions.Year2023
 {
@@ -45,7 +46,7 @@ namespace AdventOfCode.Solutions.Year2023
             var zero = z3Context.MkReal(0);
 
             // Prepare our equations
-            // Individual times for each stone
+            // Individual times for each stone (none actually collide, only the paths cross at different times)
             var t = stones.Select((stone, idx) => z3Context.MkRealConst($"t{idx}")).ToList();
 
             // These are: px + (vx * t)
@@ -84,6 +85,60 @@ namespace AdventOfCode.Solutions.Year2023
 
         protected override string? SolvePartTwo()
         {
+            // In Part 2, we have the ability to look at integers which helps processing speed
+            var z3Context = new Context();
+
+            var zero = z3Context.MkInt(0);
+
+            // These are OUR throwing px, py, pz, vx, vy, vz
+            var px = z3Context.MkIntConst("px");
+            var py = z3Context.MkIntConst("py");
+            var pz = z3Context.MkIntConst("pz");
+            var vx = z3Context.MkIntConst("vx");
+            var vy = z3Context.MkIntConst("vy");
+            var vz = z3Context.MkIntConst("vz");
+
+            var solver = z3Context.MkSolver();
+
+            // Get a hailstone to start with
+            // Shortcut by finding the first 3 intersections, how likely is it that that isn't the answer?
+            for (int i = 0; i < 3; i++)
+            {
+                // Prepare our equations
+                var t = z3Context.MkIntConst($"t{i}");
+
+                // Get the time and position formula for our throw
+                var throwX = z3Context.MkAdd(px, z3Context.MkMul(t, vx));
+                var throwY = z3Context.MkAdd(py, z3Context.MkMul(t, vy));
+                var throwZ = z3Context.MkAdd(pz, z3Context.MkMul(t, vz));
+
+                // And this particular hailstone
+                var stoneX = z3Context.MkAdd(z3Context.MkInt(stones[i].px), z3Context.MkMul(t, z3Context.MkInt(stones[i].vx)));
+                var stoneY = z3Context.MkAdd(z3Context.MkInt(stones[i].py), z3Context.MkMul(t, z3Context.MkInt(stones[i].vy)));
+                var stoneZ = z3Context.MkAdd(z3Context.MkInt(stones[i].pz), z3Context.MkMul(t, z3Context.MkInt(stones[i].vz)));
+
+                // Make everything equal
+                // This checks to see if there is any point they are acceptable
+                solver.Add(z3Context.MkEq(stoneX, throwX));
+                solver.Add(z3Context.MkEq(stoneY, throwY));
+                solver.Add(z3Context.MkEq(stoneZ, throwZ));
+
+                // Time restriction
+                solver.Add(z3Context.MkGe(t, zero));
+            }
+
+            if (solver.Check() == Status.SATISFIABLE)
+            {
+                // Accessing the values in C# is not pretty
+                var pxVal = Int128.Parse(solver.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "px").Value.ToString());
+                var pyVal = Int128.Parse(solver.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "py").Value.ToString());
+                var pzVal = Int128.Parse(solver.Model.Consts.First(c => c.Key.Name is StringSymbol s && s.String == "pz").Value.ToString());
+
+                Console.WriteLine($"Coordinates: {pxVal}, {pyVal}, {pzVal}");
+
+                return (pxVal + pyVal + pzVal).ToString();
+            }
+
             return string.Empty;
         }
     }
