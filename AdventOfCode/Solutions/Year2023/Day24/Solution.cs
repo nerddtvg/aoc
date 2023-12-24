@@ -45,7 +45,10 @@ namespace AdventOfCode.Solutions.Year2023
             var zero = z3Context.MkReal(0);
 
             // Prepare our equations
+            // Individual times for each stone
             var t = stones.Select((stone, idx) => z3Context.MkRealConst($"t{idx}")).ToList();
+
+            // These are: px + (vx * t)
             var eqX = stones.Select((stone, idx) => z3Context.MkAdd(z3Context.MkReal(stone.px), z3Context.MkMul(t[idx], z3Context.MkReal(stone.vx)))).ToList();
             var eqY = stones.Select((stone, idx) => z3Context.MkAdd(z3Context.MkReal(stone.py), z3Context.MkMul(t[idx], z3Context.MkReal(stone.vy)))).ToList();
 
