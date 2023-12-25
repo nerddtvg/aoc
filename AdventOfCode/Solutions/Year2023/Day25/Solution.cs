@@ -45,9 +45,11 @@ namespace AdventOfCode.Solutions.Year2023
             foreach(var line in Input.SplitByNewline(shouldTrim: true))
             {
                 var split = line.Split(':', StringSplitOptions.TrimEntries);
-                var children = split[1].Split(' ');
+                var children = split[1].Split(' ').Select(child => graph.Vertices.FirstOrDefault(v => v.node == child) ?? new Node() { node = child }).ToList();
 
-                graph.AddVerticesAndEdgeRange(children.Select(child => new NodeEdge(new Node() { node = split[0] }, new Node() { node = child }) { weight = 1 }));
+                var sNode = graph.Vertices.FirstOrDefault(v => v.node == split[0]) ?? new Node() { node = split[0] };
+
+                graph.AddVerticesAndEdgeRange(children.Select(child => new NodeEdge(sNode, child) { weight = 1 }));
             }
         }
 
