@@ -6,12 +6,23 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using QuikGraph;
 
-
 namespace AdventOfCode.Solutions.Year2023
 {
     class Day25 : ASolution
     {
-        private Dictionary<string, Dictionary<string, int>> connected = new();
+        UndirectedGraph<Node, NodeEdge> graph;
+
+        private class Node
+        {
+            public string node;
+        }
+
+        private class NodeEdge : Edge<Node>
+        {
+            public int weight;
+
+            public NodeEdge(Node source, Node target) : base(source, target) { }
+        }
 
         public Day25() : base(25, 2023, "Snowverload")
         {
@@ -29,21 +40,14 @@ namespace AdventOfCode.Solutions.Year2023
             //                rzs: qnr cmg lsr rsh
             //                frs: qnr lhk lsr";
 
+            graph = new UndirectedGraph<Node, NodeEdge>();
+
             foreach(var line in Input.SplitByNewline(shouldTrim: true))
             {
                 var split = line.Split(':', StringSplitOptions.TrimEntries);
                 var children = split[1].Split(' ');
 
-                if (!connected.ContainsKey(split[0]))
-                    connected[split[0]] = new(children.ToDictionary(c => c, c => 1));
-                else
-                    children.ForEach(child => connected[split[0]][child] = 1);
-
-                foreach (var child in children)
-                    if (!connected.ContainsKey(child))
-                        connected[child] = new() { { split[0], 1 } };
-                    else
-                        connected[child][split[0]] = 1;
+                graph.AddVerticesAndEdgeRange(children.Select(child => new NodeEdge(new Node() { node = split[0] }, new Node() { node = child }) { weight = 1 }));
             }
         }
 
@@ -53,21 +57,21 @@ namespace AdventOfCode.Solutions.Year2023
             // This is a very slow algorithm given our data structures
 
             // Save the original count of nodes
-            var nodeCount = connected.Keys.Count;
+            var nodeCount = graph.VertexCount;
 
             // https://blog.thomasjungblut.com/graph/mincut/mincut/
-            var currentPartition = new HashSet<string>();
-            HashSet<string> currentBestPartition = default!;
-            (string sNode, string tNode, int weight) currentBestCut = default;
+            var currentPartition = new HashSet<Node>();
+            HashSet<Node> currentBestPartition = default!;
+            (Node sNode, Node tNode, int weight) currentBestCut = default;
 
-            while(connected.Count > 1)
+            while(graph.VertexCount > 1)
             {
-                var cutOfThePhase = MaximumAdjSearch(connected);
+                var cutOfThePhase = MaximumAdjSearch(graph);
 
                 if (currentBestCut == default || cutOfThePhase.weight < currentBestCut.weight)
                 {
                     currentBestCut = cutOfThePhase;
-                    currentBestPartition = new HashSet<string>(currentPartition)
+                    currentBestPartition = new HashSet<Node>(currentPartition)
                     {
                         cutOfThePhase.tNode
                     };
@@ -77,36 +81,37 @@ namespace AdventOfCode.Solutions.Year2023
 
                 // Merge S and T nodes, T goes away
                 // If there is a common node that both S and T connect to, we need to identify it
-                var commonNode = connected[cutOfThePhase.tNode].Select(edge => edge.Key)
-                    .Intersect(connected[cutOfThePhase.sNode].Select(edge => edge.Key))
+                var commonNodeList = graph.AdjacentVertices(cutOfThePhase.tNode)
+                    .Intersect(graph.AdjacentVertices(cutOfThePhase.sNode))
                     .ToList();
 
-                foreach (var commonNodeName in commonNode)
+                foreach (var commonNode in commonNodeList)
                 {
                     // Found one, need to combine the weights
                     // Increase sNode <=> commonNodeName with the value from tNode <=> commonNodeName
-                    connected[cutOfThePhase.sNode][commonNodeName] += connected[cutOfThePhase.tNode][commonNodeName];
+                    graph.TryGetEdge(cutOfThePhase.sNode, commonNode, out var sEdge);
+                    graph.TryGetEdge(cutOfThePhase.sNode, commonNode, out var tEdge);
+                    sEdge.weight += tEdge.weight;
                 }
 
                 // Now we remove tNode completely
-                connected[cutOfThePhase.tNode].Keys.ForEach(key => connected[key].Remove(cutOfThePhase.tNode));
-                connected.Remove(cutOfThePhase.tNode);
+                graph.RemoveVertex(cutOfThePhase.tNode);
             }
 
             return ((nodeCount - currentBestPartition.Count) * currentBestPartition.Count).ToString();
         }
 
-        private (string sNode, string tNode, int weight) MaximumAdjSearch(Dictionary<string, Dictionary<string, int>> graph)
+        private (Node sNode, Node tNode, int weight) MaximumAdjSearch(UndirectedGraph<Node, NodeEdge> graph)
         {
-            var start = graph.Keys.First();
-            var foundSet = new List<string>() { start };
+            var start = graph.Vertices.First();
+            var foundSet = new List<Node>() { start };
             var cutWeight = new List<int>();
-            var candidates = new HashSet<string>(graph.Keys);
+            var candidates = new HashSet<Node>(graph.Vertices);
             candidates.Remove(start);
 
             while(candidates.Count > 0)
             {
-                var maxNextVertex = string.Empty;
+                Node maxNextVertex = default!;
                 var maxWeight = int.MinValue;
 
                 foreach(var next in candidates)
@@ -115,9 +120,9 @@ namespace AdventOfCode.Solutions.Year2023
 
                     foreach(var s in foundSet)
                     {
-                        if (graph[next].TryGetValue(s, out int sWeight))
+                        if (graph.TryGetEdge(next, s, out NodeEdge edge))
                         {
-                            weightSum += sWeight;
+                            weightSum += edge.weight;
                         }
                     }
 
