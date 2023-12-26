@@ -10,18 +10,11 @@ namespace AdventOfCode.Solutions.Year2023
 {
     class Day25 : ASolution
     {
-        UndirectedGraph<Node, NodeEdge> graph;
+        UndirectedGraph<Node, Edge<Node>> graph;
 
         private class Node
         {
             public string node;
-        }
-
-        private class NodeEdge : Edge<Node>
-        {
-            public int weight;
-
-            public NodeEdge(Node source, Node target) : base(source, target) { }
         }
 
         public Day25() : base(25, 2023, "Snowverload")
@@ -40,7 +33,7 @@ namespace AdventOfCode.Solutions.Year2023
             //                rzs: qnr cmg lsr rsh
             //                frs: qnr lhk lsr";
 
-            graph = new UndirectedGraph<Node, NodeEdge>();
+            graph = new();
 
             foreach(var line in Input.SplitByNewline(shouldTrim: true))
             {
@@ -49,7 +42,7 @@ namespace AdventOfCode.Solutions.Year2023
 
                 var sNode = graph.Vertices.FirstOrDefault(v => v.node == split[0]) ?? new Node() { node = split[0] };
 
-                graph.AddVerticesAndEdgeRange(children.Select(child => new NodeEdge(sNode, child) { weight = 1 }));
+                graph.AddVerticesAndEdgeRange(children.Select(child => new Edge<Node>(sNode, child)));
             }
         }
 
@@ -57,95 +50,65 @@ namespace AdventOfCode.Solutions.Year2023
         {
             // Tried to implement mincut as shown from Thomas Jungblut
             // This is a very slow algorithm given our data structures
-
-            // Save the original count of nodes
-            var nodeCount = graph.VertexCount;
-
             // https://blog.thomasjungblut.com/graph/mincut/mincut/
-            var currentPartition = new HashSet<Node>();
-            HashSet<Node> currentBestPartition = default!;
-            (Node sNode, Node tNode, int weight) currentBestCut = default;
 
-            while(graph.VertexCount > 1)
+            // I wanted to look into Krager's algorithm earlier, but didn't understand the pseudo codes
+            // so I tried the earlier Jungblunt copy of mincut.
+            // I decided to use the base graph and use /u/noonan1487's implementation
+            // https://old.reddit.com/r/adventofcode/comments/18qbsxs/2023_day_25_solutions/keu4oci/
+
+            // Node names
+            List<List<string>> subsets = new List<List<string>>();
+
+            do
             {
-                var cutOfThePhase = MaximumAdjSearch(graph);
+                subsets = new List<List<string>>();
 
-                if (currentBestCut == default || cutOfThePhase.weight < currentBestCut.weight)
+                foreach (var vertex in graph.Vertices)
                 {
-                    currentBestCut = cutOfThePhase;
-                    currentBestPartition = new HashSet<Node>(currentPartition)
-                    {
-                        cutOfThePhase.tNode
-                    };
+                    subsets.Add(new List<string>() { vertex.node });
                 }
 
-                currentPartition.Add(cutOfThePhase.tNode);
+                int i;
+                List<string> subset1, subset2;
 
-                // Merge S and T nodes, T goes away
-                // If there is a common node that both S and T connect to, we need to identify it
-                var commonNodeList = graph.AdjacentVertices(cutOfThePhase.tNode)
-                    .Intersect(graph.AdjacentVertices(cutOfThePhase.sNode))
-                    .ToList();
-
-                foreach (var commonNode in commonNodeList)
+                while (subsets.Count > 2)
                 {
-                    // Found one, need to combine the weights
-                    // Increase sNode <=> commonNodeName with the value from tNode <=> commonNodeName
-                    graph.TryGetEdge(cutOfThePhase.sNode, commonNode, out var sEdge);
-                    graph.TryGetEdge(cutOfThePhase.sNode, commonNode, out var tEdge);
-                    sEdge.weight += tEdge.weight;
+                    i = new Random().Next() % graph.Edges.Count();
+                    var edge = graph.Edges.ElementAt(i);
+
+                    subset1 = subsets.Where(s => s.Contains(edge.Source.node)).First();
+                    subset2 = subsets.Where(s => s.Contains(edge.Target.node)).First();
+
+                    if (subset1 == subset2) continue;
+
+                    subsets.Remove(subset2);
+                    subset1.AddRange(subset2);
                 }
 
-                // Now we remove tNode completely
-                graph.RemoveVertex(cutOfThePhase.tNode);
-            }
+            } while (CountCuts(subsets) != 3);
 
-            return ((nodeCount - currentBestPartition.Count) * currentBestPartition.Count).ToString();
+            return (subsets[0].Count * subsets[1].Count).ToString();
         }
 
-        private (Node sNode, Node tNode, int weight) MaximumAdjSearch(UndirectedGraph<Node, NodeEdge> graph)
+        private int CountCuts(List<List<string>> subsets)
         {
-            var start = graph.Vertices.First();
-            var foundSet = new List<Node>() { start };
-            var cutWeight = new List<int>();
-            var candidates = new HashSet<Node>(graph.Vertices);
-            candidates.Remove(start);
+            var edges = graph.Edges.ToList();
 
-            while(candidates.Count > 0)
+            int cuts = 0;
+            for (int i = 0; i < edges.Count; ++i)
             {
-                Node maxNextVertex = default!;
-                var maxWeight = int.MinValue;
-
-                foreach(var next in candidates)
-                {
-                    int weightSum = 0;
-
-                    foreach(var s in foundSet)
-                    {
-                        if (graph.TryGetEdge(next, s, out NodeEdge edge))
-                        {
-                            weightSum += edge.weight;
-                        }
-                    }
-
-                    if (weightSum > maxWeight)
-                    {
-                        maxNextVertex = next;
-                        maxWeight = weightSum;
-                    }
-                }
-
-                candidates.Remove(maxNextVertex);
-                foundSet.Add(maxNextVertex);
-                cutWeight.Add(maxWeight);
+                var subset1 = subsets.Where(s => s.Contains(edges[i].Source.node)).First();
+                var subset2 = subsets.Where(s => s.Contains(edges[i].Target.node)).First();
+                if (subset1 != subset2) ++cuts;
             }
 
-            return (foundSet[^2], foundSet[^1], cutWeight[^1]);
+            return cuts;
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            return "Finished!";
         }
     }
 }
