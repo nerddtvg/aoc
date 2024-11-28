@@ -186,7 +186,6 @@ namespace AdventOfCode.Solutions
         public static string GetColumn(this string[] strings, int column)
         {
             ArgumentNullException.ThrowIfNull(strings);
-            ArgumentNullException.ThrowIfNull(column);
             ArgumentOutOfRangeException.ThrowIfLessThan(column, 0, nameof(column));
 
             var ret = string.Empty;

@@ -54,7 +54,6 @@ namespace AdventOfCode.Solutions
         public static char[] GetColumn(this char[][] chars, int column)
         {
             ArgumentNullException.ThrowIfNull(chars);
-            ArgumentNullException.ThrowIfNull(column);
             ArgumentOutOfRangeException.ThrowIfLessThan(column, 0, nameof(column));
 
             var ret = new List<char>();
