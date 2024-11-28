@@ -14,7 +14,7 @@ namespace AdventOfCode.Solutions.Year2023
 
         private class Node
         {
-            public string node;
+            public required string node;
         }
 
         public Day25() : base(25, 2023, "Snowverload")
