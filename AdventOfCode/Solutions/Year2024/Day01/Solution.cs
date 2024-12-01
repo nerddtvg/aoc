@@ -42,13 +42,13 @@ namespace AdventOfCode.Solutions.Year2024
             return Enumerable.Range(0, List1.Length)
                 .Sum(i => Math.Abs(List1[i] - List2[i]))
                 .ToString();
-
-            return string.Empty;
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            return List1
+                .Sum(l1item => (uint)l1item * List2.Count(l2item => l2item == l1item))
+                .ToString();
         }
     }
 }
