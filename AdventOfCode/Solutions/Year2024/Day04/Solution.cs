@@ -17,16 +17,16 @@ namespace AdventOfCode.Solutions.Year2024
 
         public Day04() : base(04, 2024, "Ceres Search")
         {
-//             DebugInput = @"MMMSXXMASM
-// MSAMXMSMSA
-// AMXSXMAAMM
-// MSAMASMSMX
-// XMASAMXAMM
-// XXAMMXXAMA
-// SMSMSASXSS
-// SAXAMASAAA
-// MAMMMXMMMM
-// MXMXAXMASX";
+            //             DebugInput = @"MMMSXXMASM
+            // MSAMXMSMSA
+            // AMXSXMAAMM
+            // MSAMASMSMX
+            // XMASAMXAMM
+            // XXAMMXXAMA
+            // SMSMSASXSS
+            // SAXAMASAAA
+            // MAMMMXMMMM
+            // MXMXAXMASX";
 
             grid = Input.SplitByNewline().Select(line => line.ToCharArray()).ToArray();
 
@@ -67,24 +67,34 @@ namespace AdventOfCode.Solutions.Year2024
             return ret.ToArray();
         }
 
-        public string[] GetDiagonals(int x, int y)
+        public int CountDiagonals(int x, int y)
         {
             // Only valid for 3 character strings where (x,y) is A
-            if (x >= 1 && x <= maxX - 1)
-            {
-                if (y >= 1 && y <= maxY - 1)
-                {
-                    if (grid[y][x] == 'A')
-                    {
-                        return [
-                            $"{grid[y - 1][x - 1]}A{grid[y + 1][x + 1]}",
-                            $"{grid[y - 1][x + 1]}A{grid[y + 1][x - 1]}"
-                            ];
-                    }
-                }
-            }
+            // We can charater check to make it "easier"
+            if (
+                x >= 1 && x <= maxX - 1
+                &&
+                y >= 1 && y <= maxY - 1
+                &&
+                grid[y][x] == 'A'
+                &&
+                (
+                    // Top left and bottom right
+                    (grid[y - 1][x - 1] == 'M' && grid[y + 1][x + 1] == 'S')
+                    ||
+                    (grid[y - 1][x - 1] == 'S' && grid[y + 1][x + 1] == 'M')
+                )
+                &&
+                (
+                    // Bottom left and top right
+                    (grid[y + 1][x - 1] == 'M' && grid[y - 1][x + 1] == 'S')
+                    ||
+                    (grid[y + 1][x - 1] == 'S' && grid[y - 1][x + 1] == 'M')
+                )
+            )
+                return 1;
 
-            return ["invalid"];
+            return 0;
         }
 
         protected override string? SolvePartOne()
@@ -93,30 +103,20 @@ namespace AdventOfCode.Solutions.Year2024
             int count = 0;
 
             for (int y = 0; y <= maxY; y++)
-            {
                 for (int x = 0; x <= maxX; x++)
-                {
                     count += GetStrings(x, y).Count(str => str == "XMAS" || str == "SAMX");
-                }
-            }
 
             return count.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            // Time: 00:00:00.0035736
+            // Time: 00:00:00.0007559
             int count = 0;
 
             for (int y = 0; y <= maxY; y++)
-            {
                 for (int x = 0; x <= maxX; x++)
-                {
-                    // Normally Any would be faster for long arrays, but for two strings All is fine
-                    if (GetDiagonals(x, y).All(str => str == "MAS" || str == "SAM"))
-                        count++;
-                }
-            }
+                    count += CountDiagonals(x, y);
 
             return count.ToString();
         }
