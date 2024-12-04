@@ -22,32 +22,49 @@ namespace AdventOfCode.Solutions.Year2024
         protected override string? SolvePartOne()
         {
             // Time: 00:00:00.0034292
-            return regex.Matches(Input)
-                // All matches are >3 chars, so this is safe
-                .Where(match => match.Value[0..3] == "mul")
-                .Sum(match => ulong.Parse(match.Groups["d1"].Value) * ulong.Parse(match.Groups["d2"].Value))
-                .ToString();
+            // return regex.Matches(Input)
+            //     // All matches are >3 chars, so this is safe
+            //     .Where(match => match.Value[0..3] == "mul")
+            //     .Sum(match => ulong.Parse(match.Groups["d1"].Value) * ulong.Parse(match.Groups["d2"].Value))
+            //     .ToString();
+
+            // Time: 00:00:00.0028313
+            ulong sum = 0;
+
+            foreach (Match match in regex.Matches(Input))
+            {
+                switch (match.Value[0..3])
+                {
+                    case "mul":
+                        sum += ulong.Parse(match.Groups["d1"].Value) * ulong.Parse(match.Groups["d2"].Value);
+                        break;
+                }
+            }
+
+            return sum.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            // Time: 00:00:00.0014282
+            // Time: 00:00:00.0012148
             ulong sum = 0;
             bool skip = false;
 
             foreach (Match match in regex.Matches(Input))
             {
-                if (match.Value[0..3] == "do(")
-                {
-                    skip = false;
-                }
-                else if (match.Value[0..3] == "don")
-                {
-                    skip = true;
-                }
-                else if (!skip)
-                {
-                    sum += ulong.Parse(match.Groups["d1"].Value) * ulong.Parse(match.Groups["d2"].Value);
+                switch(match.Value[0..3]) {
+                    case "do(":
+                        skip = false;
+                        break;
+
+                    case "don":
+                        skip = true;
+                        break;
+
+                    default:
+                       if (!skip)
+                            sum += ulong.Parse(match.Groups["d1"].Value) * ulong.Parse(match.Groups["d2"].Value);
+                        break;
                 }
             }
 
