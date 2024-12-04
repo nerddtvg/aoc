@@ -67,6 +67,26 @@ namespace AdventOfCode.Solutions.Year2024
             return ret.ToArray();
         }
 
+        public string[] GetDiagonals(int x, int y)
+        {
+            // Only valid for 3 character strings where (x,y) is A
+            if (x >= 1 && x <= maxX - 1)
+            {
+                if (y >= 1 && y <= maxY - 1)
+                {
+                    if (grid[y][x] == 'A')
+                    {
+                        return [
+                            $"{grid[y - 1][x - 1]}A{grid[y + 1][x + 1]}",
+                            $"{grid[y - 1][x + 1]}A{grid[y + 1][x - 1]}"
+                            ];
+                    }
+                }
+            }
+
+            return ["invalid"];
+        }
+
         protected override string? SolvePartOne()
         {
             // Time: 00:00:00.0124730
@@ -85,7 +105,20 @@ namespace AdventOfCode.Solutions.Year2024
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Time: 00:00:00.0035736
+            int count = 0;
+
+            for (int y = 0; y <= maxY; y++)
+            {
+                for (int x = 0; x <= maxX; x++)
+                {
+                    // Normally Any would be faster for long arrays, but for two strings All is fine
+                    if (GetDiagonals(x, y).All(str => str == "MAS" || str == "SAM"))
+                        count++;
+                }
+            }
+
+            return count.ToString();
         }
     }
 }
