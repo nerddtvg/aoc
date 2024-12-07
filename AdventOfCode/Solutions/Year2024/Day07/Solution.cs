@@ -16,15 +16,15 @@ namespace AdventOfCode.Solutions.Year2024
 
         public Day07() : base(07, 2024, "Bridge Repair")
         {
-//             DebugInput = @"190: 10 19
-// 3267: 81 40 27
-// 83: 17 5
-// 156: 15 6
-// 7290: 6 8 6 15
-// 161011: 16 10 13
-// 192: 17 8 14
-// 21037: 9 7 18 13
-// 292: 11 6 16 20";
+            //             DebugInput = @"190: 10 19
+            // 3267: 81 40 27
+            // 83: 17 5
+            // 156: 15 6
+            // 7290: 6 8 6 15
+            // 161011: 16 10 13
+            // 192: 17 8 14
+            // 21037: 9 7 18 13
+            // 292: 11 6 16 20";
 
             lines = Input.SplitByNewline().Select(line =>
             {
@@ -33,33 +33,41 @@ namespace AdventOfCode.Solutions.Year2024
             }).ToArray();
         }
 
-        private IEnumerable<BigInteger> GetPossibleSums(BigInteger[] numbers)
+        private IEnumerable<BigInteger> GetPossibleSums(BigInteger[] numbers, bool part2 = false)
         {
             // Left to right means we need to get the two possible values of 0 and 1 now
             var try1 = numbers[0] + numbers[1];
             var try2 = numbers[0] * numbers[1];
+            var try3 = BigInteger.Parse($"{numbers[0]}{numbers[1]}");
 
             if (numbers.Length == 2)
             {
                 // If these are the only two values left, return them
                 yield return try1;
                 yield return try2;
+
+                if (part2)
+                    yield return try3;
             }
             else
             {
                 // Otherwise, return every possible value including them
-                foreach (var num in GetPossibleSums(new[] { try1 }.Concat(numbers[2..]).ToArray()))
+                foreach (var num in GetPossibleSums(new[] { try1 }.Concat(numbers[2..]).ToArray(), part2))
                     yield return num;
 
-                foreach (var num in GetPossibleSums(new[] { try2 }.Concat(numbers[2..]).ToArray()))
+                foreach (var num in GetPossibleSums(new[] { try2 }.Concat(numbers[2..]).ToArray(), part2))
                     yield return num;
+
+                if (part2)
+                    foreach (var num in GetPossibleSums(new[] { try3 }.Concat(numbers[2..]).ToArray(), part2))
+                        yield return num;
             }
         }
 
-        private bool IsValid(BigInteger testValue, BigInteger[] numbers)
+        private bool IsValid(BigInteger testValue, BigInteger[] numbers, bool part2 = false)
         {
             // Using Any will shortcut the Enumerable
-            if (GetPossibleSums(numbers).Any(s => s == testValue))
+            if (GetPossibleSums(numbers, part2).Any(s => s == testValue))
                 return true;
 
             return false;
@@ -75,7 +83,10 @@ namespace AdventOfCode.Solutions.Year2024
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Time: 00:00:07.0969372
+            return lines
+                .SumBigInteger(test => IsValid(test.testValue, test.numbers, true) ? test.testValue : BigInteger.Zero)
+                .ToString();
         }
     }
 }
