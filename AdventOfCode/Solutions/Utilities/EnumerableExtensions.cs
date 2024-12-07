@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace AdventOfCode.Solutions
 {
@@ -305,6 +306,45 @@ namespace AdventOfCode.Solutions
                 // Check if there is an overflow
                 if (UInt64.MaxValue - returnValue < val)
                     throw new OverflowException();
+
+                // Add it
+                returnValue += val;
+
+                // We've had a value
+                HasValue = true;
+            }
+
+            // No value on this one
+            if (!HasValue)
+                return null;
+
+            return returnValue;
+        }
+
+        /// <summary>
+        /// Computes the sum of the sequence of nullable <see cref="System.Numerics.BigInteger"/> values that are obtained by invoking a transform function on each element of the input sequence.
+        /// </summary>
+        /// <param name="source">A sequence of values that are used to calculate a sum.</param>
+        /// <param name="selector">A transform function to apply to each element.</param>
+        /// <typeparam name="TSource">he type of the elements of <paramref name="source"/>.</typeparam>
+        /// <returns>The sum of the projected values.</returns>
+        /// <exception cref="System.ArgumentNullException"><paramref name="source"/> or <paramref name="selector"/> is <see langword="null" />.</exception>
+        public static BigInteger? SumBigInteger<TSource>(this IEnumerable<TSource> source, Func<TSource, BigInteger?> selector)
+        {
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
+
+            bool HasValue = false;
+            BigInteger? returnValue = BigInteger.Zero;
+
+            foreach (var item in source)
+            {
+                // Get our value
+                var val = selector(item);
+
+                // May not have a value here
+                if (!val.HasValue)
+                    continue;
 
                 // Add it
                 returnValue += val;
