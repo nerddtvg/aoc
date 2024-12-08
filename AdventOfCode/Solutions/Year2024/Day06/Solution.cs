@@ -88,7 +88,7 @@ namespace AdventOfCode.Solutions.Year2024
 
                 case '#':
                     // CHANGE DIRECTION!
-                    dir = (Dir)(((int)dir + 1) % 4);
+                    dir = dir.Rotate();
                     break;
             }
 
