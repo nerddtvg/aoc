@@ -11,25 +11,11 @@ namespace AdventOfCode.Solutions.Year2024
 
     class Day06 : ASolution
     {
-        public enum Dir
-        {
-            North,
-            East,
-            South,
-            West
-        }
-
         private char[][] grid;
-        private Dictionary<(int x, int y), HashSet<Dir>> visited = new();
+        private Dictionary<(int x, int y), HashSet<Direction>> visited = new();
         private (int x, int y) start;
         private (int x, int y) pos;
-        private Dir dir = Dir.North;
-        private Dictionary<Dir, (int x, int y)> move = new() {
-            { Dir.North, (0, -1) },
-            { Dir.East, (1, 0) },
-            { Dir.South, (0, 1) },
-            { Dir.West, (-1, 0) }
-        };
+        private Direction dir = Direction.North;
 
         public Day06() : base(06, 2024, "Guard Gallivant")
         {
@@ -61,7 +47,7 @@ namespace AdventOfCode.Solutions.Year2024
         private void Reset()
         {
             pos = start;
-            dir = Dir.North;
+            dir = Direction.North;
 
             // Clear out the visited array each time
             visited = new() { [start] = [dir] };
@@ -69,7 +55,7 @@ namespace AdventOfCode.Solutions.Year2024
 
         private bool Move((int x, int y)? fakeObstacle = null)
         {
-            (int x, int y) newPos = pos.Add(move[dir]);
+            (int x, int y) newPos = pos.Add(Directions.directionTuple[dir]);
 
             if (newPos.x < 0 || newPos.y < 0 || grid[0].Length <= newPos.x || grid.Length <= newPos.y)
             {
@@ -79,11 +65,11 @@ namespace AdventOfCode.Solutions.Year2024
             switch (fakeObstacle?.x == newPos.x && fakeObstacle?.y == newPos.y ? '#' : grid[newPos.y][newPos.x])
             {
                 case '.':
-                case '^':
+                case (char)DirectionChar.North:
                     pos = newPos;
                     // This tracks what we have visited
                     if (!visited.ContainsKey(pos))
-                        visited[pos] = new();
+                        visited[pos] = [];
                     break;
 
                 case '#':
@@ -98,6 +84,7 @@ namespace AdventOfCode.Solutions.Year2024
         protected override string? SolvePartOne()
         {
             // Time: 00:00:00.0058982
+            // Rewrite: 00:00:00.0143739
             Reset();
             while (Move())
             {
@@ -109,6 +96,7 @@ namespace AdventOfCode.Solutions.Year2024
         protected override string? SolvePartTwo()
         {
             // Time: 00:00:05.8077128
+            // Rewrite: 00:00:06.1962430
             // We will review all visited locations and attempt to place an object there
             var visitedKeys = visited.Keys.Where(key => key.x != start.x || key.y != start.y).ToArray();
 
