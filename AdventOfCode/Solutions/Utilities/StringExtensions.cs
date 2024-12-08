@@ -52,26 +52,26 @@ namespace AdventOfCode.Solutions
         }
 
         /// <summary>
-        /// Takes a string, can be multi-line, and splits it into a simple char[y][x] grid.
+        /// Takes a string, can be multi-line, and splits it into a simple char[y][x] grid. Any whitespace is trimmed.
         /// </summary>
         /// <param name="str">The input string</param>
         /// <returns><see cref="char[][]"/> </returns>
         public static char[][] ToCharGrid(this string str) {
             return str
-                .SplitByNewline()
+                .SplitByNewline(true)
                 .Select(line => line.ToCharArray())
                 .ToArray();
         }
 
         /// <summary>
-        /// Takes a string, can be multi-line, and splits it into a simple int[y][x] grid.
+        /// Takes a string, can be multi-line, and splits it into a simple int[y][x] grid. Any whitespace is trimmed.
         /// </summary>
         /// <param name="str">The input string where each character is a single-digit integer</param>
         /// <returns><see cref="int[][]"/> </returns>
         public static int[][] ToIntGrid(this string str)
         {
             return str
-                .SplitByNewline()
+                .SplitByNewline(true)
                 .Select(line => line.ToIntArray())
                 .ToArray();
         }
