@@ -8,6 +8,32 @@ using System.Numerics;
 namespace AdventOfCode.Solutions;
 
 /// <summary>
+/// Quick references to common 2D Moves
+/// </summary>
+public readonly struct Point2D
+{
+    /// <summary>
+    /// Common 2D Translation: Move Up
+    /// </summary>
+    public readonly static Point<int> MoveUp = new(0, -1);
+
+    /// <summary>
+    /// Common 2D Translation: Move Right
+    /// </summary>
+    public readonly static Point<int> MoveRight = new(1, 0);
+
+    /// <summary>
+    /// Common 2D Translation: Move Down
+    /// </summary>
+    public readonly static Point<int> MoveDown = new(0, 1);
+
+    /// <summary>
+    /// Common 2D Translation: Move Left
+    /// </summary>
+    public readonly static Point<int> MoveLeft = new(-1, 0);
+}
+
+/// <summary>
 /// A simple (x, y) coordinate class with corresponding operators.
 /// </summary>
 public readonly struct Point<T> where T : INumber<T>
@@ -32,13 +58,13 @@ public readonly struct Point<T> where T : INumber<T>
         this.coordinates = coordinates;
     }
 
-    public static Point<T> operator +(Point<T>a) => a;
-    public static Point<T>operator -(Point<T>a) => new Point<T>(a.coordinates.Select(c => -c).ToArray());
+    public static Point<T> operator +(Point<T> a) => a;
+    public static Point<T> operator -(Point<T> a) => new Point<T>(a.coordinates.Select(c => -c).ToArray());
 
     /// <summary>
     /// Compare the lengths of two <see cref="Point" /> to ensure they have the same number of dimensions.
     /// </summary>
-    private static void EnsureSameDimensions(Point<T>a, Point<T>b)
+    private static void EnsureSameDimensions(Point<T> a, Point<T> b)
     {
         if (a.coordinates.Length != b.coordinates.Length)
             throw new Exception("The given points do not have the same dimensions.");
@@ -47,7 +73,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Adds points <paramref name="a" /> and <paramref name="b" />
     /// </summary>
-    public static Point<T>operator +(Point<T>a, Point<T>b)
+    public static Point<T> operator +(Point<T> a, Point<T> b)
     {
         EnsureSameDimensions(a, b);
 
@@ -61,7 +87,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Subtract point <paramref name="b" /> from <paramref name="a" />
     /// </summary>
-    public static Point<T>operator -(Point<T>a, Point<T>b)
+    public static Point<T> operator -(Point<T> a, Point<T> b)
     {
         EnsureSameDimensions(a, b);
 
@@ -123,13 +149,13 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Not implemented.
     /// </summary>
-    public static Point<T>operator *(Point<T>a, Point<T>b)
+    public static Point<T> operator *(Point<T> a, Point<T> b)
         => throw new NotImplementedException();
 
     /// <summary>
     /// Not implemented.
     /// </summary>
-    public static Point<T>operator /(Point<T>a, Point<T>b)
+    public static Point<T> operator /(Point<T> a, Point<T> b)
         => throw new NotImplementedException();
 
     /// <summary>
@@ -205,7 +231,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Increment all dimensions by 1.
     /// </summary>
-    public static Point<T>operator ++(Point<T>a)
+    public static Point<T> operator ++(Point<T> a)
     {
         return new Point<T>(
             a.coordinates
@@ -217,7 +243,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Decrement all dimensions by 1.
     /// </summary>
-    public static Point<T>operator --(Point<T>a)
+    public static Point<T> operator --(Point<T> a)
     {
         return new Point<T>(
             a.coordinates
@@ -229,7 +255,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Ensure all dimensions are equal.
     /// </summary>
-    public static bool operator ==(Point<T>a, Point<T>b)
+    public static bool operator ==(Point<T> a, Point<T> b)
     {
         if (a.coordinates.Length != b.coordinates.Length)
             return false;
@@ -241,7 +267,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Ensure at least one dimension is not equal or they are different sizes.
     /// </summary>
-    public static bool operator !=(Point<T>a, Point<T>b)
+    public static bool operator !=(Point<T> a, Point<T> b)
     {
         if (a.coordinates.Length != b.coordinates.Length)
             return true;
@@ -255,7 +281,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// </summary>
     public override bool Equals([NotNullWhen(true)] object? obj)
     {
-        if (obj is Point<T>b)
+        if (obj is Point<T> b)
         {
             return this == b;
         }
@@ -276,7 +302,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Compare if <paramref name="a" /> is less than <paramref name="b" />
     /// </summary>
-    public static bool operator <(Point<T>a, Point<T>b)
+    public static bool operator <(Point<T> a, Point<T> b)
     {
         EnsureSameDimensions(a, b);
 
@@ -287,7 +313,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Compare if <paramref name="a" /> is greater than <paramref name="b" />
     /// </summary>
-    public static bool operator >(Point<T>a, Point<T>b)
+    public static bool operator >(Point<T> a, Point<T> b)
     {
         EnsureSameDimensions(a, b);
 
@@ -298,7 +324,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Compare if <paramref name="a" /> is less than or equal <paramref name="b" />
     /// </summary>
-    public static bool operator <=(Point<T>a, Point<T>b)
+    public static bool operator <=(Point<T> a, Point<T> b)
     {
         EnsureSameDimensions(a, b);
 
@@ -309,7 +335,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Compare if <paramref name="a" /> is greater than or equal <paramref name="b" />
     /// </summary>
-    public static bool operator >=(Point<T>a, Point<T>b)
+    public static bool operator >=(Point<T> a, Point<T> b)
     {
         EnsureSameDimensions(a, b);
 
@@ -320,7 +346,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Create a new <see cref="Point" /> with the existing coordinates and a new dimension.
     /// </summary>
-    public Point<T>AddDimension(T value)
+    public Point<T> AddDimension(T value)
         => new Point<T>(coordinates.Append(value).ToArray());
 
     /// <summary>
