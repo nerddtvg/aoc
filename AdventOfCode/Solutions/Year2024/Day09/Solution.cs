@@ -153,7 +153,7 @@ namespace AdventOfCode.Solutions.Year2024
             if (debug)
                 Console.WriteLine(newLayout);
 
-            // Time: 00:00:00.0046433
+            // Time: 00:00:00.4708549
             return checksum.ToString();
         }
     }
