@@ -14,6 +14,9 @@ namespace AdventOfCode.Solutions.Year2024
         public int[][] grid;
         public HashSet<Point<int>> trailheads = new();
 
+        public int validEnds = 0;
+        public int validPaths = 0;
+
         public Day10() : base(10, 2024, "Hoof It")
         {
             // DebugInput = @"89010123
@@ -54,10 +57,17 @@ namespace AdventOfCode.Solutions.Year2024
         /// <summary>
         /// Find valid walking path counts from <paramref name="pt"/>
         /// </summary>
-        public int GetWalkingPaths(Point<int> pt) {
+        public (int validEnds, int validPaths) GetWalkingPaths(Point<int> pt) {
             // Start at pt, get all possible paths
             // When a path ends in 9, it is valid
+
+            // Part 1 is the count of valid endings (9)
             HashSet<Point<int>> validEnds = new();
+
+            // Part 2 is the count of all possible paths
+            // including duplicate endings
+            int validPaths = 0;
+
             Stack<Point<int>> stack = new([pt]);
 
             while(stack.Count > 0) {
@@ -68,25 +78,38 @@ namespace AdventOfCode.Solutions.Year2024
                 {
                     // If the move ends in 9, we are done
                     if (grid[move.y][move.x] == 9)
+                    {
                         validEnds.Add(move);
+                        validPaths++;
+                    }
                     else
                         // Otherwise add it to the stack
                         stack.Push(move);
                 }
             }
 
-            return validEnds.Count;
+            return (validEnds.Count, validPaths);
         }
 
         protected override string? SolvePartOne()
         {
             // Time: 00:00:00.0236671
-            return trailheads.Sum(GetWalkingPaths).ToString();
+            // Time with P2: 00:00:00.0222023
+            trailheads.ForEach(pt =>
+            {
+                var (tValidEnds, tValidPaths) = GetWalkingPaths(pt);
+
+                validEnds += tValidEnds;
+                validPaths += tValidPaths;
+            });
+
+            return validEnds.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Time: No additional time
+            return validPaths.ToString();
         }
     }
 }
