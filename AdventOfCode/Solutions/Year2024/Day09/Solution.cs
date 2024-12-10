@@ -19,7 +19,6 @@ namespace AdventOfCode.Solutions.Year2024
 
         protected override string? SolvePartOne()
         {
-            // 6520497575151 - Too High
             var DiskLayout = Input.ToIntArray();
 
             var newLayout = string.Empty;
@@ -32,66 +31,55 @@ namespace AdventOfCode.Solutions.Year2024
             // To migrate files from the end, block by block, we will emulate it with loops
             var fileId = (ulong)0;
 
-            // Our lastFileId is also the lastFilePosition
-            var lastFilePosition = DiskLayout.Length - (DiskLayout.Length % 2 == 0 ? 2 : 1);
-            var lastFileId = (ulong)lastFilePosition / 2;
+            // Determine the lastFileIdx and the lastFileId
+            var lastFileIdx = DiskLayout.Length - (DiskLayout.Length % 2 == 0 ? 2 : 1);
+            var lastFileId = (ulong)lastFileIdx / 2;
 
-            var positionPrefix = (ulong)0;
+            var position = (ulong)0;
 
             // Track the results
             var checksum = (ulong)0;
 
-            for (int position = 0; position < DiskLayout.Length && position <= lastFilePosition; position += 2)
+            for (int layoutIdx = 0; layoutIdx < DiskLayout.Length; layoutIdx += 2, fileId++)
             {
                 // For the current file in this position, append the checksum
-                for (uint idx = 0; idx < DiskLayout[position] && (idx + position) < DiskLayout.Length; idx++, positionPrefix++)
+                for (var idx = 0; idx < DiskLayout[layoutIdx]; idx++, position++)
                 {
                     if (debug)
                     {
-                        Console.WriteLine($"{positionPrefix} * {fileId}");
+                        Console.WriteLine($"{position} * {fileId}");
                         newLayout += fileId;
                     }
 
-                    checksum += fileId * positionPrefix;
+                    checksum += fileId * position;
                 }
 
-                // Move ahead a fileId
-                fileId++;
-
                 // Now for free space
-                if (position < DiskLayout.Length - 1 && position < lastFilePosition)
+                if (layoutIdx < DiskLayout.Length - 1)
                 {
-                    // Take our last file and work on it
-                    var freeSpace = DiskLayout[position + 1];
-
-                    while (freeSpace > 0)
+                    // How much free space do we have next?
+                    var freeSpaceIdx = layoutIdx + 1;
+                    while (DiskLayout[freeSpaceIdx] > 0 && fileId < lastFileId)
                     {
-                        // Move one block, update the DiskLayout
-                        var fileLength = (ulong)DiskLayout[lastFilePosition];
-                        var idx = (ulong)0;
-
-                        for (; idx < fileLength && freeSpace > 0; positionPrefix++, idx++, freeSpace--)
+                        // Move one block from lastFileIdx to freeSpaceIdx, update the DiskLayout
+                        for (var idx = 0; idx < DiskLayout[lastFileIdx] && DiskLayout[freeSpaceIdx] > 0; position++, idx++, DiskLayout[freeSpaceIdx]--, DiskLayout[lastFileIdx]--)
                         {
                             if (debug)
                             {
                                 newLayout += lastFileId;
-                                Console.WriteLine($"{positionPrefix} * {lastFileId}");
+                                Console.WriteLine($"{position} * {lastFileId}");
                             }
 
-                            checksum += positionPrefix * lastFileId;
+                            checksum += position * lastFileId;
                         }
 
-                        // If we loop again, we need to change positionPrefix
-                        // positionPrefix += fileLength;
-
                         // Change the disk length in case we come back to it
-                        DiskLayout[lastFilePosition] = (int)(fileLength - idx);
-
-                        if (idx == fileLength)
+                        // Prevents main loop from counting them as well
+                        if (DiskLayout[lastFileIdx] == 0)
                         {
                             // We ran out of that file, move back
                             lastFileId--;
-                            lastFilePosition -= 2;
+                            lastFileIdx -= 2;
                         }
                     }
                 }
@@ -100,6 +88,7 @@ namespace AdventOfCode.Solutions.Year2024
             if (debug)
                 Console.WriteLine(newLayout);
 
+            // Time: 00:00:00.0046433
             return checksum.ToString();
         }
 
