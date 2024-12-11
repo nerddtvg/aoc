@@ -11,53 +11,94 @@ namespace AdventOfCode.Solutions.Year2024
 
     class Day11 : ASolution
     {
-        public List<ulong> stones;
+        public Dictionary<ulong, ulong> stones = new();
 
         public Day11() : base(11, 2024, "Plutonian Pebbles")
         {
             // DebugInput = "125 17";
 
-            stones = [.. Input.ToIntArray(" ").Select(Convert.ToUInt64)];
+            Input
+                .ToIntArray(" ")
+                .Select(Convert.ToUInt64)
+                .ForEach(v => {
+                    if (stones.ContainsKey(v))
+                        stones[v]++;
+                    else
+                        stones[v] = 1;
+                });
         }
 
         public void RunStones()
         {
             // Peforms a single pass of the stone math
-            for (int i = 0; i < stones.Count; i++)
-            {
-                var digits = stones[i].GetDigits();
+            // To avoid cycling the same stones over and over,
+            // keep track of how many of each stone "value"
+            // we have
+            Dictionary<ulong, ulong> newStones = [];
 
-                if (stones[i] == 0)
+            // The wording states the order remains consistent
+            // however the order has no impact on the outcome
+
+            // To make it easier, only run each stone value once
+            // and add that number of "outcomes" to the newStones
+            // dictionary. So if stone '0' becomes '1', and you have
+            // 35 stone '0' entries, then you now have 25 stone '1'
+            // entries.
+            foreach(var stone in stones.Keys)
+            {
+                var digits = stone.GetDigits();
+
+                var stone1 = ulong.MaxValue;
+                var stone2 = ulong.MaxValue;
+
+                if (stone == 0)
                 {
-                    stones[i] = 1;
+                    stone1 = 1;
                 }
                 else if (digits.Length % 2 == 0)
                 {
                     // Split this in two
-                    stones[i] = ulong.Parse(digits[..(digits.Length / 2)].JoinAsString());
-                    stones.Insert(i + 1, ulong.Parse(digits[(digits.Length / 2)..].JoinAsString()));
-
-                    // Skip the next stone we just made
-                    i++;
+                    stone1 = ulong.Parse(digits[..(digits.Length / 2)].JoinAsString());
+                    stone2 = ulong.Parse(digits[(digits.Length / 2)..].JoinAsString());
                 }
                 else
                 {
-                    stones[i] *= 2024;
+                    stone1 = stone * 2024;
+                }
+
+                if (newStones.ContainsKey(stone1))
+                    newStones[stone1] += stones[stone];
+                else
+                    newStones[stone1] = stones[stone];
+
+                if (stone2 != ulong.MaxValue)
+                {
+                    if (newStones.ContainsKey(stone2))
+                        newStones[stone2] += stones[stone];
+                    else
+                        newStones[stone2] = stones[stone];
                 }
             }
+
+            // Save the new stones
+            stones = newStones;
         }
 
         protected override string? SolvePartOne()
         {
             // Time: 00:00:02.6260900
+            // Rewrite for Part 2: 00:00:00.0116831
             Utilities.Repeat(RunStones, 25);
 
-            return stones.Count.ToString();
+            return stones.Sum(kvp => kvp.Value).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Time: 00:00:00.1522481
+            Utilities.Repeat(RunStones, 50);
+
+            return stones.Sum(kvp => kvp.Value).ToString();
         }
     }
 }
