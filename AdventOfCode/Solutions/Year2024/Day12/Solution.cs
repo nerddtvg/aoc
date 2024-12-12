@@ -103,6 +103,7 @@ namespace AdventOfCode.Solutions.Year2024
             // Find all regions
             grid.ForEach((line, y) => line.ForEach((c, x) => FindRegion(new(x, y))));
 
+            // Time: 00:00:00.1347395
             return regions.Sum(r => r.area * r.borders).ToString();
         }
 
