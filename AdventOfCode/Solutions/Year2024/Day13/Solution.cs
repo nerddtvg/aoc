@@ -35,14 +35,16 @@ namespace AdventOfCode.Solutions.Year2024
         {
             var input = strings.JoinAsString();
 
+            var p2Offset = part2 ? 10000000000000 : 0;
+
             // This will use Z3, which I don't completely get still
             var buttonMatch = new Regex(@"X\+(?<X>[0-9]+), Y\+(?<Y>[0-9]+)").Matches(input);
             var prizeMatch = new Regex(@"X=(?<X>[0-9]+), Y=(?<Y>[0-9]+)").Matches(input);
 
             var z3Context = new Context();
 
-            var prizeX = z3Context.MkInt(int.Parse(prizeMatch[0].Groups["X"].Value) + (part2 ? 10000000000000 : 0));
-            var prizeY = z3Context.MkInt(int.Parse(prizeMatch[0].Groups["Y"].Value) + (part2 ? 10000000000000 : 0));
+            var prizeX = z3Context.MkInt(int.Parse(prizeMatch[0].Groups["X"].Value) + p2Offset);
+            var prizeY = z3Context.MkInt(int.Parse(prizeMatch[0].Groups["Y"].Value) + p2Offset);
 
             var a = z3Context.MkIntConst($"a");
             var b = z3Context.MkIntConst($"b");
@@ -64,8 +66,8 @@ namespace AdventOfCode.Solutions.Year2024
             solver.Add(z3Context.MkGe(b, z3Context.MkInt(0)));
 
             // Setting maximums to save time
-            solver.Add(z3Context.MkLe(a, z3Context.MkInt(part2 ? 10000000000000 : 100000)));
-            solver.Add(z3Context.MkLe(b, z3Context.MkInt(part2 ? 10000000000000 : 100000)));
+            solver.Add(z3Context.MkLe(a, z3Context.MkInt(p2Offset + 100000)));
+            solver.Add(z3Context.MkLe(b, z3Context.MkInt(p2Offset + 100000)));
 
             // Coin cost: 3a + b
             var eqCoins = z3Context.MkAdd(z3Context.MkMul(a, z3Context.MkInt(3)), b);
