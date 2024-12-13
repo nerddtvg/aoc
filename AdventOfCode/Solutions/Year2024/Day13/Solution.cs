@@ -31,7 +31,7 @@ namespace AdventOfCode.Solutions.Year2024
             // Prize: X=18641, Y=10279";
         }
 
-        public int GetMinimumNumberOfCoins(string[] strings)
+        public Int64 GetMinimumNumberOfCoins(string[] strings, bool part2 = false)
         {
             var input = strings.JoinAsString();
 
@@ -41,8 +41,8 @@ namespace AdventOfCode.Solutions.Year2024
 
             var z3Context = new Context();
 
-            var prizeX = z3Context.MkInt(prizeMatch[0].Groups["X"].Value);
-            var prizeY = z3Context.MkInt(prizeMatch[0].Groups["Y"].Value);
+            var prizeX = z3Context.MkInt(int.Parse(prizeMatch[0].Groups["X"].Value) + (part2 ? 10000000000000 : 0));
+            var prizeY = z3Context.MkInt(int.Parse(prizeMatch[0].Groups["Y"].Value) + (part2 ? 10000000000000 : 0));
 
             var a = z3Context.MkIntConst($"a");
             var b = z3Context.MkIntConst($"b");
@@ -59,8 +59,8 @@ namespace AdventOfCode.Solutions.Year2024
             solver.Add(z3Context.MkGe(b, z3Context.MkInt(0)));
 
             // Setting maximums to save time
-            solver.Add(z3Context.MkLe(a, z3Context.MkInt(100000)));
-            solver.Add(z3Context.MkLe(b, z3Context.MkInt(100000)));
+            solver.Add(z3Context.MkLe(a, z3Context.MkInt(part2 ? 10000000000000 : 100000)));
+            solver.Add(z3Context.MkLe(b, z3Context.MkInt(part2 ? 10000000000000 : 100000)));
 
             // Coin cost: 3a + b
             var eqCoins = z3Context.MkAdd(z3Context.MkMul(a, z3Context.MkInt(3)), b);
@@ -75,7 +75,7 @@ namespace AdventOfCode.Solutions.Year2024
                 return 0;
 
             // return h1.Value
-            return ((IntNum)h1.Value).Int;
+            return ((IntNum)h1.Value).Int64;
         }
 
         protected override string? SolvePartOne()
@@ -83,13 +83,17 @@ namespace AdventOfCode.Solutions.Year2024
             // Time: 00:00:01.9734085
             return Input
                 .SplitByBlankLine(shouldTrim: true)
-                .Sum(GetMinimumNumberOfCoins)
+                .Sum(grp => GetMinimumNumberOfCoins(grp))
                 .ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Time: 00:00:02.3056094
+            return Input
+                .SplitByBlankLine(shouldTrim: true)
+                .Sum(grp => GetMinimumNumberOfCoins(grp, true))
+                .ToString();
         }
     }
 }
