@@ -52,9 +52,14 @@ namespace AdventOfCode.Solutions.Year2024
             var eqY = z3Context.MkAdd(z3Context.MkMul(a, z3Context.MkInt(buttonMatch[0].Groups["Y"].Value)), z3Context.MkAdd(z3Context.MkMul(b, z3Context.MkInt(buttonMatch[1].Groups["Y"].Value))));
 
             var solver = z3Context.MkOptimize();
+
+            // We are solving for:
+            // prizeX=eqX [a*ax + b*bx]
+            // prizeY=eqY [a*ay + b*by]
             solver.Add(z3Context.MkEq(prizeX, eqX));
             solver.Add(z3Context.MkEq(prizeY, eqY));
 
+            // Soft limits
             solver.Add(z3Context.MkGe(a, z3Context.MkInt(0)));
             solver.Add(z3Context.MkGe(b, z3Context.MkInt(0)));
 
@@ -65,12 +70,14 @@ namespace AdventOfCode.Solutions.Year2024
             // Coin cost: 3a + b
             var eqCoins = z3Context.MkAdd(z3Context.MkMul(a, z3Context.MkInt(3)), b);
 
+            // Minimize our coin cost
             var h1 = solver.MkMinimize(eqCoins);
 
             // No answer
             if (solver.Check() != Status.SATISFIABLE)
                 return 0;
 
+            // Must be an integer
             if (!h1.Value.IsIntNum)
                 return 0;
 
