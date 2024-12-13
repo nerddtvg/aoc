@@ -31,6 +31,26 @@ public readonly struct Point2D
     /// Common 2D Translation: Move Left
     /// </summary>
     public readonly static Point<int> MoveLeft = new(-1, 0);
+
+    /// <summary>
+    /// Common 2D Translation: Move Up
+    /// </summary>
+    public readonly static Point<int> MoveUpLeft = new(-1, -1);
+
+    /// <summary>
+    /// Common 2D Translation: Move Right
+    /// </summary>
+    public readonly static Point<int> MoveUpRight = new(1, -1);
+
+    /// <summary>
+    /// Common 2D Translation: Move Down
+    /// </summary>
+    public readonly static Point<int> MoveDownLeft = new(-1, 1);
+
+    /// <summary>
+    /// Common 2D Translation: Move Left
+    /// </summary>
+    public readonly static Point<int> MoveDownRight = new(1, 1);
 }
 
 /// <summary>
