@@ -94,6 +94,40 @@ namespace AdventOfCode.Solutions
         }
 
         /// <summary>
+        /// Finding the Variance of an input list of numbers.
+        /// </summary>
+        /// <param name="list">Input values.</param>
+        /// <returns>The calculated variance if 2 or more values are provided.</returns>
+        /// <seealso cref="https://www.calculatorsoup.com/calculators/statistics/variance-calculator.php"/>
+        public static double Variance(double[] list)
+        {
+            ArgumentNullException.ThrowIfNull(list);
+
+            if (list.Length <= 1)
+                return 0;
+
+            var avg = list.Average();
+            var variance = 0.0;
+
+            list.ForEach(val => variance += Math.Pow(val - avg, 2.0));
+
+            return variance / list.Length;
+        }
+
+        /// <summary>
+        /// Finding the Variance of an input list of numbers.
+        /// </summary>
+        /// <param name="list">Input values.</param>
+        /// <returns>The calculated variance if 2 or more values are provided.</returns>
+        /// <seealso cref="https://www.calculatorsoup.com/calculators/statistics/variance-calculator.php"/>
+        public static double Variance(int[] list)
+        {
+            ArgumentNullException.ThrowIfNull(list);
+
+            return Variance(list.Select(value => (double)value).ToArray());
+        }
+
+        /// <summary>
         /// Repeats a given <paramref name="action"/> <paramref name="count"/> times
         /// </summary>
         /// <param name="action">The action to repeat</param>

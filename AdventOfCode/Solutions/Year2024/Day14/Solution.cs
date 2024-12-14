@@ -153,8 +153,8 @@ namespace AdventOfCode.Solutions.Year2024
             // Find the lowest variances for each x, y
             for (int i = 0; i <= maxCycle; i++)
             {
-                var tXVar = Variance(tempRobots.Select(r => r.x).ToArray());
-                var tYVar = Variance(tempRobots.Select(r => r.y).ToArray());
+                var tXVar = Utilities.Variance(tempRobots.Select(r => r.x).ToArray());
+                var tYVar = Utilities.Variance(tempRobots.Select(r => r.y).ToArray());
 
                 if (tXVar < minXVar)
                 {
@@ -200,22 +200,6 @@ namespace AdventOfCode.Solutions.Year2024
             // Time: 00:00:00.0174955
             // With printing: 00:00:00.2185902
             return t.ToString();
-        }
-
-        /// <summary>
-        /// Calculate the variance of an array of numbers: https://www.calculatorsoup.com/calculators/statistics/variance-calculator.php
-        /// </summary>
-        public double Variance(int[] values)
-        {
-            if (values.Length <= 1)
-                return 0;
-
-            var avg = values.Average();
-            var variance = 0.0;
-
-            values.ForEach(val => variance += Math.Pow(val - avg, 2.0));
-
-            return variance / values.Length;
         }
     }
 }
