@@ -126,12 +126,96 @@ namespace AdventOfCode.Solutions.Year2024
             var newRobots = robots.Select(robot => CalculateRobot(robot, 100)).ToList();
             var (q1, q2, q3, q4) = CountQuadrants(newRobots);
 
+            // Time: 00:00:00.0025250
             return (q1 * q2 * q3 * q4).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Part 2 is interesting because we can loop through each possibility and find what looks like a tree
+            // Or we can see if we can identify the proper x and y loops, then use CRT (used in previous years)
+            // to find the answer
+
+            // Hint on how to find the best possible loop times:
+            // https://old.reddit.com/r/adventofcode/comments/1he0asr/2024_day_14_part_2_why_have_fun_with_image/
+
+            // Max cycle:
+            var maxCycle = Math.Max(width, height);
+            double minXVar = double.MaxValue;
+            double minYVar = double.MaxValue;
+
+            // This tracks the time that produces the minimum variance for x,y
+            int minX = 0;
+            int minY = 0;
+
+            var tempRobots = robots.Select(r => r.Clone()).ToList();
+
+            // Find the lowest variances for each x, y
+            for (int i = 0; i <= maxCycle; i++)
+            {
+                var tXVar = Variance(tempRobots.Select(r => r.x).ToArray());
+                var tYVar = Variance(tempRobots.Select(r => r.y).ToArray());
+
+                if (tXVar < minXVar)
+                {
+                    minXVar = tXVar;
+                    minX = i;
+                }
+
+                if (tYVar < minYVar)
+                {
+                    minYVar = tYVar;
+                    minY = i;
+                }
+
+                // Move one second
+                tempRobots = tempRobots.Select(robot => CalculateRobot(robot, 1)).ToList();
+            }
+
+            // Chinese Remainder Theorem comes in but we can also brute force this
+            int t = minX;
+
+            // Step through minX, minX + 2w, ...
+            // until that time makes:
+            // t % height == minY
+            for (; t > 0; t += width)
+                if (t % height == minY)
+                    break;
+
+            // For fun, print the output
+            tempRobots = robots.Select(r => CalculateRobot(r, t)).ToList();
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (tempRobots.Any(r => r.x == x && r.y == y))
+                        Console.Write('#');
+                    else
+                        Console.Write(' ');
+                }
+                Console.WriteLine();
+            }
+
+            // Time: 00:00:00.0174955
+            // With printing: 00:00:00.2185902
+            return t.ToString();
+        }
+
+        /// <summary>
+        /// Calculate the variance of an array of numbers: https://www.calculatorsoup.com/calculators/statistics/variance-calculator.php
+        /// </summary>
+        public double Variance(int[] values)
+        {
+            if (values.Length <= 1)
+                return 0;
+
+            var avg = values.Average();
+            var variance = 0.0;
+
+            values.ForEach(val => variance += Math.Pow(val - avg, 2.0));
+
+            return variance / values.Length;
         }
     }
 }
