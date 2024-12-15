@@ -119,53 +119,6 @@ namespace AdventOfCode.Solutions.Year2024
 
         private void Move(char instruction)
         {
-            var newPos = pos.Clone();
-            var moveDelta = Directions.directionPoint[Directions.charToDirection[instruction]];
-            newPos += moveDelta;
-
-            if (!InGrid(newPos))
-                return;
-
-            // Wall
-            if (grid[newPos.y][newPos.x] == wall)
-                return;
-
-            // Empty space
-            if (grid[newPos.y][newPos.x] == open)
-            {
-                pos = newPos;
-                return;
-            }
-
-            // Other: Boxes!
-            if (grid[newPos.y][newPos.x] != box)
-                throw new Exception("Unknown char.");
-
-            // We need to check all the way to the end of this set of boxes (if there is more than one)
-            var boxPoint = newPos + moveDelta;
-            while (InGrid(boxPoint))
-            {
-                if (grid[boxPoint.y][boxPoint.x] == open)
-                {
-                    // Empty space, we can move
-                    // Move one box here and remove it from the newPos location
-                    grid[boxPoint.y][boxPoint.x] = box;
-                    grid[newPos.y][newPos.x] = open;
-                    pos = newPos;
-                    return;
-                }
-
-                if (grid[boxPoint.y][boxPoint.x] == wall)
-                    // Can't move.
-                    return;
-
-                // Found another box, check the next point
-                boxPoint += moveDelta;
-            }
-        }
-
-        private void Move2(char instruction)
-        {
             // PrintGrid();
 
             var newPos = pos.Clone();
@@ -188,27 +141,30 @@ namespace AdventOfCode.Solutions.Year2024
             }
 
             // Other: Boxes!
-            if (grid[newPos.y][newPos.x] != boxLeft && grid[newPos.y][newPos.x] != boxRight)
+            if (grid[newPos.y][newPos.x] != box && grid[newPos.y][newPos.x] != boxLeft && grid[newPos.y][newPos.x] != boxRight)
                 throw new Exception("Unknown char.");
 
-            // Moving left and right is essentially the same
+            // Moving left and right is easy
+            // We "remember" the order we are moving in and
+            // shift the boxes by one if the moves are valid
             if (dir == Direction.East || dir == Direction.West)
             {
-                var boxPoint1 = newPos + moveDelta;
-                var boxPoint2 = newPos + moveDelta + moveDelta;
-                while (InGrid(boxPoint1))
+                Stack<Point<int>> movingHoriz = [];
+                var boxPoint = newPos + moveDelta;
+                while (InGrid(boxPoint))
                 {
-                    if (grid[boxPoint2.y][boxPoint2.x] == open)
-                    {
-                        // Empty space, we can move
-                        // Move one box here and remove it from the newPos location
-                        var endBox = newPos + moveDelta;
-                        var startX = Math.Min(boxPoint2.x, endBox.x);
-                        var endX = Math.Max(boxPoint2.x, endBox.x);
+                    movingHoriz.Push(boxPoint);
 
-                        for (var dx = 0; dx <= endX - startX; dx++)
+                    if (grid[boxPoint.y][boxPoint.x] == open)
+                    {
+                        // Work down the stack and move each char
+                        // Must work backwards so we use a stack
+                        while(movingHoriz.Count > 0)
                         {
-                            grid[newPos.y][startX + dx] = dx % 2 == 0 ? boxLeft : boxRight;
+                            var thisBox = movingHoriz.Pop();
+                            var oldBox = thisBox - moveDelta;
+
+                            grid[thisBox.y][thisBox.x] = grid[oldBox.y][oldBox.x];
                         }
 
                         grid[newPos.y][newPos.x] = open;
@@ -216,13 +172,12 @@ namespace AdventOfCode.Solutions.Year2024
                         return;
                     }
 
-                    if (grid[boxPoint2.y][boxPoint2.x] == wall)
+                    if (grid[boxPoint.y][boxPoint.x] == wall)
                         // Can't move.
                         return;
 
                     // Found another box, check the next point
-                    boxPoint1 += moveDelta;
-                    boxPoint2 += moveDelta;
+                    boxPoint += moveDelta;
                 }
             }
 
@@ -322,6 +277,7 @@ namespace AdventOfCode.Solutions.Year2024
             // PrintGrid();
 
             // Time: 00:00:00.0438353
+            // Rewritten Generic: 00:00:00.1401500
             return GetBoxGPS().Sum().ToString();
         }
 
@@ -329,11 +285,12 @@ namespace AdventOfCode.Solutions.Year2024
         {
             ResetInput(true);
 
-            instructions.ForEach(Move2);
+            instructions.ForEach(Move);
 
             // PrintGrid();
 
             // Time: 00:00:00.1507149
+            // Rewritten: 00:00:00.1516175
             return GetBoxGPS().Sum().ToString();
         }
     }
