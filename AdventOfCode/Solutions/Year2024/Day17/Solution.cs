@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using System.Linq;
+using System.Numerics;
 
 
 namespace AdventOfCode.Solutions.Year2024
@@ -11,9 +12,9 @@ namespace AdventOfCode.Solutions.Year2024
 
     partial class Day17 : ASolution
     {
-        public required int a;
-        public required int b;
-        public required int c;
+        public required BigInteger a;
+        public required BigInteger b;
+        public required BigInteger c;
         public required int[] program;
         public required int instruction;
 
@@ -114,15 +115,15 @@ namespace AdventOfCode.Solutions.Year2024
             if (!matches.Success)
                 throw new Exception("Unable to parse program.");
 
-            a = int.Parse(matches.Groups["A"].Value);
-            b = int.Parse(matches.Groups["B"].Value);
-            c = int.Parse(matches.Groups["C"].Value);
+            a = BigInteger.Parse(matches.Groups["A"].Value);
+            b = BigInteger.Parse(matches.Groups["B"].Value);
+            c = BigInteger.Parse(matches.Groups["C"].Value);
             program = matches.Groups["Program"].Value.ToIntArray(",");
 
             instruction = 0;
         }
 
-        int GetCombo(int operand) => operand switch
+        BigInteger GetCombo(int operand) => operand switch
         {
             0 or 1 or 2 or 3 => operand,
             4 => a,
@@ -131,9 +132,11 @@ namespace AdventOfCode.Solutions.Year2024
             _ => throw new Exception("Invalid operand"),
         };
 
-        string RunComputer(bool part2 = false)
+        int BigIntToInt(BigInteger bigInt) => int.Parse(bigInt.ToString());
+
+        BigInteger[] RunComputer(bool part2 = false)
         {
-            List<int> output = [];
+            List<BigInteger> output = [];
 
             while (0 <= instruction && instruction < program.Length - 1)
             {
@@ -141,7 +144,7 @@ namespace AdventOfCode.Solutions.Year2024
                 {
                     case 0:
                         // adv Division: A / combo
-                        a /= (int)Math.Pow(2, GetCombo(program[instruction + 1]));
+                        a /= BigInteger.Pow(2, BigIntToInt(GetCombo(program[instruction + 1])));
                         instruction += 2;
                         break;
 
@@ -181,9 +184,9 @@ namespace AdventOfCode.Solutions.Year2024
                         output.Add(GetCombo(program[instruction + 1]) % 8);
 
                         // For part 2, make sure this value lines up
-                        if (output[^1] != program[output.Count - 1])
+                        if (part2 && output[^1] != program[output.Count - 1])
                         {
-                            return string.Empty;
+                            return [.. output];
                         }
 
                         instruction += 2;
@@ -191,25 +194,29 @@ namespace AdventOfCode.Solutions.Year2024
 
                     case 6:
                         // bdv Division: B = A / combo
-                        b = a / (int)Math.Pow(2, GetCombo(program[instruction + 1]));
+                        b = a / BigInteger.Pow(2, BigIntToInt(GetCombo(program[instruction + 1])));
                         instruction += 2;
                         break;
 
                     case 7:
                         // cdv Division: C = A / combo
-                        c = a / (int)Math.Pow(2, GetCombo(program[instruction + 1]));
+                        c = a / BigInteger.Pow(2, BigIntToInt(GetCombo(program[instruction + 1])));
                         instruction += 2;
                         break;
                 }
             }
 
-            return string.Join(",", output);
+            return [.. output];
         }
+
+        string ComputerOutput(int[] ints) => string.Join(",", ints);
+
+        string ComputerOutput(BigInteger[] ints) => string.Join(",", ints);
 
         protected override string? SolvePartOne()
         {
             // Time: 00:00:00.0019541
-            return RunComputer();
+            return ComputerOutput(RunComputer());
         }
 
         protected override string? SolvePartTwo()
@@ -219,24 +226,69 @@ namespace AdventOfCode.Solutions.Year2024
             // Save these values so we don't re-parse each time
             var tB = b;
             var tC = c;
-            int[] tProgram = [.. program];
+
+            BigInteger cycle = 1;
+            BigInteger foundA = 0;
+
+            List<BigInteger> cycles = [];
 
             // We need to find a value for Register A that outputs "program"
             // Brute force?
-            for (int loopA = 0; ; a++)
+            // Brute force doesn't work of course. Trying to identify a cycle.
+            for (BigInteger loopA = 0; ; loopA += cycle)
             {
                 // Reset quicker than parsing
                 a = loopA;
                 b = tB;
                 c = tC;
-                program = [.. tProgram];
                 instruction = 0;
 
                 var output = RunComputer(true);
 
-                if (!string.IsNullOrEmpty(output))
-                    if (output == string.Join(",", program))
-                        return loopA.ToString();
+                if (output.Length > 0)
+                {
+                    if (output.Length == program.Length)
+                        if (ComputerOutput(output) == ComputerOutput(program))
+                            return loopA.ToString();
+
+                    // If the first program output is the same, see if we have a cycle
+                    // Tried with 1, 3, and 5 outputs to find the right cycle
+                    if (output.Length >= 7 && cycle == 1)
+                    {
+                        if (
+                            output[0] == program[0]
+                            &&
+                            output[1] == program[1]
+                            &&
+                            output[2] == program[2]
+                            &&
+                            output[3] == program[3]
+                            &&
+                            output[4] == program[4]
+                            &&
+                            output[5] == program[5]
+                            &&
+                            output[6] == program[6]
+                        )
+                        {
+                            if (foundA > 0)
+                            {
+                                cycles.Add(loopA - cycles[^1]);
+                            }
+                            else
+                            {
+                                cycles.Add(loopA);
+                            }
+
+                            // If we have found enough cycles, lets get the LCM of the list
+                            // Because otherwise we might miss the correct cycle
+                            if (cycles.Count == 3)
+                            {
+                                cycle = (int)Utilities.FindLCM([.. cycles.Select(c => double.Parse(c.ToString()))]);
+                            }
+                        }
+                    }
+                }
             }
 
             return string.Empty;
