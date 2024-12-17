@@ -159,6 +159,9 @@ namespace AdventOfCode.Solutions.Year2024
                         // For part 2, let's keep going to find all of the same minimum scores
                         minScore = move.score;
 
+                        // In Part 1, this was a return:
+                        // return move.score;
+
                         // Part 2: Add all of this path to the bestPaths tile list
                         move.path.ForEach(tile => bestPaths.Add(tile));
                         continue;
