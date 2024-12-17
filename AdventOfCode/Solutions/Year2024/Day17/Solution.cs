@@ -131,7 +131,7 @@ namespace AdventOfCode.Solutions.Year2024
             _ => throw new Exception("Invalid operand"),
         };
 
-        string RunComputer()
+        string RunComputer(bool part2 = false)
         {
             List<int> output = [];
 
@@ -179,6 +179,13 @@ namespace AdventOfCode.Solutions.Year2024
                     case 5:
                         // out: Puts Combo%8 in output
                         output.Add(GetCombo(program[instruction + 1]) % 8);
+
+                        // For part 2, make sure this value lines up
+                        if (output[^1] != program[output.Count - 1])
+                        {
+                            return string.Empty;
+                        }
+
                         instruction += 2;
                         break;
 
@@ -207,6 +214,31 @@ namespace AdventOfCode.Solutions.Year2024
 
         protected override string? SolvePartTwo()
         {
+            ResetComputer();
+
+            // Save these values so we don't re-parse each time
+            var tB = b;
+            var tC = c;
+            int[] tProgram = [.. program];
+
+            // We need to find a value for Register A that outputs "program"
+            // Brute force?
+            for (int loopA = 0; ; a++)
+            {
+                // Reset quicker than parsing
+                a = loopA;
+                b = tB;
+                c = tC;
+                program = [.. tProgram];
+                instruction = 0;
+
+                var output = RunComputer(true);
+
+                if (!string.IsNullOrEmpty(output))
+                    if (output == string.Join(",", program))
+                        return loopA.ToString();
+            }
+
             return string.Empty;
         }
     }
