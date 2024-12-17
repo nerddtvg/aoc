@@ -17,7 +17,11 @@ namespace AdventOfCode.Solutions.Year2024
             public Direction direction;
             public int score;
             public Point<int> pos;
+            public Point<int>[] path;
         }
+
+        // Part 2
+        public HashSet<Point<int>> bestPaths = [];
 
         public required char[][] grid;
         public required Point<int> startPt;
@@ -109,7 +113,7 @@ namespace AdventOfCode.Solutions.Year2024
                 // Add the cost of stepping one
                 var moveCost = Math.Abs(turnDelta) * 1000 + 1 + path.score;
 
-                yield return new() { direction = turn, pos = newPos, score = moveCost };
+                yield return new() { direction = turn, pos = newPos, score = moveCost, path = [..path.path, newPos] };
             }
         }
 
@@ -120,7 +124,8 @@ namespace AdventOfCode.Solutions.Year2024
             queue.Enqueue(new() {
                 direction = startDir,
                 score = 0,
-                pos = startPt
+                pos = startPt,
+                path = [startPt]
             }, 1);
 
             var visited = new Dictionary<string, int>();
@@ -138,7 +143,8 @@ namespace AdventOfCode.Solutions.Year2024
                 var key = GetVisitedKey(currentState.pos, currentState.direction);
                 if (visited.TryGetValue(key, out int visitScore))
                 {
-                    if (visitScore <= currentState.score)
+                    // For part 2: Change from <= to < to get equal path visits
+                    if (visitScore < currentState.score)
                         continue;
                 }
 
@@ -148,10 +154,13 @@ namespace AdventOfCode.Solutions.Year2024
                 // Get the list of possible moves
                 foreach (var move in FindMoves(currentState))
                 {
-                    if (move.pos == endPt)
+                    if (move.pos == endPt && (minScore == int.MaxValue || minScore == move.score))
                     {
-                        return move.score;
-                        minScore = Math.Min(minScore, move.score);
+                        // For part 2, let's keep going to find all of the same minimum scores
+                        minScore = move.score;
+
+                        // Part 2: Add all of this path to the bestPaths tile list
+                        move.path.ForEach(tile => bestPaths.Add(tile));
                         continue;
                     }
 
@@ -166,12 +175,14 @@ namespace AdventOfCode.Solutions.Year2024
         protected override string? SolvePartOne()
         {
             // Time: 00:00:00.0707808
+            // With Part 2 rewrite: 00:00:00.3399947
             return LowestScore().ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Time: 00:00:00.0002918 (all calculated in P1)
+            return bestPaths.Count.ToString();
         }
     }
 }
