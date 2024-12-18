@@ -312,6 +312,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Overloading GetHashCode as required.
     /// </summary>
+    [System.Diagnostics.DebuggerStepThrough]
     public override int GetHashCode()
     {
         // Our string is simply our coordinates which works better than getting
@@ -464,6 +465,7 @@ public readonly struct Point<T> where T : INumber<T>
     /// <summary>
     /// Handling displaying this data
     /// </summary>
+    [System.Diagnostics.DebuggerStepThrough]
     public override string ToString()
     {
         return $"({string.Join(", ", coordinates.Select(c => c.ToString()))})";
