@@ -16,6 +16,7 @@ namespace AdventOfCode.Solutions.Year2024
         public required BigInteger b;
         public required BigInteger c;
         public required int[] program;
+        public required int[] programReversed = [];
         public required int instruction;
 
         [GeneratedRegex(@"Register A: (?<A>[0-9]+)\s*Register B: (?<B>[0-9]+)\s*Register C: (?<C>[0-9]+)\s*Program: (?<Program>[0-9,]+)", RegexOptions.Singleline, "en-US")]
@@ -136,6 +137,7 @@ namespace AdventOfCode.Solutions.Year2024
 
         BigInteger[] RunComputer(bool part2 = false)
         {
+            instruction = 0;
             List<BigInteger> output = [];
 
             while (0 <= instruction && instruction < program.Length - 1)
@@ -183,10 +185,10 @@ namespace AdventOfCode.Solutions.Year2024
                         // out: Puts Combo%8 in output
                         output.Add(GetCombo(program[instruction + 1]) % 8);
 
-                        // For part 2, make sure this value lines up
-                        if (part2 && output[^1] != program[output.Count - 1])
+                        // For part 2, return our first output
+                        if (part2)
                         {
-                            return [.. output];
+                            return [output[^1]];
                         }
 
                         instruction += 2;
@@ -213,6 +215,44 @@ namespace AdventOfCode.Solutions.Year2024
 
         string ComputerOutput(BigInteger[] ints) => string.Join(",", ints);
 
+        BigInteger FindValue(BigInteger loopA, int index)
+        {
+            // We have found the end, return the value
+            if (index == program.Length)
+                return loopA;
+
+            // The code uses one byte at a time, does some modulo and XOR
+            // operations to print out a specific number. However, no matter
+            // what the rest of the number is, only that byte matters for
+            // each output. So we will test 0 to 7 and continue to shift
+            // left each time to determine the next step in the list.
+            for (BigInteger newLoopA = 0; newLoopA < 8; newLoopA++)
+            {
+                // Get the value of running this newLoopA
+                // Multiple loopA by 8 because we need to shift over 1 byte
+                var tA = loopA * 8 + newLoopA;
+                a = tA;
+                b = 0;
+                c = 0;
+
+                var output = RunComputer(true);
+
+                // The highest bits define the last numbers in program,
+                // so we must reverse the array to get the ordering for discovery
+                if (output.Length > 0 && output[0] == programReversed[index])
+                {
+                    // Found the value, get the next one...
+                    var result = FindValue(tA, index + 1);
+
+                    if (result > BigInteger.Zero)
+                        return result;
+                }
+            }
+
+            // Didn't find a result
+            return BigInteger.Zero;
+        }
+
         protected override string? SolvePartOne()
         {
             // Time: 00:00:00.0019541
@@ -223,75 +263,13 @@ namespace AdventOfCode.Solutions.Year2024
         {
             ResetComputer();
 
-            // Save these values so we don't re-parse each time
-            var tB = b;
-            var tC = c;
-
-            BigInteger cycle = 1;
-            BigInteger foundA = 0;
-
-            List<BigInteger> cycles = [];
-
-            // We need to find a value for Register A that outputs "program"
-            // Brute force?
-            // Brute force doesn't work of course. Trying to identify a cycle.
-            for (BigInteger loopA = 0; ; loopA += cycle)
-            {
-                // Reset quicker than parsing
-                a = loopA;
-                b = tB;
-                c = tC;
-                instruction = 0;
-
-                var output = RunComputer(true);
-
-                if (output.Length > 0)
-                {
-                    if (output.Length == program.Length)
-                        if (ComputerOutput(output) == ComputerOutput(program))
-                            return loopA.ToString();
-
-                    // If the first program output is the same, see if we have a cycle
-                    // Tried with 1, 3, and 5 outputs to find the right cycle
-                    if (output.Length >= 7 && cycle == 1)
-                    {
-                        if (
-                            output[0] == program[0]
-                            &&
-                            output[1] == program[1]
-                            &&
-                            output[2] == program[2]
-                            &&
-                            output[3] == program[3]
-                            &&
-                            output[4] == program[4]
-                            &&
-                            output[5] == program[5]
-                            &&
-                            output[6] == program[6]
-                        )
-                        {
-                            if (foundA > 0)
-                            {
-                                cycles.Add(loopA - cycles[^1]);
-                            }
-                            else
-                            {
-                                cycles.Add(loopA);
-                            }
-
-                            // If we have found enough cycles, lets get the LCM of the list
-                            // Because otherwise we might miss the correct cycle
-                            if (cycles.Count == 3)
-                            {
-                                cycle = (int)Utilities.FindLCM([.. cycles.Select(c => double.Parse(c.ToString()))]);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return string.Empty;
+            // Taking a hint from the subreddit to work backwards
+            // That only 8 bits are required to determine the output value
+            // So find the value that makes it work and keep adding more digits on
+            // https://old.reddit.com/r/adventofcode/comments/1hg38ah/2024_day_17_solutions/m2glx6y/
+            // Thank you to /u/i_have_no_biscuits for that comment and code sample
+            programReversed = program.Reverse().ToArray();
+            return FindValue(0, 0).ToString();
         }
     }
 }
