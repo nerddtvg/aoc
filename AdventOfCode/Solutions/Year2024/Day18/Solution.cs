@@ -15,6 +15,7 @@ namespace AdventOfCode.Solutions.Year2024
         public HashSet<Point<int>> part1Points = [];
         public int width = 70;
         public int height = 70;
+        public Point<int>[] path = [];
 
         public Day18() : base(18, 2024, "RAM Run")
         {
@@ -62,53 +63,88 @@ namespace AdventOfCode.Solutions.Year2024
                 part1Points = [.. points[..1024]];
         }
 
-        protected override string? SolvePartOne()
+        // Will run each path on a set of points
+        Point<int>[] FindPath(HashSet<Point<int>> points)
         {
             var start = new Point<int>(0, 0);
             var end = new Point<int>(width, height);
 
             var visited = new Dictionary<string, int>();
-            var queue = new PriorityQueue<Point<int>, int>();
+            var queue = new PriorityQueue<(Point<int> point, Point<int>[] path), int>();
 
-            queue.Enqueue(start, 0);
+            queue.Enqueue((start, [start]), 0);
 
             var possibleMoves = new Point<int>[] { Point2D.MoveUp, Point2D.MoveRight, Point2D.MoveDown, Point2D.MoveLeft };
 
-            while (queue.TryDequeue(out Point<int> point, out int length))
+            while (queue.TryDequeue(out (Point<int> point, Point<int>[] path) item, out int length))
             {
-                if (point == end)
-                    return length.ToString();
+                if (item.point == end)
+                    return item.path;
 
                 // If we have been here with a shorter or same length, skip
-                if (visited.TryGetValue(point.ToString(), out int visitedLength))
+                if (visited.TryGetValue(item.point.ToString(), out int visitedLength))
                     if (visitedLength <= length)
                         continue;
 
                 // Otherwise save this
-                visited[point.ToString()] = length;
+                visited[item.point.ToString()] = length;
 
                 // Find each possible move
-                foreach(var move in possibleMoves)
+                foreach (var move in possibleMoves)
                 {
-                    var newPoint = point + move;
+                    var newPoint = item.point + move;
 
                     // It is inside the grid, add it to the queue
                     if (0 <= newPoint.x && newPoint.x <= width && 0 <= newPoint.y && newPoint.y <= height)
                     {
                         // If this is in the point list, we have hit a corrupt block
-                        if (part1Points.Contains(newPoint))
+                        if (points.Contains(newPoint))
                             continue;
 
-                        queue.Enqueue(newPoint, length + 1);
+                        queue.Enqueue((newPoint, [.. item.path, newPoint]), length + 1);
                     }
                 }
             }
 
-            return string.Empty;
+            return [];
+        }
+
+        protected override string? SolvePartOne()
+        {
+            // Time: 00:00:00.0428068
+            // Time with Part 2 rewrite: 00:00:00.0539815
+            path = FindPath(part1Points);
+            return (path.Length - 1).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
+            // Time: 00:00:00.6073102
+
+            // Start with the Part 1 path
+            // and for each new point in the list, see if that is in the path
+            // If it is, re-run the path
+            var pathHashSet = new HashSet<Point<int>>(path);
+
+            for(int index = part1Points.Count; index<points.Length; index++)
+            {
+                var point = points[index];
+
+                // New point, see if it is in the path
+                if (pathHashSet.Contains(point))
+                {
+                    // Found a blocker, re-run the path
+                    path = FindPath(new HashSet<Point<int>>(points[..(index + 1)]));
+
+                    // Found our limit
+                    if (path.Length == 0)
+                        return $"{point.x},{point.y}";
+
+                    // We got a new path, it works, try again
+                    pathHashSet = [.. path];
+                }
+            }
+
             return string.Empty;
         }
     }
