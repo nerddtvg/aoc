@@ -113,31 +113,31 @@ namespace AdventOfCode.Solutions.Year2024
 
             if (combinations.TryGetValue(str, out ulong val))
             {
-                Console.WriteLine($"*{str}: {val}");
+                // Console.WriteLine($"*{str}: {val}");
                 return val;
             }
 
-            // Need to go through the permutations
             ulong count = 0;
 
-            for (int i = 0; i < str.Length - 1; i++)
+            // Need to go through the permutations
+            // Since we know some of the longer strings, start with those and see if we can shortcut a bit
+            foreach(var key in combinations.Keys.OrderByDescending(key => key.Length).ThenBy(key => key))
             {
-                var subKey = str[..(i + 1)];
-
-                if (combinations.TryGetValue(subKey, out ulong subVal))
+                // On the first match of the longest one possible, find the math for the rest of the string
+                if (str.StartsWith(key))
                 {
-                    Console.WriteLine($"Key: {str}");
-                    Console.WriteLine($"Subkey: {subKey} / {subVal}");
+                    // We canot have str == key here because that would have been caught earlier
+                    count = combinations[key] * CountCombinations(str[key.Length..]);
 
-                    count += subVal * CountCombinations(str[(i + 1)..]);
-
-                    Console.WriteLine($"Count: {count}");
+                    // Found a match!
+                    break;
                 }
             }
 
             Console.WriteLine($"{str}: {count}");
 
-            combinations[str] = count;
+            // Cache for later
+            // combinations[str] = count;
 
             return count;
         }
