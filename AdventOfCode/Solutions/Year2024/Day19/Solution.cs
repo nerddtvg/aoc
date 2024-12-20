@@ -126,7 +126,12 @@ namespace AdventOfCode.Solutions.Year2024
 
                 if (combinations.TryGetValue(subKey, out ulong subVal))
                 {
+                    Console.WriteLine($"Key: {str}");
+                    Console.WriteLine($"Subkey: {subKey} / {subVal}");
+
                     count += subVal * CountCombinations(str[(i + 1)..]);
+
+                    Console.WriteLine($"Count: {count}");
                 }
             }
 
