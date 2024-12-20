@@ -11,10 +11,10 @@ namespace AdventOfCode.Solutions.Year2024
 
     class Day19 : ASolution
     {
-        public string[] available;
-        public string[] desired;
+        readonly Dictionary<string, int> combinations = [];
+        readonly string[] desired;
 
-        public Regex patterns;
+        readonly Regex patterns;
 
         public Day19() : base(19, 2024, "Linen Layout")
         {
@@ -35,7 +35,6 @@ namespace AdventOfCode.Solutions.Year2024
                 .OrderByDescending(str => str.Length)
                 .ThenBy(str => str)
             ];
-            List<string> validPatterns = [];
 
             desired = Input.SplitByBlankLine(shouldTrim: true)[1];
 
@@ -44,33 +43,64 @@ namespace AdventOfCode.Solutions.Year2024
             while(tempPatterns.Count > 1)
             {
                 // Combine validPatterns with the other patterns
-                patterns = new($"^({string.Join('|', [.. validPatterns, .. tempPatterns[1..]])})+$");
+                patterns = new($"^({string.Join('|', tempPatterns[1..])})+$");
 
                 // If we can match tempPatterns[0], then it is a duplicate
                 if (!patterns.IsMatch(tempPatterns[0]))
                 {
                     // Found a valid option
-                    validPatterns.Add(tempPatterns[0]);
+                    // Only one way to make this
+                    combinations[tempPatterns[0]] = 1;
+                }
+                else
+                {
+                    // Work down the tempPatterns array to determine how many ways this can be made
+                    HashSet<string> variations = [];
+
+                    for(int i=1; i<tempPatterns.Count; i++)
+                    {
+                        Regex shortPattern = new($"^(({string.Join(")|(", tempPatterns[i..])}))+$");
+
+                        var matches = shortPattern.Match(tempPatterns[0]);
+
+                        // No more matching, exit early
+                        if (!matches.Success)
+                            break;
+
+                        // Otherwise let's add this to the variations list
+                        var str = "";
+
+                        foreach (Group grp in matches.Groups.Values.Skip(1))
+                            if (!string.IsNullOrEmpty(grp.Value))
+                                str += $"|{grp.Value}";
+
+                        variations.Add(str);
+                    }
+
+                    // Add one for the duplicate
+                    combinations[tempPatterns[0]] = variations.Count + 1;
                 }
 
                 tempPatterns.RemoveAt(0);
             }
 
             // Add the last one on
-            validPatterns.AddRange(tempPatterns);
-            available = [.. validPatterns];
+            combinations[tempPatterns[0]] = 1;
 
             // Regenerate
-            patterns = new($"^({string.Join('|', available)})+$");
+            // Include the duplicates in here (change from original Part 1 code)
+            patterns = new($"^({string.Join('|', [.. combinations.Keys.OrderByDescending(key => key.Length).ThenBy(key => key)])})+$");
         }
 
         protected override string? SolvePartOne()
         {
+            // Time: 00:00:00.1188499
             return desired.Count(patterns.IsMatch).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
+
             return string.Empty;
         }
     }
