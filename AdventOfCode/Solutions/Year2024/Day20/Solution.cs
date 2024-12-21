@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using System.Linq;
+using System.Runtime.InteropServices;
 
 
 namespace AdventOfCode.Solutions.Year2024
@@ -12,14 +13,17 @@ namespace AdventOfCode.Solutions.Year2024
     class Day20 : ASolution
     {
         Dictionary<Point<int>, int> distance = [];
-        Dictionary<int, Point<int>> reversedDistance = [];
-        Dictionary<(Point<int> a, Point<int> b), int> saved = [];
+        int saved = 0;
         readonly char[][] grid;
         Point<int> start;
         Point<int> end;
+        int saveLimit = 100;
 
         Point<int>[] moves = [Point2D.MoveUp, Point2D.MoveRight, Point2D.MoveDown, Point2D.MoveLeft];
-        public bool InGrid(Point<int> pt) => 0 <= pt.x && pt.x < grid[0].Length && 0 <= pt.y && pt.y < grid.Length;
+
+        // Changing to remove access to the border around the grid
+        // Important for P2
+        public bool InGrid(Point<int> pt) => 0 < pt.x && pt.x < grid[0].Length - 1 && 0 < pt.y && pt.y < grid.Length - 1;
 
         public Day20() : base(20, 2024, "Race Condition")
         {
@@ -38,6 +42,7 @@ namespace AdventOfCode.Solutions.Year2024
             // #.#.#.#.#.#.###
             // #...#...#...###
             // ###############";
+            // saveLimit = 50;
 
             grid = Input.ToCharGrid();
 
@@ -57,7 +62,7 @@ namespace AdventOfCode.Solutions.Year2024
             while (pos != end)
             {
                 // Get the next move
-                foreach(var moveDelta in moves)
+                foreach (var moveDelta in moves)
                 {
                     var pt = pos + moveDelta;
 
@@ -69,41 +74,71 @@ namespace AdventOfCode.Solutions.Year2024
                     break;
                 }
             }
-
-            reversedDistance = distance.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
         }
 
         protected override string? SolvePartOne()
         {
-            foreach(var pos in distance.Keys)
+            saved = 0;
+
+            foreach (var pos in distance.Keys)
             {
-                // Get the next move
-                foreach (var moveDelta in moves)
+                FindSaved(pos);
+            }
+
+            // Time: 00:00:07.4463386
+            // Time with Part 2 rewrite: 00:00:00.1131662
+            return saved.ToString();
+        }
+
+        void FindSaved(Point<int> pos, int cheatDistance = 2)
+        {
+            // A cheat that starts and ends in the same spot is the same cheat
+            HashSet<Point<int>> savedCount = [];
+            var startDist = distance[pos];
+
+            for (int x = Math.Max(-cheatDistance, -pos.x); x <= cheatDistance && (pos.x + x) < grid[0].Length - 1; x++)
+            {
+                if (pos.x + x <= 0) continue;
+
+                var yMax = cheatDistance - Math.Abs(x);
+
+                for (int y = yMax; -yMax <= y && (pos.y + y) > 0; y--)
                 {
-                    var pt = pos + moveDelta;
+                    if (x == 0 && y == 0) continue;
 
-                    // We want WALLS
-                    if (!InGrid(pt) || grid[pt.y][pt.x] != '#') continue;
+                    // We're going to check positive and negative values here
+                    var pt = new Point<int>(pos.x + x, pos.y + y);
 
-                    var pt2 = pt + moveDelta;
+                    if (!InGrid(pt)) continue;
 
-                    // We want open spaces
-                    if (!InGrid(pt2) || (grid[pt2.y][pt2.x] != '.' && grid[pt2.y][pt2.x] != 'E')) continue;
+                    // If this is a valid endpoint, find if we have a good cheat or not
+                    // distance only has racetrack points in it so if the key exists, it is valid
+                    if (distance.TryGetValue(pt, out int dist))
+                    {
+                        // For Part 1, this is always 2
+                        // For Part 2, it is variable
+                        var cheatDist = (pt.x, pt.y).ManhattanDistance((pos.x, pos.y));
 
-                    // Don't go backwards
-                    if (distance[pt2] < distance[pos]) continue;
-
-                    // Remove 2 because of the 2 steps it takes to "cheat"
-                    saved[(pos, pt2)] = distance[pt2] - distance[pos] - 2;
+                        if (dist - startDist - cheatDist >= saveLimit)
+                            savedCount.Add(pt);
+                    }
                 }
             }
 
-            return saved.Count(kvp => kvp.Value >= 100).ToString();
+            saved += savedCount.Count;
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            saved = 0;
+
+            foreach (var pos in distance.Keys)
+            {
+                FindSaved(pos, 20);
+            }
+
+            // Time: 00:00:04.8144069
+            return saved.ToString();
         }
     }
 }
