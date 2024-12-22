@@ -41,7 +41,7 @@ namespace AdventOfCode.Solutions.Year2024
             {
                 ['^'] = "A",
                 ['A'] = ">A",
-                ['<'] = "<A",
+                ['<'] = "v<A",
                 ['v'] = "vA",
                 ['>'] = "v>A",
             },
@@ -49,7 +49,7 @@ namespace AdventOfCode.Solutions.Year2024
             {
                 ['^'] = "<A",
                 ['A'] = "A",
-                ['<'] = "<v<A",
+                ['<'] = "v<<A",
                 ['v'] = "<vA",
                 ['>'] = "vA",
             },
@@ -329,6 +329,8 @@ namespace AdventOfCode.Solutions.Year2024
             {
                 var numericCode = int.Parse(code.Split("A")[0]);
                 var pattern = GetDigitPattern(code);
+
+                Console.WriteLine($"{code}: {pattern}");
 
                 total += numericCode * pattern.Length;
             }
