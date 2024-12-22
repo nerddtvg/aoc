@@ -139,7 +139,7 @@ namespace AdventOfCode.Solutions.Year2024
                 ['8'] = "^>A",
                 ['9'] = "^>>A",
 
-                ['4'] = "AA",
+                ['4'] = "A",
                 ['5'] = ">A",
                 ['6'] = ">>A",
 
