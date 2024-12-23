@@ -49,7 +49,7 @@ namespace AdventOfCode.Solutions.Year2024
             {
                 ['^'] = "<A",
                 ['A'] = "A",
-                ['<'] = "v<<A",
+                ['<'] = "<v<A",
                 ['v'] = "<vA",
                 ['>'] = "vA",
             },
@@ -221,7 +221,7 @@ namespace AdventOfCode.Solutions.Year2024
             },
             ['3'] = new()
             {
-                ['7'] = "^^<<A",
+                ['7'] = "<<^^A",
                 ['8'] = "^^<A",
                 ['9'] = "^^A",
 
@@ -274,18 +274,19 @@ namespace AdventOfCode.Solutions.Year2024
         };
         #endregion
 
-        char[] bots = [];
-
         public Day21() : base(21, 2024, "Keypad Conundrum")
         {
-            bots = ['A', 'A', 'A'];
-
             DebugInput = @"029A
             980A
             179A
             456A
             379A";
         }
+
+        // IEnumerable<(char[] bots, string pattern)> GetPaths(char[] bots, char dest)
+        // {
+
+        // }
 
         string GetDigitPattern(string code)
         {
@@ -335,6 +336,7 @@ namespace AdventOfCode.Solutions.Year2024
                 total += numericCode * pattern.Length;
             }
 
+            // 174636 - too high
             return total.ToString();
         }
 
