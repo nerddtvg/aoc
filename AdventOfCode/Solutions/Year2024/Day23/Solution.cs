@@ -51,9 +51,9 @@ namespace AdventOfCode.Solutions.Year2024
 
         protected override string? SolvePartOne()
         {
-            Dictionary<string, List<string>> connections = [];
+            Dictionary<string, HashSet<string>> connections = [];
 
-            foreach(var line in Input.SplitByNewline(shouldTrim: true))
+            foreach (var line in Input.SplitByNewline(shouldTrim: true))
             {
                 var split = line.Split('-');
 
@@ -70,23 +70,26 @@ namespace AdventOfCode.Solutions.Year2024
 
             // For each computer that starts with t, look for two connected computers
             var sets = new HashSet<string>();
-            foreach(var tComputerKey in connections.Keys.Where(k => k[0] == 't'))
+            foreach (var tComputerKey in connections.Keys.Where(k => k[0] == 't'))
             {
                 var tComputer = connections[tComputerKey];
 
-                for(int tA=0; tA<tComputer.Count - 1; tA++)
+                foreach (var tA in tComputer)
                 {
-                    for (int tB = tA+1; tB < tComputer.Count; tB++)
+                    foreach (var tB in tComputer)
                     {
+                        if (tA == tB) continue;
+
                         // If tA appears in tB's list, we have a cluster
-                        if (connections[tComputer[tA]].Contains(tComputer[tB]))
+                        if (connections[tA].Contains(tB))
                         {
-                            sets.Add(string.Join(",", new string[] { tComputerKey, tComputer[tA], tComputer[tB] }.OrderBy(v => v)));
+                            sets.Add(string.Join(",", new string[] { tComputerKey, tA, tB }.OrderBy(v => v)));
                         }
                     }
                 }
             }
 
+            // Time: 00:00:00.0120076
             return sets.Count.ToString();
         }
 
