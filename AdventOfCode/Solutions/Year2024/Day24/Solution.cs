@@ -136,7 +136,57 @@ namespace AdventOfCode.Solutions.Year2024
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // As an adder, XOR must feed into output (z00) or AND & XOR
+            // OR must feed into output (z00) or AND & XOR
+            // AND must feed into OR
+            // Let's search if any don't match
+            HashSet<string> swapped = [];
+
+            foreach((char op, string val1, string val2, string dest) in operations)
+            {
+                switch(op)
+                {
+                    case 'A':
+                        // Feeds an output, invalid
+                        if (dest[0] == 'z')
+                            swapped.Add(dest);
+                        // Feeds non-OR, invalid
+                        else if (operations.Any(top => top.op != 'O' && (top.val1 == dest || top.val2 == dest)))
+                            swapped.Add(dest);
+                        break;
+
+                    case 'X':
+                    case 'O':
+                        // X Feeds an output, valid
+                        // O Feeds an output, invalid
+                        if (dest[0] == 'z')
+                        {
+                            // Only invalid if not the last one
+                            if (op == 'O' && dest != "z45")
+                                swapped.Add(dest);
+
+                            break;
+                        }
+
+                        var feeds = operations.Where(top => top.val1 == dest || top.val2 == dest).ToArray();
+
+                        // Feeds OR, invalid
+                        if (feeds.Any(feed => feed.op == 'O'))
+                        {
+                            swapped.Add(dest);
+                            break;
+                        }
+
+                        // Must feed a single pair of XOR and AND
+                        if (feeds.Count(feed => feed.op == 'X') != 1 || feeds.Count(feed => feed.op == 'A') != 1)
+                            swapped.Add(dest);
+
+                        break;
+                }
+            }
+
+            // Part 2: jgb,mjh,rkf,rrs,rvc,z09,z20,z24
+            return string.Join(",", swapped.OrderBy(k => k));
         }
     }
 }
