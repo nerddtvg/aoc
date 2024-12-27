@@ -4,6 +4,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using System.Linq;
+using QuikGraph;
+using QuikGraph.Algorithms.Cliques;
 
 
 namespace AdventOfCode.Solutions.Year2024
@@ -11,7 +13,9 @@ namespace AdventOfCode.Solutions.Year2024
 
     class Day23 : ASolution
     {
-        readonly List<HashSet<string>> connected = [];
+        readonly Dictionary<string, HashSet<string>> connections = [];
+
+        readonly List<HashSet<string>> cliques = [];
 
         public Day23() : base(23, 2024, "LAN Party")
         {
@@ -51,8 +55,6 @@ namespace AdventOfCode.Solutions.Year2024
 
         protected override string? SolvePartOne()
         {
-            Dictionary<string, HashSet<string>> connections = [];
-
             foreach (var line in Input.SplitByNewline(shouldTrim: true))
             {
                 var split = line.Split('-');
@@ -95,7 +97,45 @@ namespace AdventOfCode.Solutions.Year2024
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Hint from the solutions thread: Bron-Kerbosch (maximal clique)
+            // https://en.wikipedia.org/wiki/Bron%E2%80%93Kerbosch_algorithm
+            // https://www.geeksforgeeks.org/maximal-clique-problem-recursive-solution/
+            // https://iq.opengenus.org/bron-kerbosch-algorithm/
+
+            // QuikGraph does not have an implementation for this:
+            // https://github.com/KeRNeLith/QuikGraph/issues/2
+
+            var graph = new UndirectedGraph<string, Edge<string>>();
+            connections.ForEach(kvp => kvp.Value.ForEach(end => graph.AddVerticesAndEdge(new(kvp.Key, end))));
+
+            // Made a graph for easy access
+            BK([], [.. graph.Vertices], [], graph);
+
+            // Time: 00:00:02.0925665
+            return string.Join(",", cliques.OrderByDescending(set => set.Count).FirstOrDefault()?.Select(item => item).OrderBy(item => item).ToArray() ?? []);
+        }
+
+        void BK(HashSet<string> R, HashSet<string> P, HashSet<string> X, UndirectedGraph<string, Edge<string>> graph)
+        {
+            if (P.Count == 0 && X.Count == 0)
+            {
+                cliques.Add(R);
+                return;
+            }
+
+            while(P.Count > 0)
+            {
+                var v = P.First();
+
+                HashSet<string> newR = [.. R, v];
+                HashSet<string> newP = [.. P.Where(p => graph.TryGetEdge(v, p, out var edge))];
+                HashSet<string> newX = [.. X.Where(x => graph.TryGetEdge(v, x, out var edge))];
+
+                BK(newR, newP, newX, graph);
+
+                P.Remove(v);
+                X.Add(v);
+            }
         }
     }
 }
