@@ -49,7 +49,7 @@ namespace AdventOfCode.Solutions.Year2024
             {
                 ['^'] = "<A",
                 ['A'] = "A",
-                ['<'] = "<v<A",
+                ['<'] = "v<<A",
                 ['v'] = "<vA",
                 ['>'] = "vA",
             },
@@ -104,11 +104,11 @@ namespace AdventOfCode.Solutions.Year2024
                 ['8'] = "A",
                 ['9'] = ">A",
 
-                ['4'] = "v<A",
+                ['4'] = "<vA",
                 ['5'] = "vA",
                 ['6'] = "v>A",
 
-                ['1'] = "vv<A",
+                ['1'] = "<vvA",
                 ['2'] = "vvA",
                 ['3'] = "vv>A",
 
@@ -121,15 +121,15 @@ namespace AdventOfCode.Solutions.Year2024
                 ['8'] = "<A",
                 ['9'] = "A",
 
-                ['4'] = "v<<A",
-                ['5'] = "v<A",
+                ['4'] = "<<vA",
+                ['5'] = "<vA",
                 ['6'] = "vA",
 
-                ['1'] = "vv<<A",
-                ['2'] = "vv<A",
+                ['1'] = "<<vvA",
+                ['2'] = "<vvA",
                 ['3'] = "vvA",
 
-                ['0'] = "vvv<A",
+                ['0'] = "<vvvA",
                 ['A'] = "vvvA"
             },
 
@@ -152,7 +152,7 @@ namespace AdventOfCode.Solutions.Year2024
             },
             ['5'] = new()
             {
-                ['7'] = "^<A",
+                ['7'] = "<^A",
                 ['8'] = "^A",
                 ['9'] = "^>A",
 
@@ -160,7 +160,7 @@ namespace AdventOfCode.Solutions.Year2024
                 ['5'] = "A",
                 ['6'] = ">A",
 
-                ['1'] = "v<A",
+                ['1'] = "<vA",
                 ['2'] = "vA",
                 ['3'] = "v>A",
 
@@ -169,19 +169,19 @@ namespace AdventOfCode.Solutions.Year2024
             },
             ['6'] = new()
             {
-                ['7'] = "^<<A",
-                ['8'] = "^<A",
+                ['7'] = "<<^A",
+                ['8'] = "<^A",
                 ['9'] = "^A",
 
                 ['4'] = "<<A",
                 ['5'] = "<A",
                 ['6'] = "A",
 
-                ['1'] = "v<<A",
-                ['2'] = "v<A",
+                ['1'] = "<<vA",
+                ['2'] = "<vA",
                 ['3'] = "vA",
 
-                ['0'] = "vv<A",
+                ['0'] = "<vvA",
                 ['A'] = "vvA"
             },
 
@@ -204,11 +204,11 @@ namespace AdventOfCode.Solutions.Year2024
             },
             ['2'] = new()
             {
-                ['7'] = "^^<A",
+                ['7'] = "<^^A",
                 ['8'] = "^^A",
                 ['9'] = "^^>A",
 
-                ['4'] = "^<A",
+                ['4'] = "<^A",
                 ['5'] = "^A",
                 ['6'] = "^>A",
 
@@ -225,15 +225,15 @@ namespace AdventOfCode.Solutions.Year2024
                 ['8'] = "^^<A",
                 ['9'] = "^^A",
 
-                ['4'] = "^<<A",
-                ['5'] = "^<A",
+                ['4'] = "<<^A",
+                ['5'] = "<^A",
                 ['6'] = "^A",
 
                 ['1'] = "<<A",
                 ['2'] = "<A",
                 ['3'] = "A",
 
-                ['0'] = "v<A",
+                ['0'] = "<vA",
                 ['A'] = "vA"
             },
 
@@ -257,15 +257,15 @@ namespace AdventOfCode.Solutions.Year2024
             ['A'] = new()
             {
                 ['7'] = "^^^<<A",
-                ['8'] = "^^^<A",
+                ['8'] = "<^^^A",
                 ['9'] = "^^^A",
 
                 ['4'] = "^^<<A",
-                ['5'] = "^^<A",
+                ['5'] = "<^^A",
                 ['6'] = "^^A",
 
                 ['1'] = "^<<A",
-                ['2'] = "^<A",
+                ['2'] = "<^A",
                 ['3'] = "^A",
 
                 ['0'] = "<A",
@@ -276,11 +276,11 @@ namespace AdventOfCode.Solutions.Year2024
 
         public Day21() : base(21, 2024, "Keypad Conundrum")
         {
-            DebugInput = @"029A
-            980A
-            179A
-            456A
-            379A";
+            // DebugInput = @"029A
+            // 980A
+            // 179A
+            // 456A
+            // 379A";
         }
 
         // IEnumerable<(char[] bots, string pattern)> GetPaths(char[] bots, char dest)
@@ -336,7 +336,7 @@ namespace AdventOfCode.Solutions.Year2024
                 total += numericCode * pattern.Length;
             }
 
-            // 174636 - too high
+            // Time: 00:00:00.0034515
             return total.ToString();
         }
 
