@@ -13,28 +13,6 @@ namespace AdventOfCode.Solutions.Year2024
     {
         #region Button Paths
         // Hardcoding directions into to make it easier
-        Dictionary<char, HashSet<char>> cantMoveDirectional = new()
-        {
-            ['^'] = ['<'],
-            ['A'] = [],
-            ['<'] = ['^'],
-            ['v'] = [],
-            ['>'] = [],
-        };
-        Dictionary<char, HashSet<char>> cantMoveNumerical = new()
-        {
-            ['7'] = [],
-            ['8'] = [],
-            ['9'] = [],
-            ['4'] = [],
-            ['5'] = [],
-            ['6'] = [],
-            ['1'] = ['v'],
-            ['2'] = [],
-            ['3'] = [],
-            ['0'] = ['<'],
-            ['A'] = [],
-        };
         Dictionary<char, Dictionary<char, string>> distDirectional = new()
         {
             ['^'] = new()
@@ -64,7 +42,7 @@ namespace AdventOfCode.Solutions.Year2024
             ['v'] = new()
             {
                 ['^'] = "^A",
-                ['A'] = ">^A",
+                ['A'] = "^>A",
                 ['<'] = "<A",
                 ['v'] = "A",
                 ['>'] = ">A",
@@ -222,7 +200,7 @@ namespace AdventOfCode.Solutions.Year2024
             ['3'] = new()
             {
                 ['7'] = "<<^^A",
-                ['8'] = "^^<A",
+                ['8'] = "<^^A",
                 ['9'] = "^^A",
 
                 ['4'] = "<<^A",
@@ -283,15 +261,37 @@ namespace AdventOfCode.Solutions.Year2024
             // 379A";
         }
 
-        // IEnumerable<(char[] bots, string pattern)> GetPaths(char[] bots, char dest)
-        // {
+        Dictionary<string, ulong> cache = [];
 
-        // }
-
-        string GetDigitPattern(string code)
+        ulong GetBotPatternLength(int bot, char destination, ref char[] bots, bool part2 = false)
         {
-            char[] bots = ['A', 'A', 'A'];
-            var pattern = string.Empty;
+            // Save the current position, update the bot
+            var currentPos = bots[bot];
+            bots[bot] = destination;
+
+            if ((!part2 && bot == 2) || (part2 && bot == 25))
+                return (ulong)distDirectional[currentPos][destination].Length;
+
+            // Save our cache just in case
+            // From, To, Bot Id / Depth
+            var key = $"{currentPos}-{destination}-{bot}";
+            if (bot > 0 && cache.TryGetValue(key, out var value))
+                return value;
+
+            var patternLength = (ulong)0;
+
+            foreach (var c in bot == 0 ? distNumeric[currentPos][destination] : distDirectional[currentPos][destination])
+                patternLength += GetBotPatternLength(bot + 1, c, ref bots, part2);
+
+            cache[key] = patternLength;
+
+            return patternLength;
+        }
+
+        ulong GetDigitPatternLength(string code, bool part2 = false)
+        {
+            char[] bots = Enumerable.Range(0, part2 ? 26 : 3).Select(i => 'A').ToArray();
+            var patternLength = (ulong)0;
 
             // bot[0] needs to push the values of the code
             // bot[1] directs bot[0]
@@ -301,48 +301,50 @@ namespace AdventOfCode.Solutions.Year2024
             // The directions are: distNumeric[bots[0]][c]
             foreach (var c in code)
             {
-                // Need to move from bots[0] to c
-                foreach (var d in distNumeric[bots[0]][c])
-                {
-                    // Need to move from bots[1] to d
-                    foreach (var e in distDirectional[bots[1]][d])
-                    {
-                        // Need to move from bots[2] to e
-                        pattern += distDirectional[bots[2]][e];
-
-                        bots[2] = e;
-                    }
-
-                    bots[1] = d;
-                }
-
-                bots[0] = c;
+                patternLength += GetBotPatternLength(0, c, ref bots, part2);
             }
 
-            return pattern;
+            return patternLength;
         }
 
         protected override string? SolvePartOne()
         {
-            int total = 0;
+            ulong total = 0;
 
             foreach (var code in Input.SplitByNewline(shouldTrim: true))
             {
-                var numericCode = int.Parse(code.Split("A")[0]);
-                var pattern = GetDigitPattern(code);
+                var numericCode = ulong.Parse(code.Split("A")[0]);
+                var patternLength = GetDigitPatternLength(code);
 
-                Console.WriteLine($"{code}: {pattern}");
+                // Console.WriteLine($"{code}: {pattern}");
 
-                total += numericCode * pattern.Length;
+                total += numericCode * patternLength;
             }
 
             // Time: 00:00:00.0034515
+            // Time with Part 2 Cache: 00:00:00.0050127
             return total.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Reset the cache
+            cache = [];
+
+            ulong total = 0;
+
+            foreach (var code in Input.SplitByNewline(shouldTrim: true))
+            {
+                var numericCode = ulong.Parse(code.Split("A")[0]);
+                var patternLength = GetDigitPatternLength(code, true);
+
+                // Console.WriteLine($"{code}: {pattern}");
+
+                total += numericCode * patternLength;
+            }
+
+            // Time: 00:00:00.0006504
+            return total.ToString();
         }
     }
 }
