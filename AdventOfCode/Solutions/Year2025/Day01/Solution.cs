@@ -48,8 +48,8 @@ namespace AdventOfCode.Solutions.Year2025
             {
                 position += (line[0] == 'L' ? -1 : 1) * int.Parse(line[1..]);
 
-                // Because % is not modulo in C#, we must operate with positive numbers only
-                position = (position % dialMax + dialMax) % dialMax;
+                // Referencing internal function for negative handling
+                position = position.Modulo(dialMax);
 
                 if (position == 0)
                     password++;
@@ -65,7 +65,7 @@ namespace AdventOfCode.Solutions.Year2025
 
             Input.SplitByNewline(true).ForEach(line =>
             {
-                var oldPosition = position;
+                var offset = position > 0 ? 1 : 0;
                 position += (line[0] == 'L' ? -1 : 1) * int.Parse(line[1..]);
 
                 // Part 2: Count the number of times we pass 0 / 100
@@ -73,11 +73,11 @@ namespace AdventOfCode.Solutions.Year2025
                     password += Math.Abs(position / dialMax);
                 else if (position < 0)
                     // For negative, we count if we passed 0 on this turn but only if we started above zero
-                    password += Math.Abs(position / dialMax) + (oldPosition > 0 ? 1 : 0);
+                    password += Math.Abs(position / dialMax) + offset;
                 else if (position == 0)
                     password++;
 
-                position = (position % dialMax + dialMax) % dialMax;
+                position = position.Modulo(dialMax);
             });
 
             return password.ToString();

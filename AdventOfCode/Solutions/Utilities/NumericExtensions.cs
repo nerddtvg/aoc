@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace AdventOfCode.Solutions
 {
@@ -23,7 +24,7 @@ namespace AdventOfCode.Solutions
             var divisors = new SortedSet<UInt64>();
 
             // Save this so we only do it once
-            var sqrt = (UInt64) Math.Sqrt(input);
+            var sqrt = (UInt64)Math.Sqrt(input);
 
             for (UInt64 i = 1; i <= sqrt; i++)
             {
@@ -77,7 +78,7 @@ namespace AdventOfCode.Solutions
         {
             if (input < 0)
                 throw new ArgumentException($"The given input must be positive.", nameof(input));
-                
+
             // We can use the uint function and down-cast them since we know the divisors can't be larger than input
             return ((UInt64)input)
                 .GetDivisors()
@@ -94,7 +95,7 @@ namespace AdventOfCode.Solutions
         {
             if (input < 0)
                 throw new ArgumentException($"The given input must be positive.", nameof(input));
-                
+
             // We can use the uint function and down-cast them since we know the divisors can't be larger than input
             return ((UInt64)input)
                 .GetDivisors()
@@ -129,7 +130,7 @@ namespace AdventOfCode.Solutions
             // What we will return
             var digits = new Stack<UInt64>();
 
-            while(source > 0)
+            while (source > 0)
             {
                 // Add this digit
                 digits.Push(source % 10);
@@ -174,7 +175,7 @@ namespace AdventOfCode.Solutions
         {
             if (input < 0)
                 throw new ArgumentException($"The given input must be positive.", nameof(input));
-                
+
             // We can use the uint function and down-cast them since we know the digits are really just 0-9
             return ((UInt64)input)
                 .GetDigits()
@@ -191,7 +192,7 @@ namespace AdventOfCode.Solutions
         {
             if (input < 0)
                 throw new ArgumentException($"The given input must be positive.", nameof(input));
-                
+
             // We can use the uint function and down-cast them since we know the digits are really just 0-9
             return ((UInt64)input)
                 .GetDivisors()
