@@ -55,6 +55,7 @@ namespace AdventOfCode.Solutions.Year2025
                     password++;
             });
 
+            // Time  : 00:00:00.0048272
             return password.ToString();
         }
 
@@ -80,6 +81,7 @@ namespace AdventOfCode.Solutions.Year2025
                 position = position.Modulo(dialMax);
             });
 
+            // Time  : 00:00:00.0014173
             return password.ToString();
         }
     }
