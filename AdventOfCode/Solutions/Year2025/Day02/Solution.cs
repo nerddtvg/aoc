@@ -8,8 +8,7 @@ using System.Linq;
 
 namespace AdventOfCode.Solutions.Year2025
 {
-
-    class Day02 : ASolution
+    partial class Day02 : ASolution
     {
 
         public Day02() : base(02, 2025, "Gift Shop")
@@ -49,8 +48,32 @@ namespace AdventOfCode.Solutions.Year2025
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            ulong solution = 0;
+
+            var regex = PatternMatch();
+
+            // Brute force method, check each value
+            Input.Trim().Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ForEach(line =>
+            {
+                var start_end = line.Split('-');
+                ulong start = ulong.Parse(start_end[0]);
+                ulong end = ulong.Parse(start_end[1]);
+
+                for (var i = start; i <= end; i++)
+                {
+                    var s = i.ToString();
+
+                    if (regex.IsMatch(i.ToString()))
+                        solution += i;
+                }
+            });
+
+            // Time  : 00:00:01.6094041
+            return solution.ToString();
         }
+
+        [GeneratedRegex(@"^([0-9]+)\1+$")]
+        private static partial Regex PatternMatch();
     }
 }
 
