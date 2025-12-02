@@ -49,7 +49,7 @@ namespace AdventOfCode.Solutions.Year2025
                 position += (line[0] == 'L' ? -1 : 1) * int.Parse(line[1..]);
 
                 // Referencing internal function for negative handling
-                position = position.Modulo(dialMax);
+                position = position.Remainder(dialMax);
 
                 if (position == 0)
                     password++;
@@ -78,7 +78,7 @@ namespace AdventOfCode.Solutions.Year2025
                 else if (position == 0)
                     password++;
 
-                position = position.Modulo(dialMax);
+                position = position.Remainder(dialMax);
             });
 
             // Time  : 00:00:00.0014173
