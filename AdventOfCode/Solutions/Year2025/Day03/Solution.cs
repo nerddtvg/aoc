@@ -119,6 +119,7 @@ namespace AdventOfCode.Solutions.Year2025
 
             // BELOW: Previous attempts with multiple iterations
             // I went to the subreddit for a hint because each attempt I had kept failing
+            // Hint from: https://old.reddit.com/r/adventofcode/comments/1pcyjfs/2025_day_03_part_2/
 
             /*
             // Get all  of our characters and positions in the string
