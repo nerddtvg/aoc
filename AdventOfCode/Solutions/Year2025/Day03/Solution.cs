@@ -96,6 +96,9 @@ namespace AdventOfCode.Solutions.Year2025
         {
             int desiredLength = 12;
 
+            // I went to the subreddit for a hint because each attempt I had kept failing
+            // Hint from: https://old.reddit.com/r/adventofcode/comments/1pcyjfs/2025_day_03_part_2/
+
             // Work with a sliding window
             // 0 to length-desiredLength
             // Find maximum value, slide window, try again
@@ -116,73 +119,6 @@ namespace AdventOfCode.Solutions.Year2025
             }
 
             return BigInteger.Parse(ret);
-
-            // BELOW: Previous attempts with multiple iterations
-            // I went to the subreddit for a hint because each attempt I had kept failing
-            // Hint from: https://old.reddit.com/r/adventofcode/comments/1pcyjfs/2025_day_03_part_2/
-
-            /*
-            // Get all  of our characters and positions in the string
-            var charIdx = line.Select((c, idx) => (c, idx)).GroupBy(obj => obj.c, obj => obj.idx).ToDictionary(grp => grp.Key, grp => new SortedSet<int>(grp));
-            var includedIndex = new SortedSet<int>();
-
-            // Go through each value, highest to lowest and 'activate' the index
-            while (includedIndex.Count < 12)
-            {
-                for (var c = '9'; c > '0' && includedIndex.Count < 12; c--)
-                {
-                    if (charIdx.TryGetValue(c, out var value))
-                    {
-                        // First, highest character match => Add all entries
-                        if (includedIndex.Count == 0)
-                        {
-                            value.ForEach(idx => includedIndex.Add(idx));
-                            charIdx.Remove(c);
-                            continue;
-                        }
-
-                        // Now we want to add all of these values IF the index is less than the lowest index in the set
-                        // If the lowestIdx is within the last 12, then we can ignore it
-                        var lowestIdx = includedIndex.Count < 12 ? 0 : includedIndex.First();
-
-                        // Send ToArray() to ensure we can maniuplate the original list inside the loop
-                        foreach (var idx in value.OrderDescending().ToArray())
-                        {
-                            if (idx < lowestIdx || includedIndex.Count == 12)
-                            {
-                                break;
-                            }
-
-                            includedIndex.Add(idx);
-                            value.Remove(idx);
-                        }
-
-                        if (value.Count == 0)
-                            charIdx.Remove(c);
-                    }
-                }
-            }
-
-            return BigInteger.Parse(includedIndex.Select(i => line[i]).JoinAsString());
-
-            var sorted = new Queue<char>(line.ToCharArray().OrderDescending());
-
-            while (sorted.Count > 0 && includedIndex.Count < 12)
-            {
-                var searchC = sorted.Dequeue();
-
-                for (int i = 0; i < line.Length; i++)
-                {
-                    if (!includedIndex.Contains(i) && line[i] == searchC)
-                    {
-                        includedIndex.Add(i);
-                        break;
-                    }
-                }
-            }
-
-            return BigInteger.Parse(includedIndex.Select(i => line[i]).JoinAsString());
-            */
         }
     }
 }
