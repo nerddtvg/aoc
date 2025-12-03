@@ -19,83 +19,36 @@ namespace AdventOfCode.Solutions.Year2025
         {
             var tests = new[]
             {
-                ("987654321111111", 98),
-                ("811111111111119", 89),
-                ("234234234234278", 78),
-                ("818181911112111", 92)
+                ("987654321111111", 98, 987654321111),
+                ("811111111111119", 89, 811111111119),
+                ("234234234234278", 78, 434234234278),
+                ("818181911112111", 92, 888911112111)
             };
 
-            foreach ((var line, var expected) in tests)
+            foreach ((var line, var expected1, BigInteger expected2) in tests)
             {
-                var result = MaxJoltage(line);
-                Debug.Assert(result == expected, $"Line '{line}' returned '{result}', expected '{expected}'");
-            }
+                var result1 = MaxJoltage(line, 2);
+                Debug.Assert(result1 == expected1, $"[Part 1] Line '{line}' returned '{result1}', expected '{expected1}'");
 
-            var tests2 = new[]
-            {
-                ("987654321111111", 987654321111),
-                ("811111111111119", 811111111119),
-                ("234234234234278", 434234234278),
-                ("818181911112111", 888911112111)
-            };
-
-            foreach ((var line, BigInteger expected) in tests2)
-            {
-                var result = MaxJoltage2(line);
-                Debug.Assert(result == expected, $"Line '{line}' returned '{result}', expected '{expected}'");
+                var result2 = MaxJoltage(line, 12);
+                Debug.Assert(result2 == expected2, $"[Part 2] Line '{line}' returned '{result2}', expected '{expected2}'");
             }
         }
 
         protected override string? SolvePartOne()
         {
             // Time  : 00:00:00.0048054
-            return Input.SplitByNewline().Sum(MaxJoltage).ToString();
+            return Input.SplitByNewline().SumBigInteger(line => MaxJoltage(line, 2)).ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            // Time  : 00:00:00.0051798
-            return Input.SplitByNewline().SumBigInteger(MaxJoltage2).ToString();
+            // Time  : 00:00:00.0038272
+            return Input.SplitByNewline().SumBigInteger(line => MaxJoltage(line, 12)).ToString();
         }
 
-        private int MaxJoltage(string line)
+        private BigInteger? MaxJoltage(string line, int desiredLength = 12)
         {
-            // Search LTR and find the highest value + index
-            // Then search LTR index+1 to find the next highest value
-            var ret = 0;
-            var max = line[0];
-            var maxI = 0;
-
-            for (int i = 1; i < line.Length - 1; i++)
-            {
-                if (line[i] > max)
-                {
-                    max = line[i];
-                    maxI = i;
-                }
-            }
-
-            // Convert char int to int without parse
-            ret += (max - 48) * 10;
-
-            max = line[maxI + 1];
-            for (int i = maxI + 2; i < line.Length; i++)
-            {
-                if (line[i] > max)
-                {
-                    max = line[i];
-                }
-            }
-
-            ret += max - 48;
-
-            return ret;
-        }
-
-        private BigInteger? MaxJoltage2(string line)
-        {
-            int desiredLength = 12;
-
             // I went to the subreddit for a hint because each attempt I had kept failing
             // Hint from: https://old.reddit.com/r/adventofcode/comments/1pcyjfs/2025_day_03_part_2/
 
