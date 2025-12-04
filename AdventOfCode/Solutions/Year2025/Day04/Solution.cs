@@ -15,15 +15,11 @@ namespace AdventOfCode.Solutions.Year2025
 
         private readonly (int x, int y)[] directions =
         [
-                // (-1, -1),
-                // (0, -1),
-                // (1, -1),
-                // (-1, 0),
-                (1, 0),
-                (-1, 1),
-                (0, 1),
-                (1, 1)
-            ];
+            (1, 0),
+            (-1, 1),
+            (0, 1),
+            (1, 1)
+        ];
 
         public Day04() : base(04, 2025, "Printing Department")
         {
@@ -85,32 +81,8 @@ namespace AdventOfCode.Solutions.Year2025
 
         protected override string? SolvePartOne()
         {
-            // char[][] grid = [.. Input.SplitByNewline(true).Select(line => line.ToCharArray())];
-            var valid = ValidMoves();
-
-            // Console.WriteLine();
-            // for (int y = 0; y < grid.Length; y++)
-            // {
-            //     for (int x = 0; x < grid[0].Length; x++)
-            //     {
-            //         // if (y == 9 && x == 8) System.Diagnostics.Debugger.Break();
-            //         // Found a bale
-            //         if (grid[y][x] == '@' && valid.Contains((x, y)))
-            //         {
-            //             Console.Write('*');
-            //         }
-            //         else
-            //         {
-            //             Console.Write('.');
-            //             // Console.Write(grid[y][x]);
-            //         }
-            //     }
-
-            //     Console.WriteLine();
-            // }
-
             // Time  : 00:00:00.0138389
-            return valid.Length.ToString();
+            return ValidMoves().Length.ToString();
         }
 
         protected override string? SolvePartTwo()
