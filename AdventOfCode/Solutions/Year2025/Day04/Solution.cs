@@ -21,6 +21,18 @@ namespace AdventOfCode.Solutions.Year2025
             (1, 1)
         ];
 
+        private readonly (int x, int y)[] allDirections =
+        [
+            (-1, -1),
+            (0, -1),
+            (1, -1),
+            (-1, 0),
+            (1, 0),
+            (-1, 1),
+            (0, 1),
+            (1, 1)
+        ];
+
         public Day04() : base(04, 2025, "Printing Department")
         {
             // DebugInput = @"..@@.@@@@.
@@ -87,8 +99,39 @@ namespace AdventOfCode.Solutions.Year2025
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            var removed = 0;
+            var validMoves = ValidMoves();
+
+
+            int maxY = counted.Length;
+            int maxX = counted[0].Length;
+
+            do
+            {
+                // Add these remoevd
+                removed += validMoves.Length;
+
+                foreach (var (x, y) in validMoves)
+                {
+                    // Remove this one
+                    counted[y][x] = -1;
+
+                    // Reset counts around us
+                    allDirections.ForEach(dir =>
+                    {
+                        // Don't care if this goes negative
+                        if (0 <= y + dir.y && y + dir.y < maxY && 0 <= x + dir.x && x + dir.x < maxX)
+                        {
+                            counted[y + dir.y][x + dir.x]--;
+                        }
+                    });
+                }
+
+                // Find next loop
+                validMoves = ValidMoves();
+            } while (validMoves.Length > 0);
+
+            return removed.ToString();
         }
     }
 }
-
