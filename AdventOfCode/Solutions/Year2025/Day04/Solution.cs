@@ -131,6 +131,7 @@ namespace AdventOfCode.Solutions.Year2025
                 validMoves = ValidMoves();
             } while (validMoves.Length > 0);
 
+            // Time: Time  : 00:00:00.1584616
             return removed.ToString();
         }
     }
