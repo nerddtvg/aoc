@@ -50,59 +50,49 @@ namespace AdventOfCode.Solutions.Year2025
         {
             string[] lines = [.. Input.SplitByNewline()];
 
-            // Pad the last line with spaces
+            // Ensure all lines are the same length
             var maxLength = lines.Max(line => line.Length);
-            lines[^1] = lines[^1].PadRight(maxLength, ' ');
+            lines.ForEach((line, idx) => lines[idx] = lines[idx].PadRight(maxLength));
 
-            // Go through the bottom line to figure out each problem's "width"
-            var widths = new List<int>();
-            int w = 1;
+            // Keep a rolling result
+            var finalResult = BigInteger.Zero;
+            var tempResult = BigInteger.Zero;
 
-            for (int i = 1; i < lines[^1].Length; i++)
+            // Get our starting operation
+            var op = lines[^1][0];
+
+            for (int i = 0; i < lines[0].Length; i++)
             {
+                // Check if we have moved on
                 if (lines[^1][i] != ' ')
                 {
-                    widths.Add(w - 1);
-                    w = 1;
-                }
-                else
-                {
-                    w++;
-                }
-            }
-
-            // Add the last one (this does not include an extra space)
-            widths.Add(w);
-
-            // Track offset so we know where to start our string selection
-            var finalResult = BigInteger.Zero;
-            var offset = 0;
-
-            for(int idx=0; idx<widths.Count; idx++)
-            {
-                var op = lines[^1][offset];
-                BigInteger result = op == '+' ? BigInteger.Zero : BigInteger.One;
-
-                // For each operation:
-                // Build the numbers
-                // Do the operation
-                // Add to the finalResult
-                for (int i = widths[idx]-1; i >= 0; i--)
-                {
-                    var num = BigInteger.Parse(lines.SkipLast(1).Select(line => line[offset + i]).JoinAsString().Trim());
+                    op = lines[^1][i];
 
                     if (op == '+')
-                        result += num;
+                        tempResult = BigInteger.Zero;
                     else
-                        result *= num;
+                        tempResult = BigInteger.One;
                 }
 
-                // Move the offset
-                offset += widths[idx] + 1;
+                // Ending of current operation
+                if (lines.All(line => line[i] == ' '))
+                {
+                    finalResult += tempResult;
+                    continue;
+                }
 
-                finalResult += result;
+                var num = BigInteger.Parse(lines.SkipLast(1).Select(line => line[i]).JoinAsString().Trim());
+
+                if (op == '+')
+                    tempResult += num;
+                else
+                    tempResult *= num;
             }
 
+            // Add the last item
+            finalResult += tempResult;
+
+            // Time  : 00:00:00.0093177
             return finalResult.ToString();
         }
     }
