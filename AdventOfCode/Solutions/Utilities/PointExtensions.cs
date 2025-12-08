@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace AdventOfCode.Solutions
 {
@@ -167,7 +168,7 @@ namespace AdventOfCode.Solutions
                 fx = x => x >= b.x;
                 incx = x => x - 1;
             }
-            
+
             if (a.y > b.y)
             {
                 fy = y => y >= b.y;
@@ -225,7 +226,7 @@ namespace AdventOfCode.Solutions
             var ret = a.GetPointsBetweenInclusive(b, IsLine);
 
             // Return the array
-            return ret.Skip(1).Take(ret.Length-2).ToArray();
+            return ret.Skip(1).Take(ret.Length - 2).ToArray();
         }
 
         /// <summary>
@@ -291,5 +292,63 @@ namespace AdventOfCode.Solutions
         {
             return points.OrderBy(point => point.y).ThenBy(point => point.x);
         }
+
+        /// <summary>
+        /// Get the Euclidean Distance between two (x, y) points
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y) values</param>
+        /// <param name="b">A tuple of integer (x, y) values</param>
+        /// <returns>An <see cref="System.Double"/> distance</returns>
+        public static double Distance(this (int x, int y) a, (int x, int y) b) => PointExtensions<int>.Distance(a, b);
+
+        /// <summary>
+        /// Get the Euclidean Distance between two (x, y, z) points
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y, z) values</param>
+        /// <param name="b">A tuple of integer (x, y, z) values</param>
+        /// <returns>An <see cref="System.Double"/> distance</returns>
+        public static double Distance(this (int x, int y, int z) a, (int x, int y, int z) b) => PointExtensions<int>.Distance(a, b);
+
+        /// <summary>
+        /// Get the Euclidean Distance between two (x, y) points
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y) values</param>
+        /// <param name="b">A tuple of integer (x, y) values</param>
+        /// <returns>An <see cref="System.Double"/> distance</returns>
+        public static double Distance(this (Int64 x, Int64 y) a, (Int64 x, Int64 y) b) => PointExtensions<Int64>.Distance(a, b);
+
+        /// <summary>
+        /// Get the Euclidean Distance between two (x, y, z) points
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y, z) values</param>
+        /// <param name="b">A tuple of integer (x, y, z) values</param>
+        /// <returns>An <see cref="System.Double"/> distance</returns>
+        public static double Distance(this (Int64 x, Int64 y, Int64 z) a, (Int64 x, Int64 y, Int64 z) b) => PointExtensions<Int64>.Distance(a, b);
+    }
+
+    public static class PointExtensions<T> where T : INumber<T>
+    {
+        /// <summary>
+        /// Get the Euclidean Distance between two (x, y) points
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y) values</param>
+        /// <param name="b">A tuple of integer (x, y) values</param>
+        /// <returns>An <see cref="System.Double"/> distance</returns>
+        public static double Distance((T x, T y) a, (T x, T y) b)
+        {
+            return Math.Sqrt(Math.Pow(Convert.ToDouble(a.x - b.x), 2) + Math.Pow(Convert.ToDouble(a.y - b.y), 2));
+        }
+
+        /// <summary>
+        /// Get the Euclidean Distance between two (x, y, z) points
+        /// </summary>
+        /// <param name="a">A tuple of integer (x, y, z) values</param>
+        /// <param name="b">A tuple of integer (x, y, z) values</param>
+        /// <returns>An <see cref="System.Double"/> distance</returns>
+        public static double Distance((T x, T y, T z) a, (T x, T y, T z) b)
+        {
+            return Math.Sqrt(Math.Pow(Convert.ToDouble(a.x - b.x), 2) + Math.Pow(Convert.ToDouble(a.y - b.y), 2) + Math.Pow(Convert.ToDouble(a.z - b.z), 2));
+        }
+
     }
 }
