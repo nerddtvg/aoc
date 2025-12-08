@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using System.Linq;
+using System.Numerics;
 
 
 namespace AdventOfCode.Solutions.Year2025
@@ -12,6 +13,7 @@ namespace AdventOfCode.Solutions.Year2025
     class Day07 : ASolution
     {
         private string[] grid;
+        private BigInteger timelineCount = 0;
 
         public Day07() : base(07, 2025, "Laboratories")
         {
@@ -39,12 +41,14 @@ namespace AdventOfCode.Solutions.Year2025
 
         protected override string? SolvePartOne()
         {
-            var active = new HashSet<int>([grid[0].IndexOf('S')]);
+            // Part 1: This was a hashset of the index only
+            // Part 2: Track the number of times we hit each point so we can total it at the end
+            var active = new Dictionary<int, BigInteger>() { { grid[0].IndexOf('S'), 1 } };
             var splitCount = 0;
 
             foreach (var line in grid.Skip(1))
             {
-                var newActive = new HashSet<int>();
+                var newActive = new Dictionary<int, BigInteger>();
 
                 // We track the 'active' beams traveling down
                 // We remove any that hit splitters
@@ -53,7 +57,7 @@ namespace AdventOfCode.Solutions.Year2025
                 line.ForEach((c, idx) =>
                 {
                     // If this index is active
-                    if (active.Contains(idx))
+                    if (active.ContainsKey(idx))
                     {
                         // Did we get a splitter?
                         if (c == '^')
@@ -63,13 +67,25 @@ namespace AdventOfCode.Solutions.Year2025
 
                             // If this splitter position was 'active' above, stop and start new
                             // Overflows don't matter since we are not using these in a loop
-                            newActive.Add(idx - 1);
-                            newActive.Add(idx + 1);
+
+                            // Part one we used HashSet.Add, part 2 must check for existence
+                            if (newActive.TryGetValue(idx - 1, out BigInteger tmp))
+                                newActive[idx - 1] += active[idx];
+                            else
+                                newActive.Add(idx - 1, active[idx]);
+
+                            if (newActive.TryGetValue(idx + 1, out tmp))
+                                newActive[idx + 1] = tmp + active[idx];
+                            else
+                                newActive.Add(idx + 1, active[idx]);
                         }
                         else
                         {
                             // This continues as-is
-                            newActive.Add(idx);
+                            if (newActive.TryGetValue(idx, out BigInteger tmp))
+                                newActive[idx] += active[idx];
+                            else
+                                newActive.Add(idx, active[idx]);
                         }
                     }
                 });
@@ -77,13 +93,18 @@ namespace AdventOfCode.Solutions.Year2025
                 active = newActive;
             }
 
+            // Save for Part 2
+            timelineCount = active.SumBigInteger(itm => itm.Value) ?? BigInteger.Zero;
+
             // Time  : 00:00:00.0032827
+            // Time with Part 2: 00:00:00.0104678
             return splitCount.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            // Time: Neglible, saved from part 1
+            return timelineCount.ToString();
         }
     }
 }
