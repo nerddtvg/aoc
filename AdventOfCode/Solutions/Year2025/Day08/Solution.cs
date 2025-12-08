@@ -17,6 +17,8 @@ namespace AdventOfCode.Solutions.Year2025
 
         private readonly List<HashSet<(int a, int b, int c)>> groups = [];
 
+        private (int a, int b, int c)[] linkedPoints = [];
+
         public Day08() : base(08, 2025, "Playground")
         {
             // DebugInput = @"162,817,812
@@ -56,22 +58,38 @@ namespace AdventOfCode.Solutions.Year2025
 
         protected override string? SolvePartOne()
         {
+            // Difference with debug input
+            int count = points.Count > 20 ? 1000 : 10;
+
+            GroupTogether(count);
+
+            // A lot happens in the initializer
+            // Time  : 00:00:00.0704138
+            return groups
+                .Select(grp => grp.Count)
+                .OrderDescending()
+                .Take(3)
+                .Aggregate(BigInteger.One, (a, b) => a * b)
+                .ToString();
+        }
+
+        private void GroupTogether(int count = int.MaxValue)
+        {
             // Go through the list of distances from shortest to (max count)
             // Identify if one or both of those items are in a circuit
             // If so, that circuit is now extended (or combined)
             // If not, make a new circuit
 
-            // Difference with debug input
-            int count = points.Count > 20 ? 1000 : 10;
-
-            pairs.OrderBy(kvp => kvp.Key).Take(count).ForEach(kvp =>
+            // Sending through ToArray so we can remove entries
+            foreach(var kvp in pairs.OrderBy(kvp => kvp.Key).Take(count).ToArray())
             {
                 var found = -1;
                 var pair = kvp.Value;
 
                 var removeGroups = new List<int>();
 
-                groups.ForEach((grp, idx) =>
+                int idx = 0;
+                foreach (var grp in groups)
                 {
                     if (grp.Contains(pair[0]) || grp.Contains(pair[1]))
                     {
@@ -91,7 +109,20 @@ namespace AdventOfCode.Solutions.Year2025
                             removeGroups.Add(idx);
                         }
                     }
-                });
+
+                    // For Part 2: If this made a single circuit from all points, then we are done
+                    if (groups[idx].Count == points.Count)
+                    {
+                        linkedPoints = pair;
+                        break;
+                    }
+
+                    idx++;
+                }
+
+                // Break out early for Part 2
+                if (linkedPoints.Length > 0)
+                    break;
 
                 if (found < 0)
                 {
@@ -101,21 +132,19 @@ namespace AdventOfCode.Solutions.Year2025
 
                 // Pass this descending and via ToArray to ensure we can manipulate the original list
                 removeGroups.OrderDescending().ToArray().ForEach(groups.RemoveAt);
-            });
 
-            // A lot happens in the initializer
-            // Time  : 00:00:00.0704138
-            return groups
-                .Select(grp => grp.Count)
-                .OrderDescending()
-                .Take(3)
-                .Aggregate(BigInteger.One, (a, b) => a * b)
-                .ToString();
+                pairs.Remove(kvp.Key);
+            }
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+            GroupTogether();
+
+            if (linkedPoints.Length != 2)
+                throw new Exception("Unable to complete Part 2");
+
+            return ((BigInteger)linkedPoints[0].a * (BigInteger)linkedPoints[1].a).ToString();
         }
     }
 }
