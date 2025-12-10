@@ -52,14 +52,14 @@ namespace AdventOfCode.Solutions.Year2025
                     {
                         lights = [..parts.Groups["light"].Captures.Select(c => c.Value == "#" ? 1 : 0)],
                         buttons = [..parts.Groups["buttons"].Captures.Select(c => {
-                            var btns = c.Value.Trim().Replace("(", "").Replace(")", "").ToIntArray();
+                            var btns = c.Value.Trim().Replace("(", "").Replace(")", "").ToIntArray(",");
 
                             return Enumerable
                                 .Range(0, parts.Groups["light"].Captures.Count)
                                 .Select(idx => btns.Contains(idx) ? 1 : 0)
                                 .ToArray();
                         })],
-                        joltages = parts.Groups["joltages"].Captures[0].Value.ToIntArray()
+                        joltages = parts.Groups["joltages"].Captures[0].Value.ToIntArray(",")
                     };
                 })];
         }
@@ -122,12 +122,63 @@ namespace AdventOfCode.Solutions.Year2025
                 minButtons += ulong.Parse(ans.Lower.ToString());
             }
 
+            // Time  : 00:00:01.8464781
             return minButtons.ToString();
         }
 
         protected override string? SolvePartTwo()
         {
-            return string.Empty;
+
+            ulong minButtons = 0;
+
+            foreach (var line in lines)
+            {
+                // For each of these, we establish a Z3 solver that solves for the minimum number of pushes required to satisfy the given joltage constraints
+                var z3Context = new Context();
+
+                // Define a variable for each "button" and the total of all buttons together
+                var buttonVars = line.buttons.Select((btn, idx) => z3Context.MkIntConst($"button{idx}")).ToArray();
+                var buttonTotal = z3Context.MkIntConst("buttonTotal");
+
+                // The optimizer / solver instance
+                var optimize = z3Context.MkOptimize();
+
+                // Calculate each of the outcomes for the lights
+                line.joltages.ForEach((joltage, joltageIdx) =>
+                {
+                    optimize.Add(
+                        z3Context.MkEq(
+                            z3Context.MkInt(joltage),
+                            z3Context.MkAdd(
+                                // Multiple the buttonVar (number of times pushed) against the button value (0 or 1 for toggling light)
+                                buttonVars.Select((btn, btnIdx) => btn * z3Context.MkInt(line.buttons[btnIdx][joltageIdx]))
+                            )
+                        )
+                    );
+                });
+
+                // Ensure we add all the button pushes together
+                optimize.Add(
+                    z3Context.MkEq(buttonTotal, z3Context.MkAdd(buttonVars))
+                );
+
+                // Ensure each button cannot be negative
+                buttonVars.ForEach(btn => optimize.Add(z3Context.MkGe(btn, z3Context.MkInt(0))));
+
+                // Ensure we have a value
+                optimize.Add(z3Context.MkGt(buttonTotal, z3Context.MkInt(0)));
+
+                // ... with the lowest total button pushes
+                var ans = optimize.MkMinimize(buttonTotal);
+
+                if (optimize.Check() != Status.SATISFIABLE)
+                    throw new Exception();
+
+                minButtons += ulong.Parse(ans.Lower.ToString());
+            }
+
+            // Time  : 00:00:02.6253885
+            return minButtons.ToString();
         }
     }
 }
