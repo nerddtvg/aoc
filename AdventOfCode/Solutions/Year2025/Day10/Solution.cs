@@ -143,14 +143,14 @@ namespace AdventOfCode.Solutions.Year2025
                 // The optimizer / solver instance
                 var optimize = z3Context.MkOptimize();
 
-                // Calculate each of the outcomes for the lights
+                // Calculate each of the outcomes for the joltages
                 line.joltages.ForEach((joltage, joltageIdx) =>
                 {
                     optimize.Add(
                         z3Context.MkEq(
                             z3Context.MkInt(joltage),
                             z3Context.MkAdd(
-                                // Multiple the buttonVar (number of times pushed) against the button value (0 or 1 for toggling light)
+                                // Multiple the buttonVar (number of times pushed) against the joltage value (0 or 1 for adding joltage)
                                 buttonVars.Select((btn, btnIdx) => btn * z3Context.MkInt(line.buttons[btnIdx][joltageIdx]))
                             )
                         )
