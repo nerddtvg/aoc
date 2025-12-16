@@ -12,16 +12,19 @@ namespace AdventOfCode.Solutions
     abstract class ASolution
     {
 
-        Lazy<string?> _input;
+        readonly Lazy<string?> _input;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        Lazy<string?> _part1, _part2;
+        readonly Lazy<string?> _part1, _part2;
 
         public int Day { get; }
         public int Year { get; }
         public string Title { get; }
         public string DebugInput { get; set; } = string.Empty;
         public string Input => !string.IsNullOrEmpty(DebugInput) ? DebugInput : (string.IsNullOrEmpty(_input.Value) ? string.Empty : _input.Value);
+
+        // Tracking the initialization load time
+        public TimeSpan? LoadTime { get; set; } = null;
 
         // Hiding these from the debugger
         // If a debug session is paused, this will inadvertantly initialize the solutions
@@ -37,8 +40,8 @@ namespace AdventOfCode.Solutions
             Year = year;
             Title = !string.IsNullOrEmpty(title) ? title : "Unspecified";
             _input = new Lazy<string?>(() => LoadInput());
-            _part1 = new Lazy<string?>(() => SolvePartOne());
-            _part2 = new Lazy<string?>(() => SolvePartTwo());
+            _part1 = new Lazy<string?>(SolvePartOne);
+            _part2 = new Lazy<string?>(SolvePartTwo);
         }
 
         public void Solve(int part = 0)
@@ -49,6 +52,11 @@ namespace AdventOfCode.Solutions
             if (!string.IsNullOrEmpty(DebugInput))
             {
                 output += $"!!! DebugInput used:\n{DebugInput}\n";
+            }
+
+            if (LoadTime.HasValue)
+            {
+                output += $"Init  : {LoadTime.Value}\n";
             }
 
             try

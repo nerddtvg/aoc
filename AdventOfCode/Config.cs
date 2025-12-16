@@ -11,45 +11,36 @@ namespace AdventOfCode
     /// <summary>
     /// Application Configuration Class
     /// </summary>
-    class Config
+    partial class Config
     {
-        /// <summary>
-        /// Backing Field: Cookie
-        /// </summary>
-        string _c = string.Empty;
 
-        /// <summary>
-        /// Backing Field: Year
-        /// </summary>
-        int _y = 2015;
-
-        /// <summary>
-        /// Backing Field: Days
-        /// </summary>
-        /// <value></value>
-        int[] _d = new int[] { 0 };
+        [GeneratedRegex("^session=[a-z0-9]+$")]
+        private static partial Regex SessionRegex();
 
         /// <summary>
         /// Advent of Code Session Cookie
         /// </summary>
         public string Cookie
         {
-            get => _c;
+            get;
             set
             {
-                if (Regex.IsMatch(value, "^session=[a-z0-9]+$")) _c = value;
+                if (!SessionRegex().IsMatch(value))
+                    throw new ArgumentException("Cookie must be in the format 'session=[a-z0-9]+'");
+
+                field = value;
             }
-        }
+        } = string.Empty;
 
         /// <summary>
         /// Puzzle Year
         /// </summary>
         public int Year
         {
-            get => _y;
+            get;
             set
             {
-                if (value >= 2015 && value <= DateTime.Now.Year) _y = value;
+                if (value >= 2015 && value <= DateTime.Now.Year) field = value;
             }
         }
 
@@ -60,34 +51,34 @@ namespace AdventOfCode
         [JsonConverter(typeof(DaysConverter))]
         public int[] Days
         {
-            get => _d;
+            get;
             set
             {
                 bool allDaysCovered = false;
-                _d = value.Where(v =>
+                field = [.. value.Where(v =>
                 {
                     if (v == 0) allDaysCovered = true;
                     return v > 0 && v < 26;
-                }).ToArray();
+                })];
 
                 if (allDaysCovered)
                 {
-                    _d = new int[] { 0 };
+                    field = [0];
                 }
                 else
                 {
-                    Array.Sort(_d);
+                    Array.Sort(field);
                 }
             }
-        }
+        } = [0];
 
-        void setDefaults()
+        void SetDefaults()
         {
             //Make sure we're looking at EST, or it might break for most of the US
             DateTime CURRENT_EST = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.Utc).AddHours(-5);
-            if (Cookie == default(string)) Cookie = string.Empty;
-            if (Year == default(int)) Year = CURRENT_EST.Year;
-            if (Days == default(int[])) Days = (CURRENT_EST.Month == 12 && CURRENT_EST.Day <= 25) ? new int[] { CURRENT_EST.Day } : new int[] { 0 };
+            if (Cookie == default) Cookie = string.Empty;
+            if (Year == default) Year = CURRENT_EST.Year;
+            if (Days == default(int[])) Days = (CURRENT_EST.Month == 12 && CURRENT_EST.Day <= 25) ? [CURRENT_EST.Day] : [0];
         }
 
         public static Config Get(string path)
@@ -103,12 +94,12 @@ namespace AdventOfCode
             if (File.Exists(path) && JsonSerializer.Deserialize<Config>(File.ReadAllText(path), options) is Config configCast)
             {
                 config = configCast;
-                config.setDefaults();
+                config.SetDefaults();
             }
             else
             {
-                config.setDefaults();
-                File.WriteAllText(path, JsonSerializer.Serialize<Config>(config, options));
+                config.SetDefaults();
+                File.WriteAllText(path, JsonSerializer.Serialize(config, options));
             }
 
             return config;
@@ -119,16 +110,16 @@ namespace AdventOfCode
     {
         public override int[] Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            if (reader.TokenType == JsonTokenType.Number) return new int[] { reader.GetInt16() };
+            if (reader.TokenType == JsonTokenType.Number) return [reader.GetInt16()];
             var tokens = reader.TokenType == JsonTokenType.String
-                ? new string[] { reader.GetString() ?? string.Empty }
-                : (JsonSerializer.Deserialize<object[]>(ref reader)?.Select<object, string>(o => o.ToString() ?? string.Empty) ?? Array.Empty<string>());
-            return tokens.SelectMany<string, int>(ParseString).ToArray();
+                ? [reader.GetString() ?? string.Empty]
+                : (JsonSerializer.Deserialize<object[]>(ref reader)?.Select(o => o.ToString() ?? string.Empty) ?? []);
+            return [.. tokens.SelectMany(ParseString)];
         }
 
         private IEnumerable<int> ParseString(string str)
         {
-            return str.Split(",").SelectMany<string, int>(str =>
+            return str.Split(",").SelectMany(str =>
             {
                 if (str.Contains(".."))
                 {
@@ -139,9 +130,9 @@ namespace AdventOfCode
                 }
                 else if (int.TryParse(str, out int day))
                 {
-                    return new int[] { day };
+                    return [day];
                 }
-                return new int[0];
+                return [];
             });
         }
 

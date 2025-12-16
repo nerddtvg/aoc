@@ -1,16 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
 namespace AdventOfCode.Solutions
 {
-    class SolutionCollector : IEnumerable<ASolution>
+    class SolutionCollector(int year, int[] days) : IEnumerable<ASolution>
     {
-        IEnumerable<ASolution> Solutions;
-
-        public SolutionCollector(int year, int[] days) => Solutions = LoadSolutions(year, days).ToArray();
+        public readonly ASolution[] Solutions = [.. LoadSolutions(year, days)];
 
         public ASolution GetSolution(int day)
         {
@@ -26,7 +25,7 @@ namespace AdventOfCode.Solutions
 
         public IEnumerator<ASolution> GetEnumerator()
         {
-            return Solutions.GetEnumerator();
+            return ((IEnumerable<ASolution>)Solutions).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -34,18 +33,26 @@ namespace AdventOfCode.Solutions
             return GetEnumerator();
         }
 
-        IEnumerable<ASolution> LoadSolutions(int year, int[] days)
+        private static IEnumerable<ASolution> LoadSolutions(int year, int[] days)
         {
             if(days.Sum() == 0)
             {
-                days = Enumerable.Range(1, 25).ToArray();
+                // Starting in 2025, the number of puzzles changed to 12
+                days = [.. Enumerable.Range(1, year < 2025 ? 25 : 12)];
             }
-            
+
             foreach(int day in days)
             {
-                var solution = Type.GetType($"AdventOfCode.Solutions.Year{year}.Day{day.ToString("D2")}");
+                var stopWatch = new Stopwatch();
+                stopWatch.Start();
+
+                var solution = Type.GetType($"AdventOfCode.Solutions.Year{year}.Day{day:D2}");
                 if(solution != null && Activator.CreateInstance(solution) is ASolution solutionCast)
                 {
+                    // Tracking our initialization performance
+                    stopWatch.Stop();
+                    solutionCast.LoadTime = stopWatch.Elapsed;
+
                     yield return solutionCast;
                 }
             }
